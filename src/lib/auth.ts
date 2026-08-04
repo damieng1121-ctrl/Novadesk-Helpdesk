@@ -1,10 +1,13 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 
 import { authConfig } from "./auth.config";
 import { prisma } from "./db";
 import { getEmailDomain } from "./tenancy";
+
+const isDevLoginEnabled = process.env.NODE_ENV !== "production";
 
 function superAdminEmails(): string[] {
   return (process.env.NOVADESK_SUPER_ADMIN_EMAILS ?? "")
@@ -44,6 +47,27 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
         },
       },
     }),
+    // Non-production only (excluded from the array entirely, not just
+    // hidden in the UI) — lets you sign in as any already-seeded user by
+    // email with no password, for local/demo use before real Google OAuth
+    // credentials are set up. Never creates a user: only an existing row
+    // can be signed into this way.
+    ...(isDevLoginEnabled
+      ? [
+          Credentials({
+            id: "dev-login",
+            name: "Dev login (local only)",
+            credentials: { email: { label: "Email", type: "email" } },
+            async authorize(credentials) {
+              if (process.env.NODE_ENV === "production") return null;
+              const email = typeof credentials?.email === "string" ? credentials.email : undefined;
+              if (!email) return null;
+              const user = await prisma.user.findUnique({ where: { email } });
+              return user ? { id: user.id, email: user.email, name: user.name, image: user.image } : null;
+            },
+          }),
+        ]
+      : []),
   ],
   callbacks: {
     ...authConfig.callbacks,
@@ -83,14 +107,9 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
 
       return token;
     },
-    async session({ session, token }) {
-      session.user.id = token.id;
-      session.user.role = token.role;
-      session.user.tenantId = token.tenantId;
-      session.user.twoFactorEnabled = token.twoFactorEnabled;
-      session.user.twoFactorVerified = token.twoFactorVerified;
-      return session;
-    },
+    // session() is inherited from authConfig.callbacks (see auth.config.ts)
+    // — it's pure token->session mapping with no DB access, so it's shared
+    // as-is rather than duplicated here.
   },
   events: {
     async createUser({ user }) {

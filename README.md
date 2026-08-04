@@ -4,10 +4,11 @@ A multi-tenant IT helpdesk platform for UK primary schools: ticketing, a knowled
 Google SSO with 2FA, pluggable AI assistance (Claude or Gemini), and a DfE digital &
 technology standards compliance checklist.
 
-This is a working MVP scaffold — the full data model, auth, ticketing, knowledge base,
-compliance tracker, and admin settings are implemented end to end, but production
-hardening (real GCP credentials, file storage for attachments, email notifications,
-production deployment) is left as documented next steps below.
+This is a working MVP — the full data model, auth, ticketing (with SLAs, attachments,
+and email notifications), knowledge base, compliance tracker, reporting, and admin
+settings are implemented end to end, runnable locally today via a one-click dev login
+with no external credentials needed. Real Google OAuth credentials, a production
+deployment, and a few smaller gaps are documented as next steps below.
 
 ## Stack
 
@@ -32,7 +33,10 @@ npm run db:seed             # seeds DfE compliance catalogue + a demo school
 npm run dev
 ```
 
-Visit `http://localhost:3000`.
+Visit `http://localhost:3000`. **No Google OAuth credentials?** `npm run dev` shows a
+"Dev login (local only)" section on the sign-in page — one click to sign in as any
+seeded demo user, no Google account needed. It only exists in `next dev` (see below),
+so there's no risk of it shipping to a real deployment.
 
 ### Option B: Docker Compose (closer to production)
 
@@ -63,9 +67,9 @@ See `.env.example` for the full list and generation commands. At minimum, for lo
 | `APP_ENCRYPTION_KEY` | Encrypts 2FA secrets and tenant-supplied AI API keys at rest — `openssl rand -hex 32` |
 | `ANTHROPIC_API_KEY` / `GOOGLE_GENAI_API_KEY` | Platform-level fallback AI keys (optional — schools can also supply their own in Settings) |
 
-Without real Google OAuth credentials you can still browse the DB (`npm run db:studio`),
-run `next build`, and inspect the seeded demo data, but you won't be able to complete a
-sign-in — Google SSO is the only auth path by design (see below).
+Without real Google OAuth credentials, `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` can stay
+blank for now — use the dev login described below to sign in and explore the UI, then
+come back and fill those in when you're ready to test real SSO.
 
 ## Multi-tenancy model
 
@@ -93,6 +97,14 @@ rationale and the (cosmetic, non-security) subdomain-routing helper.
   enforced both in `src/lib/auth.config.ts` (page-level redirect) and again in
   `src/lib/session.ts`'s `requireSession()` (API-level, so a direct API call can't skip
   it). Staff can't turn 2FA back off once enabled (`/api/auth/2fa/disable` rejects it).
+- **Dev login** (`src/lib/auth.ts`, the `dev-login` Credentials provider): sign in as any
+  already-seeded user by email, no password or Google account required. It's only added
+  to the providers array when `NODE_ENV !== "production"` — `next build` + `next start`
+  (including the Docker image) always run with `NODE_ENV=production`, so this is
+  structurally absent from anything resembling a real deployment, not just hidden from
+  the UI. It never creates a user, only signs into an existing row. Staff accounts
+  signed in this way still go through the real mandatory-2FA flow — that part isn't
+  bypassed.
 
 ### Setting up Google Identity Platform / OAuth
 

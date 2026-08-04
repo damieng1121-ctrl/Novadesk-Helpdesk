@@ -17,6 +17,44 @@ function LoginError() {
   );
 }
 
+// Mirrors the server-side gate in src/lib/auth.ts — the "dev-login" provider
+// only exists in the providers array outside a production build, so this is
+// purely a UI convenience, not the actual security boundary.
+const DEV_LOGIN_ENABLED = process.env.NODE_ENV !== "production";
+
+const DEV_ACCOUNTS = [
+  { email: "admin@willowbrook-primary.sch.uk", label: "Priya Shah — Tenant Admin" },
+  { email: "it-support@willowbrook-primary.sch.uk", label: "Sam Okafor — Agent" },
+  { email: "j.taylor@willowbrook-primary.sch.uk", label: "Jamie Taylor — Requester" },
+];
+
+function DevLogin() {
+  if (!DEV_LOGIN_ENABLED) return null;
+  return (
+    <div className="mt-6 border-t border-slate-200 pt-6 text-left">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+        Dev login (local only — no Google OAuth needed)
+      </p>
+      <p className="mt-1 text-xs text-slate-500">
+        Requires the seed script to have run. Admin/Agent will still be prompted to set up 2FA —
+        that part of the real flow isn&apos;t skipped.
+      </p>
+      <div className="mt-3 space-y-2">
+        {DEV_ACCOUNTS.map((a) => (
+          <button
+            key={a.email}
+            onClick={() => signIn("dev-login", { email: a.email, callbackUrl: "/portal" })}
+            className="block w-full rounded-md border border-slate-200 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+          >
+            {a.label}
+            <span className="block text-xs text-slate-400">{a.email}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function LoginPage() {
   return (
     <div className="flex flex-1 items-center justify-center bg-slate-50 px-6 py-16">
@@ -39,6 +77,7 @@ export default function LoginPage() {
         <Suspense fallback={null}>
           <LoginError />
         </Suspense>
+        <DevLogin />
       </div>
     </div>
   );

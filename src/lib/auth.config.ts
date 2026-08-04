@@ -13,6 +13,19 @@ export const authConfig = {
     strategy: "jwt",
   },
   callbacks: {
+    // Pure token -> session.user field mapping, no DB access — safe to share
+    // between the edge (middleware, via this config) and the full Node
+    // config in auth.ts. Without this here, middleware's `auth` object
+    // would only have next-auth's default session.user shape (no role,
+    // tenantId, or 2FA flags), silently breaking every role/2FA check below.
+    session({ session, token }) {
+      session.user.id = token.id;
+      session.user.role = token.role;
+      session.user.tenantId = token.tenantId;
+      session.user.twoFactorEnabled = token.twoFactorEnabled;
+      session.user.twoFactorVerified = token.twoFactorVerified;
+      return session;
+    },
     authorized({ auth, request }) {
       const isLoggedIn = !!auth?.user;
       const pathname = request.nextUrl.pathname;
