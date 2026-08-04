@@ -11,7 +11,7 @@ const bodySchema = z.object({ token: z.string().length(6) });
 /** Confirm 2FA enrolment by verifying one TOTP code, then flip it on and issue recovery codes. */
 export async function POST(req: Request) {
   return withApiErrors(async () => {
-    const session = await requireSession();
+    const session = await requireSession({ enforceTwoFactorForStaff: false });
     const { token } = bodySchema.parse(await req.json());
 
     const user = await prisma.user.findUniqueOrThrow({ where: { id: session.user.id } });

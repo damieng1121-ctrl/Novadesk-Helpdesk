@@ -21,6 +21,8 @@ production deployment) is left as documented next steps below.
 
 ## Getting started
 
+### Option A: plain Node (fastest iteration)
+
 ```bash
 npm install
 cp .env.example .env        # then fill in real values, see below
@@ -31,6 +33,23 @@ npm run dev
 ```
 
 Visit `http://localhost:3000`.
+
+### Option B: Docker Compose (closer to production)
+
+```bash
+cp .env.example .env        # fill in AUTH_SECRET, GOOGLE_CLIENT_ID/SECRET, APP_ENCRYPTION_KEY at minimum
+docker compose up --build
+```
+
+This builds the app image (see `Dockerfile`), starts Postgres, applies migrations on
+container start (`docker-entrypoint.sh`), and serves the app at `http://localhost:3000`.
+Set `SEED_ON_START=true` in `.env` to also load the demo school on first boot. To seed
+manually against the compose stack instead: `docker compose exec app npx prisma db seed`.
+
+Either way, sign-in requires a real Google OAuth client — see below — with
+`http://localhost:3000/api/auth/callback/google` as an authorized redirect URI, and at
+least one `Tenant.domain` in the database matching the email domain you sign in with
+(the seed script creates one: `willowbrook-primary.sch.uk`).
 
 ### Required environment variables
 
@@ -65,10 +84,15 @@ rationale and the (cosmetic, non-security) subdomain-routing helper.
   promotes staff to `AGENT`/`TENANT_ADMIN` from **Users**.
 - A platform-level `SUPER_ADMIN` allowlist is controlled by the
   `NOVADESK_SUPER_ADMIN_EMAILS` env var (comma-separated), for Novadesk staff, not tied
-  to any school domain.
-- 2FA (TOTP) is opt-in per user today, from **Account → Security**. To make it
-  mandatory for staff roles, gate `src/middleware.ts`'s `authorized()` callback on
-  `role !== "REQUESTER"` in addition to `twoFactorEnabled`.
+  to any school domain. A super admin gets a **Schools** page (`/portal/super-admin`) to
+  onboard new schools (name, slug, Workspace domain, phase) and suspend existing ones —
+  no more direct DB/seed-script access needed for this.
+- 2FA (TOTP) is **mandatory for staff** (`AGENT`, `TENANT_ADMIN`, `SUPER_ADMIN`) and
+  optional for `REQUESTER`s. A staff account without 2FA enabled is redirected to
+  **Account → Security** on every route except that page itself until they enrol —
+  enforced both in `src/lib/auth.config.ts` (page-level redirect) and again in
+  `src/lib/session.ts`'s `requireSession()` (API-level, so a direct API call can't skip
+  it). Staff can't turn 2FA back off once enabled (`/api/auth/2fa/disable` rejects it).
 
 ### Setting up Google Identity Platform / OAuth
 
@@ -135,28 +159,29 @@ src/app/portal/             The authenticated app (tickets, KB, compliance, admi
 
 ## Deployment (Google Cloud)
 
-This scaffold is designed to deploy on:
+The `Dockerfile` (`npm run build` + `npm start`, migrations applied on container start
+by `docker-entrypoint.sh`) is written to run as-is on:
 
-- **Cloud Run** for the Next.js app (containerize with a standard `next start` Dockerfile)
-- **Cloud SQL for PostgreSQL** as the database (`DATABASE_URL` via Cloud SQL Auth Proxy
-  or a private IP connection)
-- **Secret Manager** for `AUTH_SECRET`, `APP_ENCRYPTION_KEY`, OAuth client secret, and
-  AI API keys, mounted as env vars into Cloud Run
+- **Cloud Run** for the app — `gcloud run deploy novadesk --source . --region europe-west2`
+  (or build with Cloud Build and deploy the image) will work directly against this
+  Dockerfile. Set `PORT` is already handled (Cloud Run injects it; the entrypoint honors
+  `$PORT` via `next start`).
+- **Cloud SQL for PostgreSQL** as the database (`DATABASE_URL` via the Cloud SQL Auth
+  Proxy sidecar or a private IP connection)
+- **Secret Manager** for `AUTH_SECRET`, `APP_ENCRYPTION_KEY`, the OAuth client secret,
+  and AI API keys, mounted as env vars into Cloud Run
 - **Google Identity Platform** for SSO, as described above
 - A wildcard DNS record / Cloud Run domain mapping if you want true per-school
   subdomains (`{slug}.yourdomain.com`) — `src/lib/tenancy.ts` already resolves the
   subdomain, but tenancy is enforced by session, not subdomain, so this is optional.
 
-None of this is wired into the repo yet (no `Dockerfile`/`cloudbuild.yaml`) — that's the
-main remaining piece of "production-ready," along with file storage for ticket
-attachments (currently modelled in the schema but with no upload endpoint) and outbound
-email notifications.
+Not yet wired in: an actual `cloudbuild.yaml`/CI pipeline that builds and deploys the
+image automatically on push — today deploying is a manual `gcloud run deploy` (or
+`docker compose up` locally, see above).
 
 ## What's not built yet
 
 - File upload storage backend for ticket attachments (schema/model exists; no upload UI/route)
 - Email notifications (new ticket, reply, SLA breach)
-- A platform-admin UI for onboarding new schools (currently done via seed script / direct DB)
 - SLA policies and reporting/analytics dashboards
-- Dockerfile / CI / cloudbuild.yaml for Cloud Run deployment
-- Enforcing 2FA as mandatory for staff roles (currently opt-in per user)
+- CI / `cloudbuild.yaml` for automatic Cloud Run deploys on push

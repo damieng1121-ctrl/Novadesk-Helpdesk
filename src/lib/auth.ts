@@ -55,8 +55,11 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
       return resolved !== null;
     },
     async jwt({ token, user, trigger, session }) {
-      if (trigger === "update" && session?.twoFactorVerified) {
-        token.twoFactorVerified = true;
+      if (trigger === "update" && session) {
+        // Client explicitly told us its 2FA state changed (enable/verify/disable
+        // flows) — trust it rather than re-hitting the DB on every session read.
+        if (typeof session.twoFactorVerified === "boolean") token.twoFactorVerified = session.twoFactorVerified;
+        if (typeof session.twoFactorEnabled === "boolean") token.twoFactorEnabled = session.twoFactorEnabled;
         return token;
       }
 

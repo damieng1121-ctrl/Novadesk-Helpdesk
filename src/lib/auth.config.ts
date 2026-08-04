@@ -21,10 +21,21 @@ export const authConfig = {
       const isTwoFactorRoute = pathname.startsWith("/verify-2fa");
 
       if (isPortalRoute) {
-        if (!isLoggedIn) return false;
+        if (!isLoggedIn || !auth?.user) return false;
+
+        // Staff (anyone but a plain requester) must have 2FA enabled at all —
+        // it's not optional for accounts that can see other people's tickets,
+        // internal notes, or admin settings. Requesters can still opt in from
+        // Account > Security, but aren't forced to.
+        const requiresTwoFactor = auth.user.role !== "REQUESTER";
+        const isSecurityPage = pathname.startsWith("/portal/account/security");
+        if (requiresTwoFactor && !auth.user.twoFactorEnabled && !isSecurityPage) {
+          return Response.redirect(new URL("/portal/account/security?setup2fa=1", request.nextUrl));
+        }
+
         // Users who have 2FA enabled but haven't verified this session yet
         // must be sent to /verify-2fa before reaching any portal route.
-        if (auth?.user.twoFactorEnabled && !auth?.user.twoFactorVerified) {
+        if (auth.user.twoFactorEnabled && !auth.user.twoFactorVerified) {
           return Response.redirect(new URL("/verify-2fa", request.nextUrl));
         }
         return true;

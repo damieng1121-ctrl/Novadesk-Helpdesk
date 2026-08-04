@@ -13,10 +13,21 @@ export class AuthError extends Error {
  * Server-side session guard for API routes and server actions.
  * Always derive `tenantId` from here — never trust a client-supplied
  * tenant id/slug for scoping a query.
+ *
+ * Staff roles (anyone but REQUESTER) are required to have 2FA enabled —
+ * mirrors the redirect-to-setup policy in auth.config.ts's `authorized()`
+ * callback, enforced again here so a direct API call can't skip it. The
+ * 2FA setup/enable routes themselves must pass `enforceTwoFactorForStaff:
+ * false`, since a staff member enabling 2FA for the first time necessarily
+ * calls them before `twoFactorEnabled` flips true.
  */
-export async function requireSession() {
+export async function requireSession(opts: { enforceTwoFactorForStaff?: boolean } = {}) {
+  const { enforceTwoFactorForStaff = true } = opts;
   const session = await auth();
   if (!session?.user) throw new AuthError("Not authenticated", 401);
+  if (enforceTwoFactorForStaff && session.user.role !== "REQUESTER" && !session.user.twoFactorEnabled) {
+    throw new AuthError("Two-factor authentication must be enabled for this role", 403);
+  }
   if (session.user.twoFactorEnabled && !session.user.twoFactorVerified) {
     throw new AuthError("Two-factor verification required", 401);
   }

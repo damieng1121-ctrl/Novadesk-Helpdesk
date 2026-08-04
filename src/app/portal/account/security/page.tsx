@@ -1,11 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 
 export default function SecurityPage() {
+  return (
+    <Suspense fallback={null}>
+      <SecurityPageInner />
+    </Suspense>
+  );
+}
+
+function SecurityPageInner() {
   const { data: session, update } = useSession();
+  const searchParams = useSearchParams();
+  const mandatorySetup = searchParams.get("setup2fa") === "1";
+
   const [step, setStep] = useState<"idle" | "setup" | "confirm" | "done">("idle");
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
@@ -14,6 +26,7 @@ export default function SecurityPage() {
   const [error, setError] = useState<string | null>(null);
 
   const enabled = session?.user.twoFactorEnabled;
+  const isStaff = session?.user.role && session.user.role !== "REQUESTER";
 
   async function beginSetup() {
     setError(null);
@@ -39,7 +52,7 @@ export default function SecurityPage() {
     }
     setRecoveryCodes(data.recoveryCodes);
     setStep("done");
-    await update({ twoFactorVerified: true });
+    await update({ twoFactorEnabled: true, twoFactorVerified: true });
   }
 
   async function disable() {
@@ -47,7 +60,7 @@ export default function SecurityPage() {
     await fetch("/api/auth/2fa/disable", { method: "POST" });
     setStep("idle");
     setRecoveryCodes(null);
-    window.location.reload();
+    await update({ twoFactorEnabled: false, twoFactorVerified: true });
   }
 
   return (
@@ -55,18 +68,31 @@ export default function SecurityPage() {
       <h1 className="text-2xl font-semibold text-slate-900">Account security</h1>
       <p className="mt-1 text-sm text-slate-600">Signed in as {session?.user.email}</p>
 
+      {mandatorySetup && !enabled && (
+        <div className="mt-4 rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Two-factor authentication is required for your role before you can access the rest of the portal.
+          Set it up below to continue.
+        </div>
+      )}
+
       <section className="mt-6 rounded-xl border border-slate-200 bg-white p-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-semibold text-slate-900">Two-factor authentication</h2>
             <p className="mt-1 text-sm text-slate-600">
-              {enabled ? "Enabled — required at every sign-in." : "Add an authenticator app as a second factor."}
+              {enabled
+                ? "Enabled — required at every sign-in."
+                : isStaff
+                  ? "Required for your role — add an authenticator app as a second factor."
+                  : "Add an authenticator app as a second factor."}
             </p>
           </div>
           {enabled ? (
-            <button onClick={disable} className="rounded-md border border-red-200 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50">
-              Turn off
-            </button>
+            !isStaff && (
+              <button onClick={disable} className="rounded-md border border-red-200 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50">
+                Turn off
+              </button>
+            )
           ) : (
             step === "idle" && (
               <button onClick={beginSetup} className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">

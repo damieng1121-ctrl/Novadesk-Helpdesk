@@ -6,13 +6,17 @@ import { signOut } from "next-auth/react";
 import type { Role } from "@prisma/client";
 import clsx from "clsx";
 
+// Tickets/KB/compliance/admin are all tenant-scoped, so they only make sense
+// for staff who actually belong to a school — a platform SUPER_ADMIN (who
+// has no tenantId) sees "Schools" instead.
 const links = [
   { href: "/portal", label: "Dashboard", roles: null },
-  { href: "/portal/tickets", label: "Tickets", roles: null },
-  { href: "/portal/kb", label: "Knowledge base", roles: null },
-  { href: "/portal/compliance", label: "DfE compliance", roles: ["TENANT_ADMIN", "AGENT", "SUPER_ADMIN"] },
-  { href: "/portal/admin/users", label: "Users", roles: ["TENANT_ADMIN", "SUPER_ADMIN"] },
-  { href: "/portal/admin/settings", label: "Settings", roles: ["TENANT_ADMIN", "SUPER_ADMIN"] },
+  { href: "/portal/tickets", label: "Tickets", roles: ["REQUESTER", "AGENT", "TENANT_ADMIN"] },
+  { href: "/portal/kb", label: "Knowledge base", roles: ["REQUESTER", "AGENT", "TENANT_ADMIN"] },
+  { href: "/portal/compliance", label: "DfE compliance", roles: ["TENANT_ADMIN", "AGENT"] },
+  { href: "/portal/admin/users", label: "Users", roles: ["TENANT_ADMIN"] },
+  { href: "/portal/admin/settings", label: "Settings", roles: ["TENANT_ADMIN"] },
+  { href: "/portal/super-admin", label: "Schools", roles: ["SUPER_ADMIN"] },
 ] as const;
 
 export function PortalNav({

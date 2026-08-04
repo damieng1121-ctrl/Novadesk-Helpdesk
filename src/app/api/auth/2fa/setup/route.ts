@@ -7,7 +7,7 @@ import { generateTotpSecret, generateTotpQrCode } from "@/lib/twofactor";
 /** Begin 2FA enrolment: generate a TOTP secret, store it (not yet enabled), return a QR code. */
 export async function POST() {
   return withApiErrors(async () => {
-    const session = await requireSession();
+    const session = await requireSession({ enforceTwoFactorForStaff: false });
     const secret = generateTotpSecret();
 
     await prisma.user.update({

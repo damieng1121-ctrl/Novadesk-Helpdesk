@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: novadesk
+    ports:
+      - "5432:5432"
+    volumes:
+      - novadesk-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/novadesk
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env — generate with openssl rand -base64 32}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?set GOOGLE_CLIENT_ID in .env}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?set GOOGLE_CLIENT_SECRET in .env}
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?set APP_ENCRYPTION_KEY in .env — generate with openssl rand -hex 32}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-5}
+      GOOGLE_GENAI_API_KEY: ${GOOGLE_GENAI_API_KEY:-}
+      GOOGLE_GENAI_MODEL: ${GOOGLE_GENAI_MODEL:-gemini-2.5-flash}
+      DEFAULT_AI_PROVIDER: ${DEFAULT_AI_PROVIDER:-DISABLED}
+      NOVADESK_SUPER_ADMIN_EMAILS: ${NOVADESK_SUPER_ADMIN_EMAILS:-}
+      NEXT_PUBLIC_ROOT_DOMAIN: ${NEXT_PUBLIC_ROOT_DOMAIN:-localhost:3000}
+      SEED_ON_START: ${SEED_ON_START:-false}
+
+volumes:
+  novadesk-db-data:
