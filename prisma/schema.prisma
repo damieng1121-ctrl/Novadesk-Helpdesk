@@ -1,0 +1,381 @@
+// Novadesk Helpdesk — multi-tenant data model
+// Tenant = one school. Every tenant-scoped model carries a `tenantId` and
+// MUST be queried through the helpers in `src/lib/tenancy.ts` so tenant
+// isolation can't be bypassed by an accidental unscoped query.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Tenancy & Identity
+// ---------------------------------------------------------------------------
+
+model Tenant {
+  id         String      @id @default(cuid())
+  name       String
+  slug       String      @unique // used for subdomain routing: {slug}.novadesk.app
+  /// Google Workspace domain used to restrict SSO sign-in for this tenant (e.g. "willowbrook-primary.sch.uk")
+  domain     String?     @unique
+  /// DfE unique reference number for the school, if provided
+  urn        String?
+  phase      SchoolPhase @default(PRIMARY)
+  logoUrl    String?
+  brandColor String      @default("#2563eb")
+  timezone   String      @default("Europe/London")
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  users                 User[]
+  categories            Category[]
+  tickets               Ticket[]
+  kbCategories          KbCategory[]
+  kbArticles            KbArticle[]
+  complianceAssessments ComplianceAssessment[]
+  auditLogs             AuditLog[]
+  aiProviderConfig      AiProviderConfig?
+}
+
+enum SchoolPhase {
+  NURSERY
+  PRIMARY
+  SECONDARY
+  ALL_THROUGH
+  SPECIAL
+  MULTI_ACADEMY_TRUST
+}
+
+enum Role {
+  SUPER_ADMIN // Novadesk platform staff, cross-tenant
+  TENANT_ADMIN // School IT lead / SBM
+  AGENT // Helpdesk technician
+  REQUESTER // Teacher / staff member raising tickets
+}
+
+model User {
+  id       String  @id @default(cuid())
+  tenantId String?
+  tenant   Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  /// Globally unique (not just per-tenant): Auth.js's Prisma adapter looks
+  /// users up by email directly, and in practice one Google account maps to
+  /// exactly one school via its Workspace domain anyway.
+  email    String  @unique
+  name     String?
+  image    String?
+  role     Role    @default(REQUESTER)
+  jobTitle String?
+
+  // Auth.js
+  emailVerified DateTime?
+  accounts      Account[]
+  sessions      Session[]
+
+  // 2FA (TOTP, required in addition to Google SSO for admins/agents)
+  twoFactorEnabled       Boolean  @default(false)
+  twoFactorSecret        String?
+  twoFactorRecoveryCodes String[] @default([])
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assignedTickets               Ticket[]               @relation("AssignedTickets")
+  requestedTickets              Ticket[]               @relation("RequestedTickets")
+  ticketComments                TicketComment[]
+  kbArticlesAuthored            KbArticle[]
+  complianceAssessmentsReviewed ComplianceAssessment[]
+  auditLogs                     AuditLog[]
+
+  @@index([tenantId])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires      DateTime
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------------------------------------------------------------------------
+// Ticketing
+// ---------------------------------------------------------------------------
+
+model Category {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  color       String   @default("#64748b")
+  tickets     Ticket[]
+
+  @@unique([tenantId, name])
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  ON_HOLD
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model Ticket {
+  id          String         @id @default(cuid())
+  tenantId    String
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  /// Sequential per-tenant ticket number shown to users, e.g. #1042
+  number      Int
+  subject     String
+  description String         @db.Text
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  requesterId String
+  requester   User   @relation("RequestedTickets", fields: [requesterId], references: [id])
+
+  assigneeId String?
+  assignee   User?   @relation("AssignedTickets", fields: [assigneeId], references: [id])
+
+  // AI assistance (populated by the pluggable AI provider, see src/lib/ai)
+  aiSuggestedCategory String?
+  aiSuggestedPriority TicketPriority?
+  aiSummary           String?         @db.Text
+
+  dueAt      DateTime?
+  resolvedAt DateTime?
+  closedAt   DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  comments    TicketComment[]
+  attachments TicketAttachment[]
+
+  @@unique([tenantId, number])
+  @@index([tenantId, status])
+  @@index([tenantId, assigneeId])
+}
+
+model TicketComment {
+  id         String   @id @default(cuid())
+  ticketId   String
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId   String
+  author     User     @relation(fields: [authorId], references: [id])
+  body       String   @db.Text
+  /// Internal notes are only visible to AGENT/TENANT_ADMIN/SUPER_ADMIN, never the requester
+  isInternal Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  attachments TicketAttachment[]
+}
+
+model TicketAttachment {
+  id          String         @id @default(cuid())
+  ticketId    String
+  ticket      Ticket         @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  commentId   String?
+  comment     TicketComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  fileName    String
+  url         String
+  fileSize    Int?
+  contentType String?
+  createdAt   DateTime       @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Knowledge base
+// ---------------------------------------------------------------------------
+
+model KbCategory {
+  id       String      @id @default(cuid())
+  tenantId String
+  tenant   Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name     String
+  slug     String
+  articles KbArticle[]
+
+  @@unique([tenantId, slug])
+}
+
+enum KbStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model KbArticle {
+  id         String      @id @default(cuid())
+  tenantId   String
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  categoryId String?
+  category   KbCategory? @relation(fields: [categoryId], references: [id])
+  title      String
+  slug       String
+  /// Markdown content
+  content    String      @db.Text
+  status     KbStatus    @default(DRAFT)
+  aiSummary  String?     @db.Text
+  viewCount  Int         @default(0)
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, status])
+}
+
+// ---------------------------------------------------------------------------
+// DfE "Digital and technology standards" compliance checklist
+//
+// ComplianceStandard/ComplianceItem form a global catalogue (shared across
+// all tenants, seeded from prisma/seed.ts). ComplianceAssessment is the
+// per-tenant record of where a school stands against each item.
+// ---------------------------------------------------------------------------
+
+model ComplianceStandard {
+  id          String  @id @default(cuid())
+  /// Stable slug matching the DfE standard, e.g. "cyber-security"
+  code        String  @unique
+  title       String
+  description String  @db.Text
+  officialUrl String?
+  order       Int     @default(0)
+
+  items ComplianceItem[]
+}
+
+model ComplianceItem {
+  id          String             @id @default(cuid())
+  standardId  String
+  standard    ComplianceStandard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  code        String
+  title       String
+  description String             @db.Text
+  guidance    String?            @db.Text
+  order       Int                @default(0)
+
+  assessments ComplianceAssessment[]
+
+  @@unique([standardId, code])
+}
+
+enum ComplianceStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLIANT
+  NON_COMPLIANT
+  NOT_APPLICABLE
+}
+
+model ComplianceAssessment {
+  id       String         @id @default(cuid())
+  tenantId String
+  tenant   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  itemId   String
+  item     ComplianceItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  status        ComplianceStatus @default(NOT_STARTED)
+  evidenceNotes String?          @db.Text
+  evidenceUrl   String?
+
+  reviewedById  String?
+  reviewedBy    User?     @relation(fields: [reviewedById], references: [id])
+  reviewedAt    DateTime?
+  nextReviewDue DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, itemId])
+  @@index([tenantId, status])
+}
+
+// ---------------------------------------------------------------------------
+// AI provider configuration (pluggable: Claude or Gemini, per tenant)
+// ---------------------------------------------------------------------------
+
+enum AiProvider {
+  CLAUDE
+  GEMINI
+  DISABLED
+}
+
+model AiProviderConfig {
+  id                   String     @id @default(cuid())
+  tenantId             String     @unique
+  tenant               Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  provider             AiProvider @default(DISABLED)
+  model                String?
+  /// Encrypted at rest by src/lib/crypto.ts before being written here
+  apiKeyCiphertext     String?
+  ticketTriageEnabled  Boolean    @default(true)
+  kbSuggestionsEnabled Boolean    @default(true)
+  updatedAt            DateTime   @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Audit log — records privileged actions for DfE cyber security / data
+// protection accountability requirements.
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  tenantId   String?
+  tenant     Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([tenantId, createdAt])
+}

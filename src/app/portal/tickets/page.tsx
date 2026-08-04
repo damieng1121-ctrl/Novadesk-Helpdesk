@@ -1,0 +1,99 @@
+"use client";
+
+import Link from "next/link";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { StatusBadge, PriorityBadge } from "@/components/badges";
+
+type Ticket = {
+  id: string;
+  number: number;
+  subject: string;
+  status: string;
+  priority: string;
+  createdAt: string;
+  category: { name: string } | null;
+  requester: { name: string | null; email: string | null };
+  assignee: { name: string | null; email: string | null } | null;
+};
+
+export default function TicketsPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-slate-500">Loading…</p>}>
+      <TicketsList />
+    </Suspense>
+  );
+}
+
+function TicketsList() {
+  const searchParams = useSearchParams();
+  const assignee = searchParams.get("assignee");
+  const [tickets, setTickets] = useState<Ticket[] | null>(null);
+  const [status, setStatus] = useState("");
+
+  useEffect(() => {
+    const qs = new URLSearchParams();
+    if (assignee) qs.set("assignee", assignee);
+    if (status) qs.set("status", status);
+    fetch(`/api/tickets?${qs.toString()}`)
+      .then((r) => r.json())
+      .then(setTickets);
+  }, [assignee, status]);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-slate-900">Tickets</h1>
+        <Link
+          href="/portal/tickets/new"
+          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        >
+          Raise a ticket
+        </Link>
+      </div>
+
+      <div className="mt-4 flex gap-2">
+        {["", "OPEN", "IN_PROGRESS", "ON_HOLD", "RESOLVED", "CLOSED"].map((s) => (
+          <button
+            key={s}
+            onClick={() => setStatus(s)}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+              status === s ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
+            } border border-slate-200`}
+          >
+            {s ? s.replace("_", " ") : "All"}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+        {tickets === null && <p className="p-6 text-sm text-slate-500">Loading…</p>}
+        {tickets?.length === 0 && <p className="p-6 text-sm text-slate-500">No tickets found.</p>}
+        <table className="w-full text-left text-sm">
+          <tbody className="divide-y divide-slate-100">
+            {tickets?.map((t) => (
+              <tr key={t.id}>
+                <td className="p-4">
+                  <Link href={`/portal/tickets/${t.id}`} className="font-medium text-slate-900 hover:text-blue-600">
+                    #{t.number} {t.subject}
+                  </Link>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {t.category?.name ?? "Uncategorised"} · {t.requester.name ?? t.requester.email}
+                  </p>
+                </td>
+                <td className="p-4">
+                  <PriorityBadge priority={t.priority as never} />
+                </td>
+                <td className="p-4">
+                  <StatusBadge status={t.status as never} />
+                </td>
+                <td className="p-4 text-slate-500">{t.assignee?.name ?? "Unassigned"}</td>
+                <td className="p-4 text-slate-400">{new Date(t.createdAt).toLocaleDateString("en-GB")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
