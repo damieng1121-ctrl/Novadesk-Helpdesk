@@ -4,6 +4,7 @@ import { withApiErrors } from "@/lib/api";
 import { prisma } from "@/lib/db";
 import { canManageTickets } from "@/lib/roles";
 import { computeDueAt } from "@/lib/sla";
+import { notifyTicketResolved } from "@/lib/notifications/events";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -89,6 +90,10 @@ export async function PATCH(req: Request, { params }: Params) {
         metadata: body,
       },
     });
+
+    if (body.status === "RESOLVED" && existing.status !== "RESOLVED") {
+      await notifyTicketResolved(ticket);
+    }
 
     return ticket;
   });

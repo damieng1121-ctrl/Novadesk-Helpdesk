@@ -3,6 +3,7 @@ import { requireTenantSession, AuthError } from "@/lib/session";
 import { withApiErrors } from "@/lib/api";
 import { prisma } from "@/lib/db";
 import { canManageTickets } from "@/lib/roles";
+import { notifyNewComment } from "@/lib/notifications/events";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -33,6 +34,11 @@ export async function POST(req: Request, { params }: Params) {
     // Reopen a resolved/closed ticket if the requester replies again.
     if (!staff && (ticket.status === "RESOLVED" || ticket.status === "CLOSED")) {
       await prisma.ticket.update({ where: { id }, data: { status: "OPEN", resolvedAt: null, closedAt: null } });
+    }
+
+    // Internal notes are staff-only chatter — don't email the requester about them.
+    if (!internal) {
+      await notifyNewComment(ticket, session.user.id, staff);
     }
 
     return comment;

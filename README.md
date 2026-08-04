@@ -204,9 +204,23 @@ access control and the internal-note visibility rule both still apply to attachm
 a requester can't download a file attached to an internal-only note even if they know
 its URL.
 
+## Email notifications
+
+`src/lib/notifications/` is a small pluggable layer (same shape as the AI provider
+abstraction) — SMTP if `SMTP_HOST` is set, console logging in dev otherwise, silently
+disabled in production without SMTP configured. It's platform-wide, not per-tenant
+(schools don't bring their own mail server). Wired into three events
+(`src/lib/notifications/events.ts`): a new ticket emails the requester a confirmation
+and the tenant's agents/admins a triage alert; a new non-internal reply emails whichever
+side didn't just post (internal notes never trigger an email); marking a ticket resolved
+emails the requester. All sends are best-effort — a broken SMTP relay logs an error but
+never fails the ticket action that triggered it. SLA-breach alerts aren't included since
+they need a recurring job (e.g. Cloud Scheduler hitting a route) rather than a
+request-triggered event, and no scheduler is wired up yet.
+
 ## What's not built yet
 
-- Email notifications (new ticket, reply, SLA breach)
 - Per-tenant configurable SLA policies (currently one flat set of targets platform-wide)
+- Scheduled SLA-breach notifications (would need a Cloud Scheduler job or similar; the reply/resolved/new-ticket emails above are all request-triggered, not time-triggered)
 - Swapping local-disk attachment storage for Cloud Storage before a real deployment
 - CI / `cloudbuild.yaml` for automatic Cloud Run deploys on push

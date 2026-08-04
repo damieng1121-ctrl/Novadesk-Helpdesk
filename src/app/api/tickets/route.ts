@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { canManageTickets } from "@/lib/roles";
 import { getAiProviderForTenant } from "@/lib/ai";
 import { computeDueAt } from "@/lib/sla";
+import { notifyTicketCreated } from "@/lib/notifications/events";
 
 export async function GET(req: Request) {
   return withApiErrors(async () => {
@@ -109,6 +110,8 @@ export async function POST(req: Request) {
         entityId: ticket!.id,
       },
     });
+
+    await notifyTicketCreated(ticket!);
 
     return ticket;
   });
