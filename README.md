@@ -179,9 +179,34 @@ Not yet wired in: an actual `cloudbuild.yaml`/CI pipeline that builds and deploy
 image automatically on push — today deploying is a manual `gcloud run deploy` (or
 `docker compose up` locally, see above).
 
+## SLA & reporting
+
+`src/lib/sla.ts` defines flat resolution-time targets per priority (CRITICAL: 4h, HIGH:
+8h, MEDIUM: 24h, LOW: 40h) and computes each ticket's `dueAt` on creation and whenever
+its priority changes (re-baselined off the original creation time, not "now"). Overdue
+open tickets are flagged in the ticket list/detail views. **Reports**
+(`/portal/reports`, staff/admin only) shows ticket counts by status/priority, the
+current overdue count, and average resolution time. These are flat platform-wide
+targets rather than per-tenant configurable SLA policies — a reasonable next step if
+schools need different targets.
+
+## Ticket attachments
+
+Files can be attached when raising a ticket or replying to one (`src/lib/storage.ts`).
+Storage defaults to local disk (`UPLOAD_STORAGE_DIR`, gitignored) — fine for a single
+dev/demo instance, but it won't survive a redeploy and won't work across multiple Cloud
+Run instances, so swap it for a Cloud Storage-backed implementation before going to
+production (the three-function interface — `saveUpload`/`readUpload`/`deleteUpload` — is
+the only thing that needs to change; nothing else references the filesystem directly).
+Downloads are served through an authenticated API route
+(`/api/tickets/[id]/attachments/[attachmentId]`), never from `public/`, so tenant/ticket
+access control and the internal-note visibility rule both still apply to attachments —
+a requester can't download a file attached to an internal-only note even if they know
+its URL.
+
 ## What's not built yet
 
-- File upload storage backend for ticket attachments (schema/model exists; no upload UI/route)
 - Email notifications (new ticket, reply, SLA breach)
-- SLA policies and reporting/analytics dashboards
+- Per-tenant configurable SLA policies (currently one flat set of targets platform-wide)
+- Swapping local-disk attachment storage for Cloud Storage before a real deployment
 - CI / `cloudbuild.yaml` for automatic Cloud Run deploys on push

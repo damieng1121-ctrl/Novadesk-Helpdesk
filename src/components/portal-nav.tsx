@@ -13,6 +13,7 @@ const links = [
   { href: "/portal", label: "Dashboard", roles: null },
   { href: "/portal/tickets", label: "Tickets", roles: ["REQUESTER", "AGENT", "TENANT_ADMIN"] },
   { href: "/portal/kb", label: "Knowledge base", roles: ["REQUESTER", "AGENT", "TENANT_ADMIN"] },
+  { href: "/portal/reports", label: "Reports", roles: ["TENANT_ADMIN", "AGENT"] },
   { href: "/portal/compliance", label: "DfE compliance", roles: ["TENANT_ADMIN", "AGENT"] },
   { href: "/portal/admin/users", label: "Users", roles: ["TENANT_ADMIN"] },
   { href: "/portal/admin/settings", label: "Settings", roles: ["TENANT_ADMIN"] },

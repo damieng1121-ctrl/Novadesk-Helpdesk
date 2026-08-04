@@ -3,6 +3,7 @@ import { requireTenantSession, AuthError } from "@/lib/session";
 import { withApiErrors } from "@/lib/api";
 import { prisma } from "@/lib/db";
 import { canManageTickets } from "@/lib/roles";
+import { computeDueAt } from "@/lib/sla";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -23,7 +24,10 @@ async function loadTicketForSession(id: string, tenantId: string, userId: string
   if (!ticket || ticket.tenantId !== tenantId) return null;
   if (!staff && ticket.requesterId !== userId) return null;
   if (!staff) {
+    const internalCommentIds = new Set(ticket.comments.filter((c) => c.isInternal).map((c) => c.id));
     ticket.comments = ticket.comments.filter((c) => !c.isInternal);
+    // Attachments on an internal note are just as internal as the note itself.
+    ticket.attachments = ticket.attachments.filter((a) => !a.commentId || !internalCommentIds.has(a.commentId));
   }
   return ticket;
 }
@@ -65,6 +69,10 @@ export async function PATCH(req: Request, { params }: Params) {
       where: { id },
       data: {
         ...body,
+        // Re-baseline the SLA due date off the ticket's original creation
+        // time whenever priority changes, so escalating/de-escalating a
+        // ticket doesn't just reset the clock to "now".
+        dueAt: body.priority ? computeDueAt(body.priority, existing.createdAt) : undefined,
         resolvedAt: body.status === "RESOLVED" ? now : body.status ? null : undefined,
         closedAt: body.status === "CLOSED" ? now : body.status ? null : undefined,
       },

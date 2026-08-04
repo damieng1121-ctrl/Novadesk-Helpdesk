@@ -5,6 +5,7 @@ import { withApiErrors } from "@/lib/api";
 import { prisma } from "@/lib/db";
 import { canManageTickets } from "@/lib/roles";
 import { getAiProviderForTenant } from "@/lib/ai";
+import { computeDueAt } from "@/lib/sla";
 
 export async function GET(req: Request) {
   return withApiErrors(async () => {
@@ -75,6 +76,7 @@ export async function POST(req: Request) {
     for (let attempt = 0; attempt < 3 && !ticket; attempt++) {
       const agg = await prisma.ticket.aggregate({ where: { tenantId }, _max: { number: true } });
       const number = (agg._max.number ?? 0) + 1;
+      const priority = body.priority ?? triage.suggestedPriority ?? "MEDIUM";
       try {
         ticket = await prisma.ticket.create({
           data: {
@@ -83,7 +85,8 @@ export async function POST(req: Request) {
             subject: body.subject,
             description: body.description,
             categoryId: body.categoryId ?? aiCategory?.id,
-            priority: body.priority ?? triage.suggestedPriority ?? "MEDIUM",
+            priority,
+            dueAt: computeDueAt(priority),
             requesterId: session.user.id,
             aiSuggestedCategory: triage.suggestedCategory,
             aiSuggestedPriority: triage.suggestedPriority,

@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { computeDueAt } from "../src/lib/sla";
 
 const prisma = new PrismaClient();
 
@@ -320,6 +321,8 @@ async function seedDemoTenant() {
         description: "The Promethean board in Room 3B has no power. Checked the plug socket and it's fine.",
         status: "IN_PROGRESS",
         priority: "HIGH",
+        // Deliberately in the past so the demo data shows an overdue ticket.
+        dueAt: new Date(Date.now() - 60 * 60 * 1000),
         categoryId: categories.find((c) => c.name === "Classroom AV")!.id,
         requesterId: teacher.id,
         assigneeId: agent.id,
@@ -351,6 +354,7 @@ async function seedDemoTenant() {
         description: "Getting 'invalid credentials' on SIMS even though I haven't changed my password.",
         status: "OPEN",
         priority: "MEDIUM",
+        dueAt: computeDueAt("MEDIUM"),
         categoryId: categories.find((c) => c.name === "Account access")!.id,
         requesterId: teacher.id,
       },

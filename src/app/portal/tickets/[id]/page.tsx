@@ -3,14 +3,17 @@
 import { useEffect, useState, use as usePromise } from "react";
 import { useSession } from "next-auth/react";
 import { StatusBadge, PriorityBadge } from "@/components/badges";
+import { isOverdue } from "@/lib/sla";
 
 type Person = { id: string; name: string | null; email: string | null };
+type Attachment = { id: string; fileName: string; fileSize: number | null; commentId: string | null };
 type Comment = {
   id: string;
   body: string;
   isInternal: boolean;
   createdAt: string;
   author: Person & { role: string };
+  attachments: Attachment[];
 };
 type TicketDetail = {
   id: string;
@@ -25,8 +28,40 @@ type TicketDetail = {
   requester: Person;
   assignee: Person | null;
   comments: Comment[];
+  attachments: Attachment[];
   createdAt: string;
+  dueAt: string | null;
 };
+
+function formatFileSize(bytes: number | null): string {
+  if (!bytes) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function AttachmentList({ ticketId, attachments }: { ticketId: string; attachments: Attachment[] }) {
+  if (attachments.length === 0) return null;
+  return (
+    <div className="mt-2 flex flex-wrap gap-2">
+      {attachments.map((a) => (
+        <a
+          key={a.id}
+          href={`/api/tickets/${ticketId}/attachments/${a.id}`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-700 hover:bg-slate-100"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
+          </svg>
+          {a.fileName}
+          {a.fileSize ? <span className="text-slate-400">({formatFileSize(a.fileSize)})</span> : null}
+        </a>
+      ))}
+    </div>
+  );
+}
 
 const STAFF_ROLES = new Set(["AGENT", "TENANT_ADMIN", "SUPER_ADMIN"]);
 
@@ -38,6 +73,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
   const [ticket, setTicket] = useState<TicketDetail | null>(null);
   const [reply, setReply] = useState("");
   const [isInternal, setIsInternal] = useState(false);
+  const [replyFile, setReplyFile] = useState<File | null>(null);
   const [posting, setPosting] = useState(false);
 
   async function load() {
@@ -65,13 +101,21 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
     if (!reply.trim()) return;
     setPosting(true);
     try {
-      await fetch(`/api/tickets/${id}/comments`, {
+      const res = await fetch(`/api/tickets/${id}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ body: reply, isInternal }),
       });
+      if (replyFile && res.ok) {
+        const comment = await res.json();
+        const form = new FormData();
+        form.set("file", replyFile);
+        form.set("commentId", comment.id);
+        await fetch(`/api/tickets/${id}/attachments`, { method: "POST", body: form });
+      }
       setReply("");
       setIsInternal(false);
+      setReplyFile(null);
       load();
     } finally {
       setPosting(false);
@@ -91,6 +135,9 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
           <div className="flex gap-2">
             <StatusBadge status={ticket.status as never} />
             <PriorityBadge priority={ticket.priority as never} />
+            {isOverdue(ticket.dueAt, ticket.status) && (
+              <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">Overdue</span>
+            )}
           </div>
         </div>
 
@@ -99,7 +146,9 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
           <p className="mt-3 text-xs text-slate-400">
             Raised by {ticket.requester.name ?? ticket.requester.email} on{" "}
             {new Date(ticket.createdAt).toLocaleString("en-GB")}
+            {ticket.dueAt && <> · SLA due {new Date(ticket.dueAt).toLocaleString("en-GB")}</>}
           </p>
+          <AttachmentList ticketId={ticket.id} attachments={ticket.attachments.filter((a) => !a.commentId)} />
         </div>
 
         {ticket.aiSummary && (
@@ -125,6 +174,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
                 <p className="text-xs text-slate-400">{new Date(c.createdAt).toLocaleString("en-GB")}</p>
               </div>
               <p className="mt-2 whitespace-pre-wrap text-slate-700">{c.body}</p>
+              <AttachmentList ticketId={ticket.id} attachments={c.attachments} />
             </div>
           ))}
           {ticket.comments.length === 0 && <p className="text-sm text-slate-400">No replies yet.</p>}
@@ -138,15 +188,25 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
             placeholder="Write a reply…"
             className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
           />
-          <div className="mt-3 flex items-center justify-between">
-            {staff ? (
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+              <input
+                type="file"
+                className="hidden"
+                onChange={(e) => setReplyFile(e.target.files?.[0] ?? null)}
+              />
+              <span className="rounded-md border border-slate-300 px-2.5 py-1 text-xs hover:bg-slate-50">
+                {replyFile ? replyFile.name : "Attach file"}
+              </span>
+            </label>
+            {staff && (
               <label className="flex items-center gap-2 text-sm text-slate-600">
                 <input type="checkbox" checked={isInternal} onChange={(e) => setIsInternal(e.target.checked)} />
                 Internal note (hidden from requester)
               </label>
-            ) : (
-              <span />
             )}
+          </div>
+          <div className="mt-3 flex items-center justify-end">
             <button
               type="submit"
               disabled={posting || !reply.trim()}

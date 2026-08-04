@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { StatusBadge, PriorityBadge } from "@/components/badges";
+import { isOverdue } from "@/lib/sla";
 
 type Ticket = {
   id: string;
@@ -12,6 +13,7 @@ type Ticket = {
   status: string;
   priority: string;
   createdAt: string;
+  dueAt: string | null;
   category: { name: string } | null;
   requester: { name: string | null; email: string | null };
   assignee: { name: string | null; email: string | null } | null;
@@ -85,7 +87,14 @@ function TicketsList() {
                   <PriorityBadge priority={t.priority as never} />
                 </td>
                 <td className="p-4">
-                  <StatusBadge status={t.status as never} />
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={t.status as never} />
+                    {isOverdue(t.dueAt, t.status) && (
+                      <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
+                        Overdue
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="p-4 text-slate-500">{t.assignee?.name ?? "Unassigned"}</td>
                 <td className="p-4 text-slate-400">{new Date(t.createdAt).toLocaleDateString("en-GB")}</td>

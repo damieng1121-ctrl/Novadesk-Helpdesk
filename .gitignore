@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local ticket attachment storage (see src/lib/storage.ts)
+/storage/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

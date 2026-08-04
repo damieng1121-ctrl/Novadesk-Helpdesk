@@ -12,6 +12,7 @@ export default function NewTicketPage() {
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [priority, setPriority] = useState("MEDIUM");
+  const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,6 +36,11 @@ export default function NewTicketPage() {
       if (!res.ok) {
         setError(data.error ?? "Something went wrong");
         return;
+      }
+      if (file) {
+        const form = new FormData();
+        form.set("file", file);
+        await fetch(`/api/tickets/${data.id}/attachments`, { method: "POST", body: form });
       }
       router.push(`/portal/tickets/${data.id}`);
     } finally {
@@ -96,6 +102,14 @@ export default function NewTicketPage() {
               <option value="CRITICAL">Critical — teaching is stopped right now</option>
             </select>
           </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700">Attach a photo or file (optional)</label>
+          <input
+            type="file"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            className="mt-1 w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border file:border-slate-300 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-50"
+          />
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
