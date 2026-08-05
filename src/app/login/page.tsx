@@ -23,6 +23,7 @@ function LoginError() {
 const DEV_LOGIN_ENABLED = process.env.NODE_ENV !== "production";
 
 const DEV_ACCOUNTS = [
+  { email: "superadmin@novadesk.dev", label: "Novadesk Platform — Super Admin" },
   { email: "admin@willowbrook-primary.sch.uk", label: "Priya Shah — Tenant Admin" },
   { email: "it-support@willowbrook-primary.sch.uk", label: "Sam Okafor — Agent" },
   { email: "j.taylor@willowbrook-primary.sch.uk", label: "Jamie Taylor — Requester" },

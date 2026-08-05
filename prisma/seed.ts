@@ -560,9 +560,31 @@ async function seedDemoTenant() {
   console.log(`Seeded demo tenant '${tenant.name}' (${tenant.slug}) with admin/agent/teacher users, tickets, and KB articles.`);
 }
 
+/**
+ * A platform-wide super admin, not tied to any school. Only usable if its
+ * email is also listed in NOVADESK_SUPER_ADMIN_EMAILS — that env var is
+ * what actually grants the role on sign-in (see resolveTenantAndRole in
+ * src/lib/auth.ts); this row just gives the "Dev login" button on /login
+ * something to sign into locally, without needing real Google OAuth.
+ */
+async function seedPlatformSuperAdmin() {
+  await prisma.user.upsert({
+    where: { email: "superadmin@novadesk.dev" },
+    create: {
+      email: "superadmin@novadesk.dev",
+      name: "Novadesk Platform Admin",
+      role: "SUPER_ADMIN",
+      tenantId: null,
+    },
+    update: {},
+  });
+  console.log("Seeded platform super admin (superadmin@novadesk.dev).");
+}
+
 async function main() {
   await seedComplianceCatalogue();
   await seedDemoTenant();
+  await seedPlatformSuperAdmin();
 }
 
 main()
