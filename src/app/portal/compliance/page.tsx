@@ -9,7 +9,22 @@ type Assessment = {
   evidenceUrl: string | null;
   nextReviewDue: string | null;
 };
-type Item = { id: string; code: string; title: string; description: string; guidance: string | null; assessment: Assessment };
+type Item = {
+  id: string;
+  code: string;
+  title: string;
+  description: string;
+  guidance: string | null;
+  priority: "HIGH" | "MEDIUM" | "LOW";
+  govLink: string | null;
+  assessment: Assessment;
+};
+
+const PRIORITY_STYLES: Record<Item["priority"], string> = {
+  HIGH: "bg-red-50 text-red-700",
+  MEDIUM: "bg-amber-50 text-amber-700",
+  LOW: "bg-slate-100 text-slate-500",
+};
 type Standard = { id: string; code: string; title: string; description: string; officialUrl: string | null; items: Item[] };
 
 export default function CompliancePage() {
@@ -127,7 +142,12 @@ function ComplianceItemRow({
     <div className="p-5">
       <button onClick={onToggle} className="flex w-full items-center justify-between text-left">
         <div>
-          <p className="font-medium text-slate-900">{item.title}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-medium text-slate-900">{item.title}</p>
+            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${PRIORITY_STYLES[item.priority]}`}>
+              {item.priority}
+            </span>
+          </div>
           <p className="mt-0.5 text-sm text-slate-500">{item.description}</p>
         </div>
         <ComplianceBadge status={item.assessment.status} />
@@ -136,6 +156,11 @@ function ComplianceItemRow({
       {open && (
         <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
           {item.guidance && <p className="text-sm text-slate-600">{item.guidance}</p>}
+          {item.govLink && (
+            <a href={item.govLink} target="_blank" rel="noreferrer" className="inline-block text-xs text-blue-600 hover:underline">
+              Specific DfE guidance for this item ↗
+            </a>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-slate-500">Status</label>

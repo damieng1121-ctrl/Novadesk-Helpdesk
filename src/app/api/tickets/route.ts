@@ -56,6 +56,7 @@ const createSchema = z.object({
   description: z.string().min(1).max(5000),
   categoryId: z.string().optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
+  type: z.enum(["PROBLEM", "INCIDENT", "REQUEST", "INFORMATION", "TRAINING", "QUOTE"]).optional(),
 });
 
 export async function POST(req: Request) {
@@ -94,6 +95,7 @@ export async function POST(req: Request) {
             subject: body.subject,
             description: body.description,
             categoryId: body.categoryId ?? aiCategory?.id,
+            type: body.type ?? "INCIDENT",
             priority,
             dueAt: computeDueAt(priority),
             isOutOfHours: outOfHours,
@@ -101,6 +103,8 @@ export async function POST(req: Request) {
             aiSuggestedCategory: triage.suggestedCategory,
             aiSuggestedPriority: triage.suggestedPriority,
             aiSummary: triage.summary || null,
+            sentimentScore: triage.sentimentScore,
+            aiSuggestedSolution: triage.suggestedSolution,
           },
           include: { category: true, requester: true },
         });

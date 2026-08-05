@@ -5,7 +5,7 @@ export class DisabledAiProvider implements AiCompletionProvider {
   readonly name = "disabled" as const;
 
   async triageTicket(): Promise<TriageResult> {
-    return { suggestedCategory: null, suggestedPriority: null, summary: "" };
+    return { suggestedCategory: null, suggestedPriority: null, summary: "", sentimentScore: null, suggestedSolution: null };
   }
 
   async suggestKbArticles(): Promise<KbSuggestResult> {

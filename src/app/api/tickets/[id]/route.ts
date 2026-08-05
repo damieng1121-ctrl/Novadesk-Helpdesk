@@ -48,6 +48,7 @@ export async function GET(_req: Request, { params }: Params) {
 const updateSchema = z.object({
   status: z.enum(["OPEN", "IN_PROGRESS", "ON_HOLD", "RESOLVED", "CLOSED"]).optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
+  type: z.enum(["PROBLEM", "INCIDENT", "REQUEST", "INFORMATION", "TRAINING", "QUOTE"]).optional(),
   categoryId: z.string().nullable().optional(),
   assigneeId: z.string().nullable().optional(),
   isDeleted: z.boolean().optional(),

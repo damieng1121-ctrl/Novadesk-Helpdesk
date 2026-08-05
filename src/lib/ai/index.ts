@@ -18,7 +18,7 @@ class SafeAiProvider implements AiCompletionProvider {
       return await this.inner.triageTicket(input);
     } catch (err) {
       console.error(`[ai:${this.inner.name}] triageTicket failed`, err);
-      return { suggestedCategory: null, suggestedPriority: null, summary: "" };
+      return { suggestedCategory: null, suggestedPriority: null, summary: "", sentimentScore: null, suggestedSolution: null };
     }
   }
   async suggestKbArticles(input: KbSuggestInput): Promise<KbSuggestResult> {

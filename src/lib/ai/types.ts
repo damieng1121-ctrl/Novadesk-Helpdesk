@@ -10,6 +10,10 @@ export interface TriageResult {
   suggestedCategory: string | null;
   suggestedPriority: TicketPriority | null;
   summary: string;
+  /** 0-100 estimate of requester frustration (100 = extremely frustrated). Null if the model didn't return a usable value. */
+  sentimentScore: number | null;
+  /** A preliminary troubleshooting suggestion for the agent picking this up. */
+  suggestedSolution: string | null;
 }
 
 export interface KbSuggestInput {

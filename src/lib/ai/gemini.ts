@@ -1,9 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import type { TicketPriority } from "@prisma/client";
 import type { AiCompletionProvider, KbSuggestInput, KbSuggestResult, SummarizeInput, TriageInput, TriageResult } from "./types";
-import { kbSuggestPrompt, summarizePrompt, triagePrompt, tryParseJson } from "./prompts";
-
-const VALID_PRIORITIES: TicketPriority[] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
+import { kbSuggestPrompt, parseTriageResult, summarizePrompt, triagePrompt, tryParseJson } from "./prompts";
 
 export class GeminiAiProvider implements AiCompletionProvider {
   readonly name = "gemini" as const;
@@ -23,16 +20,7 @@ export class GeminiAiProvider implements AiCompletionProvider {
 
   async triageTicket(input: TriageInput): Promise<TriageResult> {
     const raw = await this.complete(triagePrompt(input));
-    const parsed = tryParseJson<{ suggestedCategory: string | null; suggestedPriority: string; summary: string }>(raw);
-    if (!parsed) return { suggestedCategory: null, suggestedPriority: null, summary: "" };
-    const priority = VALID_PRIORITIES.includes(parsed.suggestedPriority as TicketPriority)
-      ? (parsed.suggestedPriority as TicketPriority)
-      : null;
-    return {
-      suggestedCategory: input.categoryNames.includes(parsed.suggestedCategory ?? "") ? parsed.suggestedCategory : null,
-      suggestedPriority: priority,
-      summary: typeof parsed.summary === "string" ? parsed.summary.slice(0, 500) : "",
-    };
+    return parseTriageResult(raw, input.categoryNames);
   }
 
   async suggestKbArticles(input: KbSuggestInput): Promise<KbSuggestResult> {
