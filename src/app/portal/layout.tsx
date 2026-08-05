@@ -9,7 +9,10 @@ export default async function PortalLayout({ children }: LayoutProps<"/portal">)
   if (session.user.twoFactorEnabled && !session.user.twoFactorVerified) redirect("/verify-2fa");
 
   const tenant = session.user.tenantId
-    ? await prisma.tenant.findUnique({ where: { id: session.user.tenantId }, select: { name: true } })
+    ? await prisma.tenant.findUnique({
+        where: { id: session.user.tenantId },
+        select: { name: true, logoUrl: true, appName: true, sidebarColor: true, disabledNavItems: true },
+      })
     : null;
 
   return (
@@ -18,6 +21,10 @@ export default async function PortalLayout({ children }: LayoutProps<"/portal">)
         role={session.user.role}
         userName={session.user.name ?? session.user.email ?? "Account"}
         tenantName={tenant?.name ?? "Novadesk platform admin"}
+        appName={tenant?.appName ?? "Novadesk"}
+        hasLogo={Boolean(tenant?.logoUrl)}
+        sidebarColor={tenant?.sidebarColor ?? null}
+        disabledNavItems={tenant?.disabledNavItems ?? []}
       />
       <main className="flex-1 bg-slate-50 p-8">{children}</main>
     </div>

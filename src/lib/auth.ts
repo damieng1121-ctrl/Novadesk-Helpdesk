@@ -46,6 +46,11 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
           prompt: "select_account",
         },
       },
+      // Lets a Google sign-in "claim" a User row an admin pre-created via
+      // invite (no linked account yet). Normally risky ("account takeover
+      // through a second, less-trusted provider"), but Google is the only
+      // real provider here, so there's no second provider to attack through.
+      allowDangerousEmailAccountLinking: true,
     }),
     // Non-production only (excluded from the array entirely, not just
     // hidden in the UI) — lets you sign in as any already-seeded user by
@@ -73,9 +78,14 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
     ...authConfig.callbacks,
     async signIn({ user }) {
       if (!user.email) return false;
+      // A pre-provisioned row (an admin's manual invite/assignment) is
+      // always allowed to sign in, regardless of its email's domain —
+      // that manual assignment is what makes it a member of a school.
+      const existing = await prisma.user.findUnique({ where: { email: user.email } });
+      if (existing && (existing.tenantId !== null || existing.role === "SUPER_ADMIN")) return true;
+      // Otherwise fall back to domain-based auto-provisioning for a
+      // genuinely first-ever sign-in.
       const resolved = await resolveTenantAndRole(user.email);
-      // Deny sign-in for any Google account whose domain isn't a
-      // registered, active school tenant (or the platform admin allowlist).
       return resolved !== null;
     },
     async jwt({ token, user, trigger, session }) {
@@ -87,16 +97,15 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
         return token;
       }
 
-      if (user?.email) {
-        const resolved = await resolveTenantAndRole(user.email);
-        if (resolved) {
-          const dbUser = await prisma.user.update({
-            where: { id: user.id },
-            data: {
-              tenantId: resolved.tenantId,
-              role: resolved.tenantId === null ? resolved.role : undefined,
-            },
-          });
+      // Only present on a fresh sign-in. Deliberately just reads whatever
+      // tenantId/role the user row already has — never recomputes it from
+      // the email's domain here. Domain-based auto-provisioning only ever
+      // happens once, in the createUser event below, for a brand-new row;
+      // after that, an admin's manual invite/reassignment is the source of
+      // truth and must not be silently overwritten on the next login.
+      if (user?.id) {
+        const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+        if (dbUser) {
           token.id = dbUser.id;
           token.role = dbUser.role;
           token.tenantId = dbUser.tenantId;

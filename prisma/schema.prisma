@@ -27,10 +27,17 @@ model Tenant {
   phase      SchoolPhase @default(PRIMARY)
   logoUrl    String?
   brandColor String      @default("#2563eb")
+  /// Overrides the "Novadesk" wordmark in the portal nav header, for schools that want to fully rebrand.
+  appName    String?
+  /// Portal nav sidebar background colour. Defaults to the app's standard white sidebar when unset.
+  sidebarColor String?
   timezone   String      @default("Europe/London")
   isActive   Boolean     @default(true)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+
+  /// Staff nav modules this school has hidden (values match PortalNav's link hrefs), e.g. ["/portal/forums"].
+  disabledNavItems String[] @default([])
 
   // Out-of-hours auto-reply (applied to new tickets created outside this window)
   outOfHoursEnabled     Boolean @default(false)

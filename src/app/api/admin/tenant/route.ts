@@ -13,8 +13,10 @@ export async function GET() {
 
 const bodySchema = z.object({
   name: z.string().min(2).max(150).optional(),
-  logoUrl: z.string().url().optional().or(z.literal("")),
   brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  appName: z.string().max(60).optional().or(z.literal("")),
+  sidebarColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional().or(z.literal("")),
+  disabledNavItems: z.array(z.string()).optional(),
   urn: z.string().max(20).optional(),
   outOfHoursEnabled: z.boolean().optional(),
   outOfHoursStart: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(),
@@ -30,7 +32,11 @@ export async function PATCH(req: Request) {
     const body = bodySchema.parse(await req.json());
     return prisma.tenant.update({
       where: { id: session.user.tenantId },
-      data: { ...body, logoUrl: body.logoUrl || undefined },
+      data: {
+        ...body,
+        appName: body.appName === "" ? null : body.appName,
+        sidebarColor: body.sidebarColor === "" ? null : body.sidebarColor,
+      },
     });
   });
 }

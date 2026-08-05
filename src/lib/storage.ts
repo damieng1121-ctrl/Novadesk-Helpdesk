@@ -28,6 +28,20 @@ function buildKey(tenantId: string, ticketId: string, fileName: string): string 
   return path.posix.join(tenantId, ticketId, `${randomUUID()}-${sanitizeFileName(fileName)}`);
 }
 
+const MAX_LOGO_BYTES = 2 * 1024 * 1024; // 2MB — a nav-bar/login logo, not a photo library
+
+/** One logo per tenant — a fresh upload always replaces the previous file. */
+export async function saveTenantLogo(tenantId: string, fileName: string, data: Buffer): Promise<{ key: string }> {
+  if (data.byteLength > MAX_LOGO_BYTES) {
+    throw new UploadTooLargeError(`File exceeds ${MAX_LOGO_BYTES / (1024 * 1024)}MB limit`);
+  }
+  const key = path.posix.join("tenant-logos", tenantId, sanitizeFileName(fileName));
+  const onDisk = resolveOnDisk(key);
+  await mkdir(path.dirname(onDisk), { recursive: true });
+  await writeFile(onDisk, data);
+  return { key };
+}
+
 function resolveOnDisk(key: string): string {
   const resolved = path.resolve(STORAGE_ROOT, key);
   // Defense in depth against a malformed/malicious key escaping the storage root.

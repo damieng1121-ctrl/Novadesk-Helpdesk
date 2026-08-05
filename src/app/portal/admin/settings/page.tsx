@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { TOGGLEABLE_NAV_ITEMS } from "@/components/portal-nav";
 
 type AiConfig = {
   provider: "CLAUDE" | "GEMINI" | "DISABLED";
@@ -13,6 +14,9 @@ type Tenant = {
   name: string;
   logoUrl: string | null;
   brandColor: string;
+  appName: string | null;
+  sidebarColor: string | null;
+  disabledNavItems: string[];
   urn: string | null;
   outOfHoursEnabled: boolean;
   outOfHoursStart: string;
@@ -47,6 +51,8 @@ export default function AdminSettingsPage() {
   const [savingTenant, setSavingTenant] = useState(false);
   const [portal, setPortal] = useState<PortalSettings | null>(null);
   const [savingPortal, setSavingPortal] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoNonce, setLogoNonce] = useState(0);
 
   useEffect(() => {
     fetch("/api/admin/ai-config").then((r) => r.json()).then(setAi);
@@ -103,6 +109,36 @@ export default function AdminSettingsPage() {
     }
   }
 
+  async function uploadLogo(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !tenant) return;
+    setUploadingLogo(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/admin/tenant/logo", { method: "POST", body: form });
+      if (res.ok) {
+        setTenant({ ...tenant, logoUrl: "set" });
+        setLogoNonce((n) => n + 1);
+      }
+    } finally {
+      setUploadingLogo(false);
+      e.target.value = "";
+    }
+  }
+
+  async function removeLogo() {
+    if (!tenant) return;
+    setUploadingLogo(true);
+    try {
+      await fetch("/api/admin/tenant/logo", { method: "DELETE" });
+      setTenant({ ...tenant, logoUrl: null });
+      setLogoNonce((n) => n + 1);
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
+
   async function saveTenant() {
     if (!tenant) return;
     setSavingTenant(true);
@@ -142,6 +178,29 @@ export default function AdminSettingsPage() {
               />
             </div>
             <div>
+              <label className="block text-sm font-medium text-slate-700">Logo</label>
+              <div className="mt-1 flex items-center gap-4">
+                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-white">
+                  {tenant.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- small admin-uploaded logo, not worth next/image's remote-loader setup
+                    <img key={logoNonce} src={`/api/tenant/logo?v=${logoNonce}`} alt="School logo" className="h-full w-full object-contain" />
+                  ) : (
+                    <span className="text-xs text-slate-300">None</span>
+                  )}
+                </div>
+                <label className="cursor-pointer rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">
+                  {uploadingLogo ? "Uploading…" : "Upload"}
+                  <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif" className="hidden" disabled={uploadingLogo} onChange={uploadLogo} />
+                </label>
+                {tenant.logoUrl && (
+                  <button onClick={removeLogo} disabled={uploadingLogo} className="text-sm text-red-600 hover:underline disabled:opacity-50">
+                    Remove
+                  </button>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-slate-500">Shown in the portal navigation sidebar. PNG, JPEG, SVG, WebP, or GIF, up to 2MB.</p>
+            </div>
+            <div>
               <label className="block text-sm font-medium text-slate-700">Brand colour</label>
               <input
                 type="color"
@@ -149,6 +208,59 @@ export default function AdminSettingsPage() {
                 onChange={(e) => setTenant({ ...tenant, brandColor: e.target.value })}
                 className="mt-1 h-10 w-16 rounded-md border border-slate-300"
               />
+            </div>
+            <div className="border-t border-slate-100 pt-4">
+              <label className="block text-sm font-medium text-slate-700">App name (optional)</label>
+              <input
+                value={tenant.appName ?? ""}
+                onChange={(e) => setTenant({ ...tenant, appName: e.target.value })}
+                placeholder="Novadesk"
+                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              />
+              <p className="mt-1 text-xs text-slate-500">
+                Replaces the &quot;Novadesk&quot; wordmark in the nav header — for schools that want to fully rebrand.
+              </p>
+            </div>
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={Boolean(tenant.sidebarColor)}
+                  onChange={(e) => setTenant({ ...tenant, sidebarColor: e.target.checked ? "#0f172a" : "" })}
+                />
+                Custom sidebar colour
+              </label>
+              {tenant.sidebarColor && (
+                <input
+                  type="color"
+                  value={tenant.sidebarColor}
+                  onChange={(e) => setTenant({ ...tenant, sidebarColor: e.target.value })}
+                  className="mt-2 h-10 w-16 rounded-md border border-slate-300"
+                />
+              )}
+            </div>
+            <div className="border-t border-slate-100 pt-4">
+              <p className="text-sm font-medium text-slate-900">Nav modules</p>
+              <p className="mt-1 text-sm text-slate-500">Hide modules this school doesn&apos;t use from the staff sidebar.</p>
+              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {TOGGLEABLE_NAV_ITEMS.map((item) => (
+                  <label key={item.href} className="flex items-center gap-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={!tenant.disabledNavItems.includes(item.href)}
+                      onChange={(e) =>
+                        setTenant({
+                          ...tenant,
+                          disabledNavItems: e.target.checked
+                            ? tenant.disabledNavItems.filter((h) => h !== item.href)
+                            : [...tenant.disabledNavItems, item.href],
+                        })
+                      }
+                    />
+                    {item.label}
+                  </label>
+                ))}
+              </div>
             </div>
             <div className="border-t border-slate-100 pt-4">
               <label className="flex items-center gap-2 text-sm font-medium text-slate-900">
