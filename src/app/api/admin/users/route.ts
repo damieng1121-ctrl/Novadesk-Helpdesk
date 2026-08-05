@@ -26,8 +26,8 @@ export async function GET() {
 }
 
 const inviteSchema = z.object({
-  email: z.string().email().max(200),
-  name: z.string().max(150).optional(),
+  email: z.string().trim().toLowerCase().email().max(200),
+  name: z.string().trim().max(150).optional(),
   role: z.enum(["REQUESTER", "AGENT", "TENANT_ADMIN"]),
 });
 

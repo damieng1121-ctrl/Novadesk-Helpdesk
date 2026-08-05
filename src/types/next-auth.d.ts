@@ -6,7 +6,10 @@ declare module "next-auth" {
     user: {
       id: string;
       role: Role;
+      /** For a SUPER_ADMIN "managing" a school, this is that school's id — never a real tenant membership. See actingTenantId. */
       tenantId: string | null;
+      /** Set only while a SUPER_ADMIN is managing a specific school; null otherwise (including for ordinary tenant users). */
+      actingTenantId: string | null;
       twoFactorEnabled: boolean;
       twoFactorVerified: boolean;
     } & DefaultSession["user"];
@@ -21,6 +24,7 @@ declare module "@auth/core/jwt" {
     id: string;
     role: Role;
     tenantId: string | null;
+    actingTenantId: string | null;
     twoFactorEnabled: boolean;
     twoFactorVerified: boolean;
   }

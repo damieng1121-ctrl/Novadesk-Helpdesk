@@ -94,6 +94,17 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
         // flows) — trust it rather than re-hitting the DB on every session read.
         if (typeof session.twoFactorVerified === "boolean") token.twoFactorVerified = session.twoFactorVerified;
         if (typeof session.twoFactorEnabled === "boolean") token.twoFactorEnabled = session.twoFactorEnabled;
+        // Only a real platform SUPER_ADMIN can ever set this — never an
+        // ordinary tenant user overriding their own membership. Validated
+        // against a real, active school so a stale/bogus id can't linger.
+        if ("actingTenantId" in session && token.role === "SUPER_ADMIN") {
+          if (session.actingTenantId === null) {
+            token.actingTenantId = null;
+          } else if (typeof session.actingTenantId === "string") {
+            const tenant = await prisma.tenant.findUnique({ where: { id: session.actingTenantId } });
+            token.actingTenantId = tenant?.isActive ? tenant.id : null;
+          }
+        }
         return token;
       }
 
@@ -109,6 +120,7 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
           token.id = dbUser.id;
           token.role = dbUser.role;
           token.tenantId = dbUser.tenantId;
+          token.actingTenantId = null;
           token.twoFactorEnabled = dbUser.twoFactorEnabled;
           token.twoFactorVerified = !dbUser.twoFactorEnabled;
         }

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 type Tenant = {
   id: string;
@@ -29,8 +31,29 @@ type PlatformUser = {
 const PHASES = ["NURSERY", "PRIMARY", "SECONDARY", "ALL_THROUGH", "SPECIAL", "MULTI_ACADEMY_TRUST"];
 const ROLES = ["REQUESTER", "AGENT", "TENANT_ADMIN", "SUPER_ADMIN"] as const;
 
+/** Turns withApiErrors' {error, issues} shape into a readable message instead of the generic "Invalid request". */
+function describeApiError(data: { error?: string; issues?: { path: (string | number)[]; message: string }[] }): string {
+  if (data.issues?.length) {
+    return data.issues.map((i) => (i.path.length ? `${i.path.join(".")}: ${i.message}` : i.message)).join("; ");
+  }
+  return data.error ?? "Something went wrong";
+}
+
 export default function SuperAdminPage() {
+  const { update } = useSession();
+  const router = useRouter();
   const [tab, setTab] = useState<"schools" | "users">("schools");
+  const [managingId, setManagingId] = useState<string | null>(null);
+
+  async function manageSchool(id: string) {
+    setManagingId(id);
+    try {
+      await update({ actingTenantId: id });
+      router.push("/portal");
+    } finally {
+      setManagingId(null);
+    }
+  }
 
   const [tenants, setTenants] = useState<Tenant[] | null>(null);
   const [name, setName] = useState("");
@@ -77,7 +100,7 @@ export default function SuperAdminPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Something went wrong");
+        setError(describeApiError(data));
         return;
       }
       setName("");
@@ -116,7 +139,7 @@ export default function SuperAdminPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setUError(data.error ?? "Something went wrong");
+        setUError(describeApiError(data));
         return;
       }
       setUEmail("");
@@ -243,6 +266,7 @@ export default function SuperAdminPage() {
                   <th className="p-4">Users</th>
                   <th className="p-4">Tickets</th>
                   <th className="p-4">Status</th>
+                  <th className="p-4"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -265,11 +289,20 @@ export default function SuperAdminPage() {
                         {t.isActive ? "Active" : "Suspended"}
                       </button>
                     </td>
+                    <td className="p-4 text-right">
+                      <button
+                        onClick={() => manageSchool(t.id)}
+                        disabled={managingId === t.id || !t.isActive}
+                        className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                      >
+                        {managingId === t.id ? "Opening…" : "Manage"}
+                      </button>
+                    </td>
                   </tr>
                 ))}
                 {tenants?.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="p-6 text-center text-sm text-slate-500">
+                    <td colSpan={6} className="p-6 text-center text-sm text-slate-500">
                       No schools yet — add one above.
                     </td>
                   </tr>
