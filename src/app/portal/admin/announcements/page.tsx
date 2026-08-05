@@ -94,16 +94,16 @@ export default function AnnouncementsAdminPage() {
               </div>
               <button
                 onClick={() => toggleActive(a.id, a.active)}
-                className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${a.active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}
+                className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${a.active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-700"}`}
               >
                 {a.active ? "Active" : "Inactive"}
               </button>
             </div>
             <p className="mt-1 text-sm text-slate-600">{a.message}</p>
-            <p className="mt-1 text-xs text-slate-400">Audience: {a.targetAudience.toLowerCase()}</p>
+            <p className="mt-1 text-xs text-slate-600">Audience: {a.targetAudience.toLowerCase()}</p>
           </div>
         ))}
-        {announcements?.length === 0 && <p className="text-sm text-slate-500">No announcements yet.</p>}
+        {announcements?.length === 0 && <p className="text-sm text-slate-700">No announcements yet.</p>}
       </div>
     </div>
   );

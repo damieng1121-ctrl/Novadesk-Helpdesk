@@ -6,7 +6,7 @@ const statusStyles: Record<TicketStatus, string> = {
   IN_PROGRESS: "bg-amber-100 text-amber-700",
   ON_HOLD: "bg-slate-200 text-slate-700",
   RESOLVED: "bg-green-100 text-green-700",
-  CLOSED: "bg-slate-100 text-slate-500",
+  CLOSED: "bg-slate-100 text-slate-700",
 };
 
 export function StatusBadge({ status }: { status: TicketStatus }) {
@@ -37,7 +37,7 @@ const complianceStyles: Record<ComplianceStatus, string> = {
   IN_PROGRESS: "bg-amber-100 text-amber-700",
   COMPLIANT: "bg-green-100 text-green-700",
   NON_COMPLIANT: "bg-red-100 text-red-700",
-  NOT_APPLICABLE: "bg-slate-100 text-slate-400",
+  NOT_APPLICABLE: "bg-slate-100 text-slate-600",
 };
 
 export function ComplianceBadge({ status }: { status: ComplianceStatus }) {

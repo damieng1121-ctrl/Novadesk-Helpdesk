@@ -108,7 +108,7 @@ function SecurityPageInner() {
               Scan this with Google Authenticator (or any TOTP app), then enter the 6-digit code.
             </p>
             <Image src={qrCodeDataUrl} alt="2FA QR code" width={180} height={180} className="mt-3 rounded-md border border-slate-200" unoptimized />
-            <p className="mt-2 font-mono text-xs text-slate-400">Manual entry key: {secret}</p>
+            <p className="mt-2 font-mono text-xs text-slate-600">Manual entry key: {secret}</p>
             <form onSubmit={confirmSetup} className="mt-4 flex gap-2">
               <input
                 value={code}

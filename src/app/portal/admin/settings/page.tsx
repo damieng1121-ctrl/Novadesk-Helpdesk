@@ -185,7 +185,7 @@ export default function AdminSettingsPage() {
                     // eslint-disable-next-line @next/next/no-img-element -- small admin-uploaded logo, not worth next/image's remote-loader setup
                     <img key={logoNonce} src={`/api/tenant/logo?v=${logoNonce}`} alt="School logo" className="h-full w-full object-contain" />
                   ) : (
-                    <span className="text-xs text-slate-300">None</span>
+                    <span className="text-xs text-slate-500">None</span>
                   )}
                 </div>
                 <label className="cursor-pointer rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">
@@ -198,7 +198,7 @@ export default function AdminSettingsPage() {
                   </button>
                 )}
               </div>
-              <p className="mt-1 text-xs text-slate-500">Shown in the portal navigation sidebar. PNG, JPEG, SVG, WebP, or GIF, up to 2MB.</p>
+              <p className="mt-1 text-xs text-slate-700">Shown in the portal navigation sidebar. PNG, JPEG, SVG, WebP, or GIF, up to 2MB.</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700">Brand colour</label>
@@ -217,7 +217,7 @@ export default function AdminSettingsPage() {
                 placeholder="Novadesk"
                 className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
               />
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-slate-700">
                 Replaces the &quot;Novadesk&quot; wordmark in the nav header — for schools that want to fully rebrand.
               </p>
             </div>
@@ -241,7 +241,7 @@ export default function AdminSettingsPage() {
             </div>
             <div className="border-t border-slate-100 pt-4">
               <p className="text-sm font-medium text-slate-900">Nav modules</p>
-              <p className="mt-1 text-sm text-slate-500">Hide modules this school doesn&apos;t use from the staff sidebar.</p>
+              <p className="mt-1 text-sm text-slate-700">Hide modules this school doesn&apos;t use from the staff sidebar.</p>
               <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {TOGGLEABLE_NAV_ITEMS.map((item) => (
                   <label key={item.href} className="flex items-center gap-2 text-sm text-slate-700">
@@ -271,14 +271,14 @@ export default function AdminSettingsPage() {
                 />
                 Out-of-hours auto-notice
               </label>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-slate-700">
                 Shown on tickets raised outside these hours (or on weekends, if selected).
               </p>
               {tenant.outOfHoursEnabled && (
                 <div className="mt-3 space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs text-slate-500">Starts</label>
+                      <label className="block text-xs text-slate-700">Starts</label>
                       <input
                         type="time"
                         value={tenant.outOfHoursStart}
@@ -287,7 +287,7 @@ export default function AdminSettingsPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-slate-500">Ends</label>
+                      <label className="block text-xs text-slate-700">Ends</label>
                       <input
                         type="time"
                         value={tenant.outOfHoursEnd}
@@ -503,13 +503,13 @@ export default function AdminSettingsPage() {
                     />
                     <button
                       onClick={() => removeUsefulLink(link.id)}
-                      className="rounded-md border border-slate-200 px-2 text-sm text-slate-500 hover:bg-slate-50"
+                      className="rounded-md border border-slate-200 px-2 text-sm text-slate-700 hover:bg-slate-50"
                     >
                       Remove
                     </button>
                   </div>
                 ))}
-                {portal.usefulLinks.length === 0 && <p className="text-sm text-slate-400">No links yet.</p>}
+                {portal.usefulLinks.length === 0 && <p className="text-sm text-slate-600">No links yet.</p>}
               </div>
             </div>
 

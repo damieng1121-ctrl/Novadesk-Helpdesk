@@ -26,7 +26,7 @@ export default async function DashboardPage() {
           </Link>
           .
         </p>
-        <p className="mt-4 text-sm text-slate-500">{tenantCount} school{tenantCount === 1 ? "" : "s"} onboarded.</p>
+        <p className="mt-4 text-sm text-slate-700">{tenantCount} school{tenantCount === 1 ? "" : "s"} onboarded.</p>
       </div>
     );
   }
@@ -73,7 +73,7 @@ export default async function DashboardPage() {
             href={s.href}
             className="rounded-xl border border-slate-200 bg-white p-5 hover:border-blue-300"
           >
-            <p className="text-sm text-slate-500">{s.label}</p>
+            <p className="text-sm text-slate-700">{s.label}</p>
             <p className="mt-1 text-3xl font-semibold text-slate-900">{s.value}</p>
           </Link>
         ))}
@@ -87,7 +87,7 @@ export default async function DashboardPage() {
           </Link>
         </div>
         <div className="mt-3 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
-          {recentArticles.length === 0 && <p className="p-5 text-sm text-slate-500">No published articles yet.</p>}
+          {recentArticles.length === 0 && <p className="p-5 text-sm text-slate-700">No published articles yet.</p>}
           {recentArticles.map((a) => (
             <Link key={a.id} href={`/portal/kb/${a.slug}`} className="block p-4 hover:bg-slate-50">
               <p className="font-medium text-slate-900">{a.title}</p>

@@ -18,7 +18,7 @@ const STAFF_ROLES = new Set(["AGENT", "TENANT_ADMIN", "SUPER_ADMIN"]);
 
 export default function KbListPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-slate-500">Loading…</p>}>
+    <Suspense fallback={<p className="text-sm text-slate-700">Loading…</p>}>
       <KbList />
     </Suspense>
   );
@@ -67,7 +67,7 @@ function KbList() {
             className="rounded-xl border border-slate-200 bg-white p-5 hover:border-blue-300"
           >
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-600">
                 {a.category?.name ?? "General"}
               </p>
               {staff && a.status !== "PUBLISHED" && (
@@ -77,10 +77,10 @@ function KbList() {
               )}
             </div>
             <h3 className="mt-2 font-semibold text-slate-900">{a.title}</h3>
-            <p className="mt-2 text-xs text-slate-400">{a.viewCount} views</p>
+            <p className="mt-2 text-xs text-slate-600">{a.viewCount} views</p>
           </Link>
         ))}
-        {articles?.length === 0 && <p className="text-sm text-slate-500">No articles yet.</p>}
+        {articles?.length === 0 && <p className="text-sm text-slate-700">No articles yet.</p>}
       </div>
     </div>
   );

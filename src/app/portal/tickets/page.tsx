@@ -21,7 +21,7 @@ type Ticket = {
 
 export default function TicketsPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-slate-500">Loading…</p>}>
+    <Suspense fallback={<p className="text-sm text-slate-700">Loading…</p>}>
       <TicketsList />
     </Suspense>
   );
@@ -69,8 +69,8 @@ function TicketsList() {
       </div>
 
       <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
-        {tickets === null && <p className="p-6 text-sm text-slate-500">Loading…</p>}
-        {tickets?.length === 0 && <p className="p-6 text-sm text-slate-500">No tickets found.</p>}
+        {tickets === null && <p className="p-6 text-sm text-slate-700">Loading…</p>}
+        {tickets?.length === 0 && <p className="p-6 text-sm text-slate-700">No tickets found.</p>}
         <table className="w-full text-left text-sm">
           <tbody className="divide-y divide-slate-100">
             {tickets?.map((t) => (
@@ -79,7 +79,7 @@ function TicketsList() {
                   <Link href={`/portal/tickets/${t.id}`} className="font-medium text-slate-900 hover:text-blue-600">
                     #{t.number} {t.subject}
                   </Link>
-                  <p className="mt-0.5 text-xs text-slate-500">
+                  <p className="mt-0.5 text-xs text-slate-700">
                     {t.category?.name ?? "Uncategorised"} · {t.requester.name ?? t.requester.email}
                   </p>
                 </td>
@@ -96,8 +96,8 @@ function TicketsList() {
                     )}
                   </div>
                 </td>
-                <td className="p-4 text-slate-500">{t.assignee?.name ?? "Unassigned"}</td>
-                <td className="p-4 text-slate-400">{new Date(t.createdAt).toLocaleDateString("en-GB")}</td>
+                <td className="p-4 text-slate-700">{t.assignee?.name ?? "Unassigned"}</td>
+                <td className="p-4 text-slate-600">{new Date(t.createdAt).toLocaleDateString("en-GB")}</td>
               </tr>
             ))}
           </tbody>

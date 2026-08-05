@@ -33,10 +33,10 @@ function DevLogin() {
   if (!DEV_LOGIN_ENABLED) return null;
   return (
     <div className="mt-6 border-t border-slate-200 pt-6 text-left">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-600">
         Dev login (local only — no Google OAuth needed)
       </p>
-      <p className="mt-1 text-xs text-slate-500">
+      <p className="mt-1 text-xs text-slate-700">
         Requires the seed script to have run. Admin/Agent will still be prompted to set up 2FA —
         that part of the real flow isn&apos;t skipped.
       </p>
@@ -48,7 +48,7 @@ function DevLogin() {
             className="block w-full rounded-md border border-slate-200 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
           >
             {a.label}
-            <span className="block text-xs text-slate-400">{a.email}</span>
+            <span className="block text-xs text-slate-600">{a.email}</span>
           </button>
         ))}
       </div>

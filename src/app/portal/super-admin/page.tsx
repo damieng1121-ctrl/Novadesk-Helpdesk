@@ -172,13 +172,13 @@ export default function SuperAdminPage() {
         <div className="flex gap-1 rounded-lg border border-slate-200 bg-white p-1">
           <button
             onClick={() => setTab("schools")}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "schools" ? "bg-blue-50 text-blue-700" : "text-slate-500 hover:text-slate-700"}`}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "schools" ? "bg-blue-50 text-blue-700" : "text-slate-700 hover:text-slate-900"}`}
           >
             Schools
           </button>
           <button
             onClick={() => setTab("users")}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "users" ? "bg-blue-50 text-blue-700" : "text-slate-500 hover:text-slate-700"}`}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "users" ? "bg-blue-50 text-blue-700" : "text-slate-700 hover:text-slate-900"}`}
           >
             Users
           </button>
@@ -259,7 +259,7 @@ export default function SuperAdminPage() {
 
           <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
+              <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-600">
                 <tr>
                   <th className="p-4">School</th>
                   <th className="p-4">Domain</th>
@@ -274,7 +274,7 @@ export default function SuperAdminPage() {
                   <tr key={t.id}>
                     <td className="p-4">
                       <p className="font-medium text-slate-900">{t.name}</p>
-                      <p className="text-xs text-slate-500">/{t.slug} · {t.phase.replace(/_/g, " ")}</p>
+                      <p className="text-xs text-slate-700">/{t.slug} · {t.phase.replace(/_/g, " ")}</p>
                     </td>
                     <td className="p-4 text-slate-600">{t.domain}</td>
                     <td className="p-4 text-slate-600">{t._count.users}</td>
@@ -283,7 +283,7 @@ export default function SuperAdminPage() {
                       <button
                         onClick={() => toggleActive(t.id, t.isActive)}
                         className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          t.isActive ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+                          t.isActive ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-700"
                         }`}
                       >
                         {t.isActive ? "Active" : "Suspended"}
@@ -302,7 +302,7 @@ export default function SuperAdminPage() {
                 ))}
                 {tenants?.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="p-6 text-center text-sm text-slate-500">
+                    <td colSpan={6} className="p-6 text-center text-sm text-slate-700">
                       No schools yet — add one above.
                     </td>
                   </tr>
@@ -359,7 +359,7 @@ export default function SuperAdminPage() {
                 value={uTenantId}
                 disabled={uRole === "SUPER_ADMIN"}
                 onChange={(e) => setUTenantId(e.target.value)}
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50 disabled:text-slate-400"
+                className="rounded-md border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50 disabled:text-slate-600"
               >
                 <option value="">Select a school…</option>
                 {tenants?.map((t) => (
@@ -381,7 +381,7 @@ export default function SuperAdminPage() {
 
           <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
+              <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-600">
                 <tr>
                   <th className="p-4">Name</th>
                   <th className="p-4">School</th>
@@ -402,11 +402,11 @@ export default function SuperAdminPage() {
                           </span>
                         )}
                       </p>
-                      <p className="text-xs text-slate-500">{u.email}</p>
+                      <p className="text-xs text-slate-700">{u.email}</p>
                     </td>
                     <td className="p-4">
                       {u.role === "SUPER_ADMIN" ? (
-                        <span className="text-xs text-slate-400">Platform (no school)</span>
+                        <span className="text-xs text-slate-600">Platform (no school)</span>
                       ) : (
                         <select
                           value={u.tenantId ?? ""}
@@ -439,12 +439,12 @@ export default function SuperAdminPage() {
                         <option value="SUPER_ADMIN">Super admin</option>
                       </select>
                     </td>
-                    <td className="p-4 text-slate-500">{u.twoFactorEnabled ? "Enabled" : "Not set up"}</td>
+                    <td className="p-4 text-slate-700">{u.twoFactorEnabled ? "Enabled" : "Not set up"}</td>
                     <td className="p-4">
                       <button
                         onClick={() => reassignUser(u.id, { isActive: !u.isActive })}
                         className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          u.isActive ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+                          u.isActive ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-700"
                         }`}
                       >
                         {u.isActive ? "Active" : "Disabled"}
@@ -454,7 +454,7 @@ export default function SuperAdminPage() {
                 ))}
                 {users?.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="p-6 text-center text-sm text-slate-500">
+                    <td colSpan={5} className="p-6 text-center text-sm text-slate-700">
                       No users yet.
                     </td>
                   </tr>

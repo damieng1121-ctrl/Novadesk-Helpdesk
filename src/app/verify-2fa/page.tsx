@@ -60,7 +60,7 @@ export default function Verify2faPage() {
         </form>
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="mt-4 w-full text-center text-sm text-slate-500 hover:text-slate-700"
+          className="mt-4 w-full text-center text-sm text-slate-700 hover:text-slate-900"
         >
           Sign in with a different account
         </button>

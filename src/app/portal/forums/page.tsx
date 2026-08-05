@@ -75,11 +75,11 @@ export default function ForumsPage() {
                 <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">Staff only</span>
               )}
             </div>
-            {c.description && <p className="mt-1 text-sm text-slate-500">{c.description}</p>}
-            <p className="mt-2 text-xs text-slate-400">{c._count.topics} topic{c._count.topics === 1 ? "" : "s"}</p>
+            {c.description && <p className="mt-1 text-sm text-slate-700">{c.description}</p>}
+            <p className="mt-2 text-xs text-slate-600">{c._count.topics} topic{c._count.topics === 1 ? "" : "s"}</p>
           </Link>
         ))}
-        {categories?.length === 0 && <p className="text-sm text-slate-500">No forum categories yet.</p>}
+        {categories?.length === 0 && <p className="text-sm text-slate-700">No forum categories yet.</p>}
       </div>
     </div>
   );

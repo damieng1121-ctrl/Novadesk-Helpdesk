@@ -23,7 +23,7 @@ export default function ReportsPage() {
       .then(setSummary);
   }, []);
 
-  if (!summary) return <p className="text-sm text-slate-500">Loading…</p>;
+  if (!summary) return <p className="text-sm text-slate-700">Loading…</p>;
 
   const maxStatusCount = Math.max(1, ...summary.byStatus.map((s) => s.count));
   const maxPriorityCount = Math.max(1, ...summary.byPriority.map((p) => p.count));
@@ -57,7 +57,7 @@ export default function ReportsPage() {
                       style={{ width: `${(count / maxStatusCount) * 100}%` }}
                     />
                   </div>
-                  <span className="w-8 shrink-0 text-right text-slate-500">{count}</span>
+                  <span className="w-8 shrink-0 text-right text-slate-700">{count}</span>
                 </div>
               );
             })}
@@ -78,7 +78,7 @@ export default function ReportsPage() {
                       style={{ width: `${(count / maxPriorityCount) * 100}%` }}
                     />
                   </div>
-                  <span className="w-8 shrink-0 text-right text-slate-500">{count}</span>
+                  <span className="w-8 shrink-0 text-right text-slate-700">{count}</span>
                 </div>
               );
             })}
@@ -92,7 +92,7 @@ export default function ReportsPage() {
 function Stat({ label, value, highlight }: { label: string; value: string | number; highlight?: boolean }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5">
-      <p className="text-sm text-slate-500">{label}</p>
+      <p className="text-sm text-slate-700">{label}</p>
       <p className={`mt-1 text-3xl font-semibold ${highlight ? "text-red-600" : "text-slate-900"}`}>{value}</p>
     </div>
   );

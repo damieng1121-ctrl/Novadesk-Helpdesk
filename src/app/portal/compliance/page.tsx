@@ -23,7 +23,7 @@ type Item = {
 const PRIORITY_STYLES: Record<Item["priority"], string> = {
   HIGH: "bg-red-50 text-red-700",
   MEDIUM: "bg-amber-50 text-amber-700",
-  LOW: "bg-slate-100 text-slate-500",
+  LOW: "bg-slate-100 text-slate-700",
 };
 type Standard = { id: string; code: string; title: string; description: string; officialUrl: string | null; items: Item[] };
 
@@ -39,7 +39,7 @@ export default function CompliancePage() {
 
   useEffect(load, []);
 
-  if (!standards) return <p className="text-sm text-slate-500">Loading…</p>;
+  if (!standards) return <p className="text-sm text-slate-700">Loading…</p>;
 
   const allItems = standards.flatMap((s) => s.items);
   const compliant = allItems.filter((i) => i.assessment.status === "COMPLIANT").length;
@@ -60,7 +60,7 @@ export default function CompliancePage() {
       <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5">
         <div className="flex items-center justify-between text-sm">
           <p className="font-medium text-slate-900">Overall readiness</p>
-          <p className="text-slate-500">
+          <p className="text-slate-700">
             {compliant} / {allItems.length} standards met
           </p>
         </div>
@@ -77,7 +77,7 @@ export default function CompliancePage() {
               <div className="border-b border-slate-100 p-5">
                 <div className="flex items-center justify-between">
                   <h2 className="font-semibold text-slate-900">{standard.title}</h2>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600">
                     {standardCompliant}/{standard.items.length} met
                   </p>
                 </div>
@@ -148,7 +148,7 @@ function ComplianceItemRow({
               {item.priority}
             </span>
           </div>
-          <p className="mt-0.5 text-sm text-slate-500">{item.description}</p>
+          <p className="mt-0.5 text-sm text-slate-700">{item.description}</p>
         </div>
         <ComplianceBadge status={item.assessment.status} />
       </button>
@@ -163,7 +163,7 @@ function ComplianceItemRow({
           )}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-500">Status</label>
+              <label className="block text-xs font-medium text-slate-700">Status</label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as Assessment["status"])}
@@ -177,7 +177,7 @@ function ComplianceItemRow({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500">Next review due</label>
+              <label className="block text-xs font-medium text-slate-700">Next review due</label>
               <input
                 type="date"
                 value={nextReviewDue}
@@ -187,7 +187,7 @@ function ComplianceItemRow({
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500">Evidence / notes</label>
+            <label className="block text-xs font-medium text-slate-700">Evidence / notes</label>
             <textarea
               rows={2}
               value={notes}
@@ -197,7 +197,7 @@ function ComplianceItemRow({
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500">Evidence URL (optional)</label>
+            <label className="block text-xs font-medium text-slate-700">Evidence URL (optional)</label>
             <input
               value={evidenceUrl}
               onChange={(e) => setEvidenceUrl(e.target.value)}

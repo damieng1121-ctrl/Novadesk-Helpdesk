@@ -99,7 +99,7 @@ export default function AgentToolsPage() {
             key={tab}
             onClick={() => setOs(tab)}
             className={`px-4 py-2 text-sm font-medium ${
-              os === tab ? "border-b-2 border-blue-600 text-blue-700" : "text-slate-500 hover:text-slate-700"
+              os === tab ? "border-b-2 border-blue-600 text-blue-700" : "text-slate-700 hover:text-slate-900"
             }`}
           >
             {AGENT_OS_LABELS[tab]}
@@ -112,7 +112,7 @@ export default function AgentToolsPage() {
           <div key={c.title} className="flex items-start justify-between gap-3 p-4">
             <div className="min-w-0">
               <p className="font-medium text-slate-900">{c.title}</p>
-              <p className="mt-0.5 text-xs text-slate-500">{c.description}</p>
+              <p className="mt-0.5 text-xs text-slate-700">{c.description}</p>
               <code className="mt-1.5 block truncate rounded bg-slate-50 px-2 py-1 text-xs text-slate-700">{c.command}</code>
             </div>
             <CopyButton text={c.command} />
@@ -122,7 +122,7 @@ export default function AgentToolsPage() {
           <div key={c.id} className="flex items-start justify-between gap-3 p-4">
             <div className="min-w-0">
               <p className="font-medium text-slate-900">{c.title}</p>
-              {c.description && <p className="mt-0.5 text-xs text-slate-500">{c.description}</p>}
+              {c.description && <p className="mt-0.5 text-xs text-slate-700">{c.description}</p>}
               <code className="mt-1.5 block truncate rounded bg-slate-50 px-2 py-1 text-xs text-slate-700">{c.command}</code>
             </div>
             <div className="flex shrink-0 items-center gap-2">

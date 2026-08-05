@@ -71,7 +71,7 @@ export default function CannedResponsesAdminPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium text-slate-900">{r.title}</p>
-                <p className="text-xs text-slate-400">/{r.shortcut}</p>
+                <p className="text-xs text-slate-600">/{r.shortcut}</p>
               </div>
               <button onClick={() => remove(r.id)} className="text-xs text-red-600 hover:underline">
                 Delete
@@ -80,7 +80,7 @@ export default function CannedResponsesAdminPage() {
             <p className="mt-2 whitespace-pre-wrap text-sm text-slate-600">{r.content}</p>
           </div>
         ))}
-        {responses?.length === 0 && <p className="p-6 text-sm text-slate-500">No canned responses yet.</p>}
+        {responses?.length === 0 && <p className="p-6 text-sm text-slate-700">No canned responses yet.</p>}
       </div>
     </div>
   );

@@ -76,7 +76,7 @@ export function PortalNav({
           )}
           {appName}
         </div>
-        <p className={clsx("mt-1 truncate text-xs", tinted ? "text-white/70" : "text-slate-500")}>{tenantName}</p>
+        <p className={clsx("mt-1 truncate text-xs", tinted ? "text-white/70" : "text-slate-700")}>{tenantName}</p>
       </div>
 
       <nav className="flex-1 space-y-1 p-3">
@@ -120,7 +120,7 @@ export function PortalNav({
           onClick={() => signOut({ callbackUrl: "/login" })}
           className={clsx(
             "mt-1 w-full rounded-md px-3 py-2 text-left text-sm",
-            tinted ? "text-white/60 hover:bg-white/10" : "text-slate-500 hover:bg-slate-100",
+            tinted ? "text-white/60 hover:bg-white/10" : "text-slate-700 hover:bg-slate-100",
           )}
         >
           Sign out

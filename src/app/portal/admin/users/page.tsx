@@ -119,7 +119,7 @@ export default function UsersAdminPage() {
 
       <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
+          <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-600">
             <tr>
               <th className="p-4">Name</th>
               <th className="p-4">Role</th>
@@ -139,7 +139,7 @@ export default function UsersAdminPage() {
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-slate-500">{u.email}</p>
+                  <p className="text-xs text-slate-700">{u.email}</p>
                 </td>
                 <td className="p-4">
                   <select
@@ -154,12 +154,12 @@ export default function UsersAdminPage() {
                     {u.role === "SUPER_ADMIN" && <option value="SUPER_ADMIN">Super admin</option>}
                   </select>
                 </td>
-                <td className="p-4 text-slate-500">{u.twoFactorEnabled ? "Enabled" : "Not set up"}</td>
+                <td className="p-4 text-slate-700">{u.twoFactorEnabled ? "Enabled" : "Not set up"}</td>
                 <td className="p-4">
                   <button
                     onClick={() => updateUser(u.id, { isActive: !u.isActive })}
                     className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      u.isActive ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+                      u.isActive ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-700"
                     }`}
                   >
                     {u.isActive ? "Active" : "Disabled"}

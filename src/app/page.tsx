@@ -90,7 +90,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-slate-200 py-8 text-center text-sm text-slate-500">
+      <footer className="border-t border-slate-200 py-8 text-center text-sm text-slate-700">
         Novadesk Helpdesk — a multi-tenant helpdesk platform for UK primary schools.
       </footer>
     </div>

@@ -62,7 +62,7 @@ function AttachmentList({ ticketId, attachments }: { ticketId: string; attachmen
             <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
           </svg>
           {a.fileName}
-          {a.fileSize ? <span className="text-slate-400">({formatFileSize(a.fileSize)})</span> : null}
+          {a.fileSize ? <span className="text-slate-600">({formatFileSize(a.fileSize)})</span> : null}
         </a>
       ))}
     </div>
@@ -149,14 +149,14 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
     }
   }
 
-  if (!ticket) return <p className="text-sm text-slate-500">Loading…</p>;
+  if (!ticket) return <p className="text-sm text-slate-700">Loading…</p>;
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm text-slate-500">Ticket #{ticket.number}</p>
+            <p className="text-sm text-slate-700">Ticket #{ticket.number}</p>
             <h1 className="text-2xl font-semibold text-slate-900">{ticket.subject}</h1>
           </div>
           <div className="flex gap-2">
@@ -170,7 +170,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
 
         <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5">
           <p className="whitespace-pre-wrap text-sm text-slate-700">{ticket.description}</p>
-          <p className="mt-3 text-xs text-slate-400">
+          <p className="mt-3 text-xs text-slate-600">
             Raised by {ticket.requester.name ?? ticket.requester.email} on{" "}
             {new Date(ticket.createdAt).toLocaleString("en-GB")}
             {ticket.dueAt && <> · SLA due {new Date(ticket.dueAt).toLocaleString("en-GB")}</>}
@@ -204,13 +204,13 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
                   {c.author.name ?? c.author.email}
                   {c.isInternal && <span className="ml-2 text-xs font-normal text-amber-700">Internal note</span>}
                 </p>
-                <p className="text-xs text-slate-400">{new Date(c.createdAt).toLocaleString("en-GB")}</p>
+                <p className="text-xs text-slate-600">{new Date(c.createdAt).toLocaleString("en-GB")}</p>
               </div>
               <p className="mt-2 whitespace-pre-wrap text-slate-700">{c.body}</p>
               <AttachmentList ticketId={ticket.id} attachments={c.attachments} />
             </div>
           ))}
-          {ticket.comments.length === 0 && <p className="text-sm text-slate-400">No replies yet.</p>}
+          {ticket.comments.length === 0 && <p className="text-sm text-slate-600">No replies yet.</p>}
         </div>
 
         <form onSubmit={postComment} className="mt-6 rounded-xl border border-slate-200 bg-white p-4">
@@ -336,7 +336,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
                     style={{ width: `${ticket.sentimentScore}%` }}
                   />
                 </div>
-                <span className="text-xs text-slate-500">{ticket.sentimentScore}/100 frustration</span>
+                <span className="text-xs text-slate-700">{ticket.sentimentScore}/100 frustration</span>
               </div>
             </div>
           )}

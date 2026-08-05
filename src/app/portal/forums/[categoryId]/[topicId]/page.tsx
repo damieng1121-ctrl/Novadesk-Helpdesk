@@ -45,7 +45,7 @@ export default function TopicDetailPage({ params }: PageProps<"/portal/forums/[c
     }
   }
 
-  if (!topic) return <p className="text-sm text-slate-500">Loading…</p>;
+  if (!topic) return <p className="text-sm text-slate-700">Loading…</p>;
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -57,7 +57,7 @@ export default function TopicDetailPage({ params }: PageProps<"/portal/forums/[c
 
       <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5">
         <p className="whitespace-pre-wrap text-sm text-slate-700">{topic.content}</p>
-        <p className="mt-3 text-xs text-slate-400">
+        <p className="mt-3 text-xs text-slate-600">
           {topic.author.name ?? topic.author.email} · {new Date(topic.createdAt).toLocaleString("en-GB")}
         </p>
       </div>
@@ -67,12 +67,12 @@ export default function TopicDetailPage({ params }: PageProps<"/portal/forums/[c
           <div key={r.id} className="rounded-xl border border-slate-200 bg-white p-4 text-sm">
             <div className="flex items-center justify-between">
               <p className="font-medium text-slate-900">{r.author.name ?? r.author.email}</p>
-              <p className="text-xs text-slate-400">{new Date(r.createdAt).toLocaleString("en-GB")}</p>
+              <p className="text-xs text-slate-600">{new Date(r.createdAt).toLocaleString("en-GB")}</p>
             </div>
             <p className="mt-2 whitespace-pre-wrap text-slate-700">{r.content}</p>
           </div>
         ))}
-        {topic.replies.length === 0 && <p className="text-sm text-slate-400">No replies yet.</p>}
+        {topic.replies.length === 0 && <p className="text-sm text-slate-600">No replies yet.</p>}
       </div>
 
       <form onSubmit={postReply} className="mt-6 rounded-xl border border-slate-200 bg-white p-4">

@@ -16,7 +16,7 @@ type Asset = {
 const STATUS_STYLES: Record<Asset["status"], string> = {
   ACTIVE: "bg-green-100 text-green-700",
   IN_REPAIR: "bg-amber-100 text-amber-700",
-  RETIRED: "bg-slate-100 text-slate-500",
+  RETIRED: "bg-slate-100 text-slate-700",
   LOST: "bg-red-100 text-red-700",
 };
 
@@ -100,7 +100,7 @@ export default function AssetsPage() {
           <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="Model" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
           <input value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} placeholder="Serial number" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
           <div>
-            <label className="block text-xs text-slate-500">Warranty expiry</label>
+            <label className="block text-xs text-slate-700">Warranty expiry</label>
             <input type="date" value={warrantyExpiry} onChange={(e) => setWarrantyExpiry(e.target.value)} className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
           </div>
           <button type="submit" disabled={submitting} className="sm:col-span-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
@@ -118,7 +118,7 @@ export default function AssetsPage() {
 
       <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
+          <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-600">
             <tr>
               <th className="p-4">Tag / Name</th>
               <th className="p-4">Model / Serial</th>
@@ -132,11 +132,11 @@ export default function AssetsPage() {
               <tr key={a.id}>
                 <td className="p-4">
                   <p className="font-medium text-slate-900">{a.name}</p>
-                  <p className="text-xs text-slate-500">{a.tag}</p>
+                  <p className="text-xs text-slate-700">{a.tag}</p>
                 </td>
                 <td className="p-4 text-slate-600">
                   <p>{a.model ?? "—"}</p>
-                  <p className="text-xs text-slate-400">{a.serialNumber ?? ""}</p>
+                  <p className="text-xs text-slate-600">{a.serialNumber ?? ""}</p>
                 </td>
                 <td className="p-4 text-slate-600">
                   {a.warrantyExpiry ? new Date(a.warrantyExpiry).toLocaleDateString("en-GB") : "—"}
@@ -163,7 +163,7 @@ export default function AssetsPage() {
             ))}
             {filtered?.length === 0 && (
               <tr>
-                <td colSpan={5} className="p-6 text-center text-sm text-slate-500">
+                <td colSpan={5} className="p-6 text-center text-sm text-slate-700">
                   No assets found.
                 </td>
               </tr>

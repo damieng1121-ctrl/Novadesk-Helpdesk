@@ -57,11 +57,11 @@ export async function PortalHome({ tenantId }: { tenantId: string }) {
             className="rounded-xl border border-slate-200 bg-white p-5 hover:border-blue-300"
           >
             <p className="font-semibold text-slate-900">Raise a ticket</p>
-            <p className="mt-1 text-sm text-slate-500">Report a problem or request something</p>
+            <p className="mt-1 text-sm text-slate-700">Report a problem or request something</p>
           </Link>
           <Link href="/portal/tickets" className="rounded-xl border border-slate-200 bg-white p-5 hover:border-blue-300">
             <p className="font-semibold text-slate-900">My tickets</p>
-            <p className="mt-1 text-sm text-slate-500">Check the status of what you&apos;ve raised</p>
+            <p className="mt-1 text-sm text-slate-700">Check the status of what you&apos;ve raised</p>
           </Link>
         </div>
       )}

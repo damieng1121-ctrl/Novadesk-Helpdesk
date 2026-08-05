@@ -51,7 +51,7 @@ export default function TrashBinPage() {
     load();
   }
 
-  if (!data) return <p className="text-sm text-slate-500">Loading…</p>;
+  if (!data) return <p className="text-sm text-slate-700">Loading…</p>;
 
   const rows =
     tab === "tickets"
@@ -75,23 +75,23 @@ export default function TrashBinPage() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 border-b-2 px-4 py-2 text-sm font-medium ${
-                tab === t.id ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-700"
+                tab === t.id ? "border-blue-600 text-blue-600" : "border-transparent text-slate-700 hover:text-slate-900"
               }`}
             >
               {t.label}
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">{count}</span>
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700">{count}</span>
             </button>
           );
         })}
       </div>
 
       <div className="mt-4 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
-        {rows.length === 0 && <p className="p-6 text-sm text-slate-500">Nothing in the trash here.</p>}
+        {rows.length === 0 && <p className="p-6 text-sm text-slate-700">Nothing in the trash here.</p>}
         {rows.map((r) => (
           <div key={r.key} className="flex items-center justify-between p-4 text-sm">
             <div>
               <p className="font-medium text-slate-900">{r.primary}</p>
-              <p className="text-xs text-slate-400">Deleted {new Date(r.updatedAt).toLocaleDateString("en-GB")}</p>
+              <p className="text-xs text-slate-600">Deleted {new Date(r.updatedAt).toLocaleDateString("en-GB")}</p>
             </div>
             <div className="flex gap-3">
               <button onClick={() => restore(r.key)} className="text-blue-600 hover:underline">

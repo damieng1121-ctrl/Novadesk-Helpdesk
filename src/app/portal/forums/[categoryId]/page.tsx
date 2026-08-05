@@ -47,14 +47,14 @@ export default function ForumCategoryPage({ params }: PageProps<"/portal/forums/
                 {t.pinned && <span className="mr-2 text-xs text-blue-600">PINNED</span>}
                 {t.title}
               </p>
-              <p className="text-xs text-slate-400">{t._count.replies} replies · {t.views} views</p>
+              <p className="text-xs text-slate-600">{t._count.replies} replies · {t.views} views</p>
             </div>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-slate-700">
               {t.author.name ?? t.author.email} · {new Date(t.updatedAt).toLocaleDateString("en-GB")}
             </p>
           </Link>
         ))}
-        {topics?.length === 0 && <p className="p-6 text-sm text-slate-500">No topics yet — start the conversation.</p>}
+        {topics?.length === 0 && <p className="p-6 text-sm text-slate-700">No topics yet — start the conversation.</p>}
       </div>
     </div>
   );

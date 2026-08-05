@@ -42,18 +42,18 @@ export default function KbArticlePage({ params }: PageProps<"/portal/kb/[slug]">
     router.push("/portal/kb");
   }
 
-  if (notFound) return <p className="text-sm text-slate-500">Article not found.</p>;
-  if (!article) return <p className="text-sm text-slate-500">Loading…</p>;
+  if (notFound) return <p className="text-sm text-slate-700">Article not found.</p>;
+  if (!article) return <p className="text-sm text-slate-700">Loading…</p>;
 
   return (
     <article className="mx-auto max-w-3xl">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-600">
             {article.category?.name ?? "General"}
           </p>
           <h1 className="mt-1 text-2xl font-semibold text-slate-900">{article.title}</h1>
-          <p className="mt-2 text-xs text-slate-400">
+          <p className="mt-2 text-xs text-slate-600">
             By {article.author.name ?? article.author.email} · updated {new Date(article.updatedAt).toLocaleDateString("en-GB")}
           </p>
         </div>

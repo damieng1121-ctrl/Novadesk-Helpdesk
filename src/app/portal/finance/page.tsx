@@ -96,7 +96,7 @@ export default function FinancePage() {
           {showForm ? "Cancel" : "New request"}
         </button>
       </div>
-      <p className="mt-1 text-sm text-slate-500">{records ? `${records.length} records · ${formatGbp(total)} total` : ""}</p>
+      <p className="mt-1 text-sm text-slate-700">{records ? `${records.length} records · ${formatGbp(total)} total` : ""}</p>
 
       {showForm && (
         <form onSubmit={createRecord} className="mt-4 grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2">
@@ -112,7 +112,7 @@ export default function FinancePage() {
 
       <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
+          <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-600">
             <tr>
               <th className="p-4">PO / Description</th>
               <th className="p-4">Vendor</th>
@@ -127,7 +127,7 @@ export default function FinancePage() {
               <tr key={r.id}>
                 <td className="p-4">
                   <p className="font-medium text-slate-900">{r.poNumber}</p>
-                  <p className="text-xs text-slate-500">{r.description}</p>
+                  <p className="text-xs text-slate-700">{r.description}</p>
                 </td>
                 <td className="p-4 text-slate-600">{r.vendor}</td>
                 <td className="p-4 text-slate-600">{formatGbp(r.amountPence)}</td>
@@ -160,7 +160,7 @@ export default function FinancePage() {
             ))}
             {records?.length === 0 && (
               <tr>
-                <td colSpan={isAdmin ? 6 : 5} className="p-6 text-center text-sm text-slate-500">
+                <td colSpan={isAdmin ? 6 : 5} className="p-6 text-center text-sm text-slate-700">
                   No procurement requests yet.
                 </td>
               </tr>
