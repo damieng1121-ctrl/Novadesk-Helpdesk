@@ -19,6 +19,7 @@ const links = [
   { href: "/portal/finance", label: "Finance", roles: ["TENANT_ADMIN", "AGENT"] },
   { href: "/portal/assets", label: "Assets", roles: ["TENANT_ADMIN", "AGENT"] },
   { href: "/portal/admin/announcements", label: "Announcements", roles: ["TENANT_ADMIN"] },
+  { href: "/portal/admin/trash", label: "Trash", roles: ["TENANT_ADMIN"] },
   { href: "/portal/admin/users", label: "Users", roles: ["TENANT_ADMIN"] },
   { href: "/portal/admin/settings", label: "Settings", roles: ["TENANT_ADMIN"] },
   { href: "/portal/super-admin", label: "Schools", roles: ["SUPER_ADMIN"] },

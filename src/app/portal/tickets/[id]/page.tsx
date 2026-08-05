@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use as usePromise } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { StatusBadge, PriorityBadge } from "@/components/badges";
 import { isOverdue } from "@/lib/sla";
 
@@ -31,6 +32,8 @@ type TicketDetail = {
   attachments: Attachment[];
   createdAt: string;
   dueAt: string | null;
+  isOutOfHours: boolean;
+  tenant: { outOfHoursMessage: string };
 };
 
 function formatFileSize(bytes: number | null): string {
@@ -68,7 +71,9 @@ const STAFF_ROLES = new Set(["AGENT", "TENANT_ADMIN", "SUPER_ADMIN"]);
 export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/[id]">) {
   const { id } = usePromise(params);
   const { data: session } = useSession();
+  const router = useRouter();
   const staff = !!session?.user && STAFF_ROLES.has(session.user.role);
+  const isAdmin = session?.user.role === "TENANT_ADMIN" || session?.user.role === "SUPER_ADMIN";
 
   const [ticket, setTicket] = useState<TicketDetail | null>(null);
   const [reply, setReply] = useState("");
@@ -94,6 +99,12 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
       body: JSON.stringify(patch),
     });
     load();
+  }
+
+  async function moveToTrash() {
+    if (!confirm("Move this ticket to the trash?")) return;
+    await updateTicket({ isDeleted: true });
+    router.push("/portal/tickets");
   }
 
   async function postComment(e: React.FormEvent) {
@@ -150,6 +161,12 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
           </p>
           <AttachmentList ticketId={ticket.id} attachments={ticket.attachments.filter((a) => !a.commentId)} />
         </div>
+
+        {ticket.isOutOfHours && (
+          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+            {ticket.tenant.outOfHoursMessage}
+          </div>
+        )}
 
         {ticket.aiSummary && (
           <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900">
@@ -265,6 +282,15 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
               {ticket.assignee?.name ?? "Unassigned"}
             </p>
           </div>
+
+          {isAdmin && (
+            <button
+              onClick={moveToTrash}
+              className="w-full rounded-md border border-red-200 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+            >
+              Move to trash
+            </button>
+          )}
         </div>
       )}
     </div>

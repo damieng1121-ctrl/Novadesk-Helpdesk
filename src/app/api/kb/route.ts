@@ -23,6 +23,7 @@ export async function GET(req: Request) {
     return prisma.kbArticle.findMany({
       where: {
         tenantId: session.user.tenantId,
+        isDeleted: false,
         status: staff ? undefined : "PUBLISHED",
         ...(q
           ? { OR: [{ title: { contains: q, mode: "insensitive" } }, { content: { contains: q, mode: "insensitive" } }] }

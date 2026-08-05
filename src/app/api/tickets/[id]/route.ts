@@ -2,7 +2,7 @@ import { z } from "zod";
 import { requireTenantSession, AuthError } from "@/lib/session";
 import { withApiErrors } from "@/lib/api";
 import { prisma } from "@/lib/db";
-import { canManageTickets } from "@/lib/roles";
+import { canManageTickets, isAdmin } from "@/lib/roles";
 import { computeDueAt } from "@/lib/sla";
 import { notifyTicketResolved } from "@/lib/notifications/events";
 
@@ -20,9 +20,10 @@ async function loadTicketForSession(id: string, tenantId: string, userId: string
         include: { author: { select: { id: true, name: true, email: true, role: true } }, attachments: true },
       },
       attachments: true,
+      tenant: { select: { outOfHoursMessage: true } },
     },
   });
-  if (!ticket || ticket.tenantId !== tenantId) return null;
+  if (!ticket || ticket.tenantId !== tenantId || ticket.isDeleted) return null;
   if (!staff && ticket.requesterId !== userId) return null;
   if (!staff) {
     const internalCommentIds = new Set(ticket.comments.filter((c) => c.isInternal).map((c) => c.id));
@@ -49,6 +50,7 @@ const updateSchema = z.object({
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
   categoryId: z.string().nullable().optional(),
   assigneeId: z.string().nullable().optional(),
+  isDeleted: z.boolean().optional(),
 });
 
 export async function PATCH(req: Request, { params }: Params) {
@@ -96,5 +98,30 @@ export async function PATCH(req: Request, { params }: Params) {
     }
 
     return ticket;
+  });
+}
+
+/** Permanent, unrecoverable delete — only ever reachable from the trash bin on an already soft-deleted ticket. */
+export async function DELETE(_req: Request, { params }: Params) {
+  return withApiErrors(async () => {
+    const session = await requireTenantSession();
+    if (!isAdmin(session.user.role)) throw new AuthError("Only admins can permanently delete tickets", 403);
+    const { id } = await params;
+
+    const existing = await prisma.ticket.findUnique({ where: { id } });
+    if (!existing || existing.tenantId !== session.user.tenantId) throw new AuthError("Ticket not found", 404);
+    if (!existing.isDeleted) throw new AuthError("Move to trash before permanently deleting", 400);
+
+    await prisma.ticket.delete({ where: { id } });
+    await prisma.auditLog.create({
+      data: {
+        tenantId: session.user.tenantId,
+        userId: session.user.id,
+        action: "ticket.permanently_deleted",
+        entityType: "Ticket",
+        entityId: id,
+      },
+    });
+    return { ok: true };
   });
 }

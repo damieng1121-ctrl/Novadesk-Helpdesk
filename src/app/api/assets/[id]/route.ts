@@ -2,7 +2,7 @@ import { z } from "zod";
 import { requireTenantSession, AuthError } from "@/lib/session";
 import { withApiErrors } from "@/lib/api";
 import { prisma } from "@/lib/db";
-import { canManageTickets } from "@/lib/roles";
+import { canManageTickets, isAdmin } from "@/lib/roles";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -38,5 +38,21 @@ export async function PATCH(req: Request, { params }: Params) {
       },
       include: { assignedTo: { select: { name: true, email: true } } },
     });
+  });
+}
+
+/** Permanent, unrecoverable delete — only ever reachable from the trash bin on an already soft-deleted asset. */
+export async function DELETE(_req: Request, { params }: Params) {
+  return withApiErrors(async () => {
+    const session = await requireTenantSession();
+    if (!isAdmin(session.user.role)) throw new AuthError("Only admins can permanently delete assets", 403);
+    const { id } = await params;
+
+    const asset = await prisma.asset.findUnique({ where: { id } });
+    if (!asset || asset.tenantId !== session.user.tenantId) throw new AuthError("Asset not found", 404);
+    if (!asset.isDeleted) throw new AuthError("Move to trash before permanently deleting", 400);
+
+    await prisma.asset.delete({ where: { id } });
+    return { ok: true };
   });
 }

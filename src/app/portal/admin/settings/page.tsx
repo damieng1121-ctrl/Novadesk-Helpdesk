@@ -9,7 +9,17 @@ type AiConfig = {
   ticketTriageEnabled: boolean;
   kbSuggestionsEnabled: boolean;
 };
-type Tenant = { name: string; logoUrl: string | null; brandColor: string; urn: string | null };
+type Tenant = {
+  name: string;
+  logoUrl: string | null;
+  brandColor: string;
+  urn: string | null;
+  outOfHoursEnabled: boolean;
+  outOfHoursStart: string;
+  outOfHoursEnd: string;
+  outOfHoursWeekendOnly: boolean;
+  outOfHoursMessage: string;
+};
 type UsefulLink = { id: string; title: string; url: string };
 type PortalSettings = {
   heroTitle: string;
@@ -139,6 +149,57 @@ export default function AdminSettingsPage() {
                 onChange={(e) => setTenant({ ...tenant, brandColor: e.target.value })}
                 className="mt-1 h-10 w-16 rounded-md border border-slate-300"
               />
+            </div>
+            <div className="border-t border-slate-100 pt-4">
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-900">
+                <input
+                  type="checkbox"
+                  checked={tenant.outOfHoursEnabled}
+                  onChange={(e) => setTenant({ ...tenant, outOfHoursEnabled: e.target.checked })}
+                />
+                Out-of-hours auto-notice
+              </label>
+              <p className="mt-1 text-sm text-slate-500">
+                Shown on tickets raised outside these hours (or on weekends, if selected).
+              </p>
+              {tenant.outOfHoursEnabled && (
+                <div className="mt-3 space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-slate-500">Starts</label>
+                      <input
+                        type="time"
+                        value={tenant.outOfHoursStart}
+                        onChange={(e) => setTenant({ ...tenant, outOfHoursStart: e.target.value })}
+                        className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500">Ends</label>
+                      <input
+                        type="time"
+                        value={tenant.outOfHoursEnd}
+                        onChange={(e) => setTenant({ ...tenant, outOfHoursEnd: e.target.value })}
+                        className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                      />
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={tenant.outOfHoursWeekendOnly}
+                      onChange={(e) => setTenant({ ...tenant, outOfHoursWeekendOnly: e.target.checked })}
+                    />
+                    Weekends only (ignore the daily time window above)
+                  </label>
+                  <textarea
+                    value={tenant.outOfHoursMessage}
+                    onChange={(e) => setTenant({ ...tenant, outOfHoursMessage: e.target.value })}
+                    rows={2}
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  />
+                </div>
+              )}
             </div>
             <button
               onClick={saveTenant}

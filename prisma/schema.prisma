@@ -220,13 +220,15 @@ model Ticket {
   sentimentScore      Int?
   aiSuggestedSolution String?         @db.Text
 
-  dueAt      DateTime?
-  resolvedAt DateTime?
-  closedAt   DateTime?
+  dueAt        DateTime?
+  resolvedAt   DateTime?
+  closedAt     DateTime?
+  /// True if raised while the tenant's configured out-of-hours window was active
+  isOutOfHours Boolean   @default(false)
   /// Soft-deleted tickets are hidden from normal views but recoverable from the trash bin
-  isDeleted  Boolean   @default(false)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  isDeleted    Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   comments    TicketComment[]
   attachments TicketAttachment[]

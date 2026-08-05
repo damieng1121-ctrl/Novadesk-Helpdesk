@@ -7,6 +7,7 @@ import { canManageTickets } from "@/lib/roles";
 import { getAiProviderForTenant } from "@/lib/ai";
 import { computeDueAt } from "@/lib/sla";
 import { notifyTicketCreated } from "@/lib/notifications/events";
+import { isOutsideBusinessHours } from "@/lib/out-of-hours";
 
 export async function GET(req: Request) {
   return withApiErrors(async () => {
@@ -17,7 +18,7 @@ export async function GET(req: Request) {
     const categoryId = searchParams.get("categoryId");
     const search = searchParams.get("q");
 
-    const where: Prisma.TicketWhereInput = { tenantId: session.user.tenantId };
+    const where: Prisma.TicketWhereInput = { tenantId: session.user.tenantId, isDeleted: false };
 
     // Requesters only ever see their own tickets, regardless of query params.
     if (!canManageTickets(session.user.role)) {
@@ -63,7 +64,14 @@ export async function POST(req: Request) {
     const body = createSchema.parse(await req.json());
     const tenantId = session.user.tenantId;
 
-    const categories = await prisma.category.findMany({ where: { tenantId } });
+    const [categories, tenant] = await Promise.all([
+      prisma.category.findMany({ where: { tenantId } }),
+      prisma.tenant.findUniqueOrThrow({
+        where: { id: tenantId },
+        select: { outOfHoursEnabled: true, outOfHoursStart: true, outOfHoursEnd: true, outOfHoursWeekendOnly: true },
+      }),
+    ]);
+    const outOfHours = isOutsideBusinessHours(tenant);
 
     const ai = await getAiProviderForTenant(tenantId);
     const triage = await ai.triageTicket({
@@ -88,6 +96,7 @@ export async function POST(req: Request) {
             categoryId: body.categoryId ?? aiCategory?.id,
             priority,
             dueAt: computeDueAt(priority),
+            isOutOfHours: outOfHours,
             requesterId: session.user.id,
             aiSuggestedCategory: triage.suggestedCategory,
             aiSuggestedPriority: triage.suggestedPriority,

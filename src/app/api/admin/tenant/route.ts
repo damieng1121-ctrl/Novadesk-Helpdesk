@@ -16,6 +16,11 @@ const bodySchema = z.object({
   logoUrl: z.string().url().optional().or(z.literal("")),
   brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   urn: z.string().max(20).optional(),
+  outOfHoursEnabled: z.boolean().optional(),
+  outOfHoursStart: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(),
+  outOfHoursEnd: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(),
+  outOfHoursWeekendOnly: z.boolean().optional(),
+  outOfHoursMessage: z.string().min(1).max(1000).optional(),
 });
 
 export async function PATCH(req: Request) {
