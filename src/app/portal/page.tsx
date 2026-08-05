@@ -1,10 +1,16 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { PortalHome } from "@/components/portal-home";
+import { AnnouncementsBanner } from "@/components/announcements-banner";
 
 export default async function DashboardPage() {
   const session = await auth();
   const tenantId = session!.user.tenantId;
+
+  if (session!.user.role === "REQUESTER" && tenantId) {
+    return <PortalHome tenantId={tenantId} />;
+  }
 
   if (!tenantId) {
     const tenantCount = await prisma.tenant.count();
@@ -54,6 +60,10 @@ export default async function DashboardPage() {
         >
           Raise a ticket
         </Link>
+      </div>
+
+      <div className="mt-4">
+        <AnnouncementsBanner tenantId={tenantId} audience="STAFF" />
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 
 type Article = {
   id: string;
@@ -16,10 +17,19 @@ type Article = {
 const STAFF_ROLES = new Set(["AGENT", "TENANT_ADMIN", "SUPER_ADMIN"]);
 
 export default function KbListPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-slate-500">Loading…</p>}>
+      <KbList />
+    </Suspense>
+  );
+}
+
+function KbList() {
   const { data: session } = useSession();
   const staff = !!session?.user && STAFF_ROLES.has(session.user.role);
+  const searchParams = useSearchParams();
   const [articles, setArticles] = useState<Article[] | null>(null);
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(searchParams.get("q") ?? "");
 
   useEffect(() => {
     const qs = q ? `?q=${encodeURIComponent(q)}` : "";

@@ -32,6 +32,13 @@ model Tenant {
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 
+  // Out-of-hours auto-reply (applied to new tickets created outside this window)
+  outOfHoursEnabled     Boolean @default(false)
+  outOfHoursStart       String  @default("17:00")
+  outOfHoursEnd         String  @default("08:00")
+  outOfHoursWeekendOnly Boolean @default(false)
+  outOfHoursMessage     String  @default("Thanks for your ticket — our IT team is currently out of hours. We'll pick this up next school day.") @db.Text
+
   users                 User[]
   categories            Category[]
   tickets               Ticket[]
@@ -40,6 +47,15 @@ model Tenant {
   complianceAssessments ComplianceAssessment[]
   auditLogs             AuditLog[]
   aiProviderConfig      AiProviderConfig?
+  portalSettings        PortalSettings?
+  financeRecords        FinanceRecord[]
+  forumCategories       ForumCategory[]
+  forumTopics           ForumTopic[]
+  assets                Asset[]
+  announcements         Announcement[]
+  cannedResponses       CannedResponse[]
+  agentToolCommands     AgentToolCommand[]
+  agentToolLinks        AgentToolLink[]
 }
 
 enum SchoolPhase {
@@ -91,6 +107,11 @@ model User {
   kbArticlesAuthored            KbArticle[]
   complianceAssessmentsReviewed ComplianceAssessment[]
   auditLogs                     AuditLog[]
+  financeRecordsRequested       FinanceRecord[]
+  forumTopicsAuthored           ForumTopic[]
+  forumRepliesAuthored          ForumReply[]
+  assignedAssets                Asset[]
+  announcementsCreated          Announcement[]
 
   @@index([tenantId])
 }
@@ -160,6 +181,16 @@ enum TicketPriority {
   CRITICAL
 }
 
+/// ITIL-style categorization, orthogonal to Category (which is more like "Printing"/"Network")
+enum TicketType {
+  PROBLEM
+  INCIDENT
+  REQUEST
+  INFORMATION
+  TRAINING
+  QUOTE
+}
+
 model Ticket {
   id          String         @id @default(cuid())
   tenantId    String
@@ -170,6 +201,7 @@ model Ticket {
   description String         @db.Text
   status      TicketStatus   @default(OPEN)
   priority    TicketPriority @default(MEDIUM)
+  type        TicketType     @default(INCIDENT)
 
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id])
@@ -184,10 +216,15 @@ model Ticket {
   aiSuggestedCategory String?
   aiSuggestedPriority TicketPriority?
   aiSummary           String?         @db.Text
+  /// 0-100 estimate of requester frustration, from AI triage
+  sentimentScore      Int?
+  aiSuggestedSolution String?         @db.Text
 
   dueAt      DateTime?
   resolvedAt DateTime?
   closedAt   DateTime?
+  /// Soft-deleted tickets are hidden from normal views but recoverable from the trash bin
+  isDeleted  Boolean   @default(false)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
@@ -260,6 +297,8 @@ model KbArticle {
   status     KbStatus    @default(DRAFT)
   aiSummary  String?     @db.Text
   viewCount  Int         @default(0)
+  /// Soft-deleted articles are hidden from normal views but recoverable from the trash bin
+  isDeleted  Boolean     @default(false)
 
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
@@ -291,6 +330,12 @@ model ComplianceStandard {
   items ComplianceItem[]
 }
 
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
 model ComplianceItem {
   id          String             @id @default(cuid())
   standardId  String
@@ -300,6 +345,10 @@ model ComplianceItem {
   description String             @db.Text
   guidance    String?            @db.Text
   order       Int                @default(0)
+  /// How much this item matters relative to others under the same standard
+  priority    Priority           @default(MEDIUM)
+  /// Deep link to the specific DfE guidance sub-page for this item, if more specific than the standard's officialUrl
+  govLink     String?
 
   assessments ComplianceAssessment[]
 
@@ -378,4 +427,246 @@ model AuditLog {
   createdAt  DateTime @default(now())
 
   @@index([tenantId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Self-service portal customization (branding + content, per tenant)
+// ---------------------------------------------------------------------------
+
+model PortalSettings {
+  id       String @id @default(cuid())
+  tenantId String @unique
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  heroTitle      String  @default("Hello, how can we help?")
+  heroSubtitle   String  @default("Search our knowledge base or submit a ticket.")
+  heroShowSearch Boolean @default(true)
+
+  showAnnouncements   Boolean @default(true)
+  showQuickActions    Boolean @default(true)
+  showPopularArticles Boolean @default(true)
+  showUrgentHelp      Boolean @default(true)
+  showUsefulLinks     Boolean @default(true)
+
+  /// { id, title, url }[]
+  usefulLinks Json @default("[]")
+
+  urgentHelpEnabled      Boolean @default(true)
+  urgentHelpTitle        String  @default("Need urgent help?")
+  urgentHelpDescription  String  @default("For critical issues stopping teaching right now, please call us immediately.") @db.Text
+  urgentHelpHotline      String  @default("")
+  urgentHelpEmail        String  @default("")
+  urgentHelpAvailability String  @default("Available during school office hours")
+
+  updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Finance / procurement tracking
+// ---------------------------------------------------------------------------
+
+enum FinanceStatus {
+  PENDING
+  APPROVED
+  ORDERED
+  DELIVERED
+}
+
+model FinanceRecord {
+  id          String @id @default(cuid())
+  tenantId    String
+  tenant      Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  poNumber    String
+  description String @db.Text
+  /// Stored in pence to avoid floating-point rounding on currency
+  amountPence Int
+  vendor      String
+
+  status FinanceStatus @default(PENDING)
+
+  requestedById String
+  requestedBy   User   @relation(fields: [requestedById], references: [id])
+
+  requestDate DateTime @default(now())
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Forums
+// ---------------------------------------------------------------------------
+
+enum ForumVisibility {
+  PUBLIC // visible to requesters too
+  INTERNAL // staff only
+}
+
+model ForumCategory {
+  id          String          @id @default(cuid())
+  tenantId    String
+  tenant      Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  visibility  ForumVisibility @default(PUBLIC)
+  order       Int             @default(0)
+
+  topics ForumTopic[]
+
+  @@unique([tenantId, title])
+}
+
+model ForumTopic {
+  id         String        @id @default(cuid())
+  tenantId   String
+  tenant     Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   ForumCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  title      String
+  content    String        @db.Text
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  pinned    Boolean  @default(false)
+  views     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  replies ForumReply[]
+
+  @@index([tenantId, categoryId])
+}
+
+model ForumReply {
+  id      String     @id @default(cuid())
+  topicId String
+  topic   ForumTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Assets inventory (manual register — no live device telemetry)
+// ---------------------------------------------------------------------------
+
+enum AssetStatus {
+  ACTIVE
+  IN_REPAIR
+  RETIRED
+  LOST
+}
+
+model Asset {
+  id           String  @id @default(cuid())
+  tenantId     String
+  tenant       Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tag          String
+  name         String
+  model        String?
+  serialNumber String?
+
+  assignedToId String?
+  assignedTo   User?   @relation(fields: [assignedToId], references: [id])
+
+  status         AssetStatus @default(ACTIVE)
+  purchaseDate   DateTime?
+  warrantyExpiry DateTime?
+  isDeleted      Boolean     @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, tag])
+}
+
+// ---------------------------------------------------------------------------
+// Announcements
+// ---------------------------------------------------------------------------
+
+enum AnnouncementType {
+  INFO
+  WARNING
+  ALERT
+}
+
+enum AnnouncementAudience {
+  ALL
+  STAFF
+  REQUESTERS
+}
+
+model Announcement {
+  id             String               @id @default(cuid())
+  tenantId       String
+  tenant         Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  title          String
+  message        String               @db.Text
+  type           AnnouncementType     @default(INFO)
+  targetAudience AnnouncementAudience @default(ALL)
+  active         Boolean              @default(true)
+
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, active])
+}
+
+// ---------------------------------------------------------------------------
+// Canned responses
+// ---------------------------------------------------------------------------
+
+model CannedResponse {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  title    String
+  shortcut String
+  content  String @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, shortcut])
+}
+
+// ---------------------------------------------------------------------------
+// Agent tools — IT quick-reference commands and admin console links.
+// Sensible defaults ship as app-level constants (src/lib/agent-tools.ts);
+// these models are only for a tenant's own additions.
+// ---------------------------------------------------------------------------
+
+enum AgentOs {
+  WINDOWS
+  MAC
+  CHROMEBOOK
+}
+
+model AgentToolCommand {
+  id          String  @id @default(cuid())
+  tenantId    String
+  tenant      Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  title       String
+  command     String
+  description String?
+  os          AgentOs
+
+  createdAt DateTime @default(now())
+}
+
+model AgentToolLink {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  title    String
+  url      String
+
+  createdAt DateTime @default(now())
 }
