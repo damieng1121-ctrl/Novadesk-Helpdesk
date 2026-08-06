@@ -24,3 +24,26 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Form fields default to a pale, low-contrast placeholder (Tailwind's
+   preflight sets ::placeholder to 50% opacity) and Chrome renders
+   autofilled values in a washed-out preview color. Neither is legible
+   against the light portal background, so pin both explicitly. */
+input,
+textarea,
+select {
+  color: var(--foreground);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--foreground);
+  transition: background-color 5000s ease-in-out 0s;
+}
