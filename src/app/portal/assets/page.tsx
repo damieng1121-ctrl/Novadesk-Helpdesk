@@ -88,7 +88,7 @@ export default function AssetsPage() {
     <div>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-slate-900">Assets inventory</h1>
-        <button onClick={() => setShowForm(!showForm)} className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+        <button onClick={() => setShowForm(!showForm)} className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
           {showForm ? "Cancel" : "Add asset"}
         </button>
       </div>
@@ -103,7 +103,7 @@ export default function AssetsPage() {
             <label className="block text-xs text-slate-700">Warranty expiry</label>
             <input type="date" value={warrantyExpiry} onChange={(e) => setWarrantyExpiry(e.target.value)} className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
           </div>
-          <button type="submit" disabled={submitting} className="sm:col-span-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+          <button type="submit" disabled={submitting} className="sm:col-span-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50">
             {submitting ? "Saving…" : "Add asset"}
           </button>
         </form>

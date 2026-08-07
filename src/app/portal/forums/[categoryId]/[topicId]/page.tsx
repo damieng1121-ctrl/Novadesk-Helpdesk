@@ -49,7 +49,7 @@ export default function TopicDetailPage({ params }: PageProps<"/portal/forums/[c
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Link href={`/portal/forums/${categoryId}`} className="text-sm text-blue-600 hover:underline">
+      <Link href={`/portal/forums/${categoryId}`} className="text-sm text-indigo-600 hover:underline">
         ← {topic.category.title}
       </Link>
 
@@ -87,7 +87,7 @@ export default function TopicDetailPage({ params }: PageProps<"/portal/forums/[c
           <button
             type="submit"
             disabled={posting || !reply.trim()}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
           >
             {posting ? "Posting…" : "Post reply"}
           </button>

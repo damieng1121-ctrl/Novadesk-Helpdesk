@@ -99,7 +99,7 @@ export default function AgentToolsPage() {
             key={tab}
             onClick={() => setOs(tab)}
             className={`px-4 py-2 text-sm font-medium ${
-              os === tab ? "border-b-2 border-blue-600 text-blue-700" : "text-slate-700 hover:text-slate-900"
+              os === tab ? "border-b-2 border-indigo-600 text-indigo-700" : "text-slate-700 hover:text-slate-900"
             }`}
           >
             {AGENT_OS_LABELS[tab]}
@@ -145,7 +145,7 @@ export default function AgentToolsPage() {
               <input required value={cmdCommand} onChange={(e) => setCmdCommand(e.target.value)} placeholder="Command" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-mono" />
               <input value={cmdDescription} onChange={(e) => setCmdDescription(e.target.value)} placeholder="Description (optional)" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
               <div className="flex gap-2">
-                <button type="submit" className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
                   Add for {AGENT_OS_LABELS[os]}
                 </button>
                 <button type="button" onClick={() => setShowCommandForm(false)} className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
@@ -154,7 +154,7 @@ export default function AgentToolsPage() {
               </div>
             </form>
           ) : (
-            <button onClick={() => setShowCommandForm(true)} className="text-sm text-blue-700 hover:underline">
+            <button onClick={() => setShowCommandForm(true)} className="text-sm text-indigo-700 hover:underline">
               + Add a {AGENT_OS_LABELS[os]} command
             </button>
           )}
@@ -164,13 +164,13 @@ export default function AgentToolsPage() {
       <h2 className="mt-8 text-lg font-semibold text-slate-900">Admin console links</h2>
       <div className="mt-3 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
         {DEFAULT_AGENT_CONSOLE_LINKS.map((l) => (
-          <a key={l.title} href={l.url} target="_blank" rel="noreferrer" className="block p-4 text-sm text-blue-700 hover:bg-slate-50 hover:underline">
+          <a key={l.title} href={l.url} target="_blank" rel="noreferrer" className="block p-4 text-sm text-indigo-700 hover:bg-slate-50 hover:underline">
             {l.title}
           </a>
         ))}
         {links?.map((l) => (
           <div key={l.id} className="flex items-center justify-between p-4">
-            <a href={l.url} target="_blank" rel="noreferrer" className="text-sm text-blue-700 hover:underline">
+            <a href={l.url} target="_blank" rel="noreferrer" className="text-sm text-indigo-700 hover:underline">
               {l.title}
             </a>
             {isAdmin && (
@@ -188,7 +188,7 @@ export default function AgentToolsPage() {
             <form onSubmit={createLink} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-4">
               <input required value={linkTitle} onChange={(e) => setLinkTitle(e.target.value)} placeholder="Title" className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
               <input required type="url" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://…" className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
-              <button type="submit" className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+              <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
                 Add
               </button>
               <button type="button" onClick={() => setShowLinkForm(false)} className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
@@ -196,7 +196,7 @@ export default function AgentToolsPage() {
               </button>
             </form>
           ) : (
-            <button onClick={() => setShowLinkForm(true)} className="text-sm text-blue-700 hover:underline">
+            <button onClick={() => setShowLinkForm(true)} className="text-sm text-indigo-700 hover:underline">
               + Add a console link
             </button>
           )}

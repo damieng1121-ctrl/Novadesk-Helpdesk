@@ -53,7 +53,7 @@ export default function ReportsPage() {
                   <span className="w-28 shrink-0 text-slate-600">{status.replace("_", " ")}</span>
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
                     <div
-                      className="h-full rounded-full bg-blue-500"
+                      className="h-full rounded-full bg-indigo-500"
                       style={{ width: `${(count / maxStatusCount) * 100}%` }}
                     />
                   </div>

@@ -95,7 +95,7 @@ function SecurityPageInner() {
             )
           ) : (
             step === "idle" && (
-              <button onClick={beginSetup} className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">
+              <button onClick={beginSetup} className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700">
                 Set up
               </button>
             )
@@ -116,7 +116,7 @@ function SecurityPageInner() {
                 placeholder="123456"
                 className="w-32 rounded-md border border-slate-300 px-3 py-2 text-center tracking-widest"
               />
-              <button type="submit" className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+              <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
                 Confirm
               </button>
             </form>

@@ -75,7 +75,7 @@ export default function TrashBinPage() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 border-b-2 px-4 py-2 text-sm font-medium ${
-                tab === t.id ? "border-blue-600 text-blue-600" : "border-transparent text-slate-700 hover:text-slate-900"
+                tab === t.id ? "border-indigo-600 text-indigo-600" : "border-transparent text-slate-700 hover:text-slate-900"
               }`}
             >
               {t.label}
@@ -94,7 +94,7 @@ export default function TrashBinPage() {
               <p className="text-xs text-slate-600">Deleted {new Date(r.updatedAt).toLocaleDateString("en-GB")}</p>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => restore(r.key)} className="text-blue-600 hover:underline">
+              <button onClick={() => restore(r.key)} className="text-indigo-600 hover:underline">
                 Restore
               </button>
               <button onClick={() => permanentlyDelete(r.key)} className="text-red-600 hover:underline">

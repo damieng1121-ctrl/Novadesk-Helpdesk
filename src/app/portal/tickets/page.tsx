@@ -48,7 +48,7 @@ function TicketsList() {
         <h1 className="text-2xl font-semibold text-slate-900">Tickets</h1>
         <Link
           href="/portal/tickets/new"
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
         >
           Raise a ticket
         </Link>
@@ -76,7 +76,7 @@ function TicketsList() {
             {tickets?.map((t) => (
               <tr key={t.id}>
                 <td className="p-4">
-                  <Link href={`/portal/tickets/${t.id}`} className="font-medium text-slate-900 hover:text-blue-600">
+                  <Link href={`/portal/tickets/${t.id}`} className="font-medium text-slate-900 hover:text-indigo-600">
                     #{t.number} {t.subject}
                   </Link>
                   <p className="mt-0.5 text-xs text-slate-700">

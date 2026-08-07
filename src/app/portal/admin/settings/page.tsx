@@ -316,7 +316,7 @@ export default function AdminSettingsPage() {
             <button
               onClick={saveTenant}
               disabled={savingTenant}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
             >
               {savingTenant ? "Saving…" : "Save"}
             </button>
@@ -388,7 +388,7 @@ export default function AdminSettingsPage() {
             <button
               onClick={saveAi}
               disabled={savingAi}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
             >
               {savingAi ? "Saving…" : "Save"}
             </button>
@@ -482,7 +482,7 @@ export default function AdminSettingsPage() {
             <div className="border-t border-slate-100 pt-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-slate-900">Useful links</p>
-                <button onClick={addUsefulLink} className="text-sm text-blue-600 hover:underline">
+                <button onClick={addUsefulLink} className="text-sm text-indigo-600 hover:underline">
                   + Add link
                 </button>
               </div>
@@ -516,7 +516,7 @@ export default function AdminSettingsPage() {
             <button
               onClick={savePortal}
               disabled={savingPortal}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
             >
               {savingPortal ? "Saving…" : "Save"}
             </button>

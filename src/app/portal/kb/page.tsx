@@ -45,7 +45,7 @@ function KbList() {
         {staff && (
           <Link
             href="/portal/kb/new"
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
           >
             New article
           </Link>
@@ -56,7 +56,7 @@ function KbList() {
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search articles…"
-        className="mt-4 w-full max-w-md rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+        className="mt-4 w-full max-w-md rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
       />
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -64,7 +64,7 @@ function KbList() {
           <Link
             key={a.id}
             href={`/portal/kb/${a.slug}`}
-            className="rounded-xl border border-slate-200 bg-white p-5 hover:border-blue-300"
+            className="rounded-xl border border-slate-200 bg-white p-5 hover:border-indigo-300"
           >
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium uppercase tracking-wide text-slate-600">

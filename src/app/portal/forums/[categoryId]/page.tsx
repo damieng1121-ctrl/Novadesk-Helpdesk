@@ -27,13 +27,13 @@ export default function ForumCategoryPage({ params }: PageProps<"/portal/forums/
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <Link href="/portal/forums" className="text-sm text-blue-600 hover:underline">
+          <Link href="/portal/forums" className="text-sm text-indigo-600 hover:underline">
             ← Forums
           </Link>
         </div>
         <Link
           href={`/portal/forums/${categoryId}/new`}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
         >
           New topic
         </Link>
@@ -44,7 +44,7 @@ export default function ForumCategoryPage({ params }: PageProps<"/portal/forums/
           <Link key={t.id} href={`/portal/forums/${categoryId}/${t.id}`} className="block p-4 hover:bg-slate-50">
             <div className="flex items-center justify-between">
               <p className="font-medium text-slate-900">
-                {t.pinned && <span className="mr-2 text-xs text-blue-600">PINNED</span>}
+                {t.pinned && <span className="mr-2 text-xs text-indigo-600">PINNED</span>}
                 {t.title}
               </p>
               <p className="text-xs text-slate-600">{t._count.replies} replies · {t.views} views</p>

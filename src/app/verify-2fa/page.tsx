@@ -47,13 +47,13 @@ export default function Verify2faPage() {
             value={code}
             onChange={(e) => setCode(e.target.value.trim())}
             placeholder="123456"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-center text-lg tracking-widest focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-center text-lg tracking-widest focus:border-indigo-500 focus:outline-none"
           />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             type="submit"
             disabled={submitting || code.length < 6}
-            className="w-full rounded-md bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="w-full rounded-md bg-indigo-600 px-4 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
           >
             {submitting ? "Verifying…" : "Verify"}
           </button>

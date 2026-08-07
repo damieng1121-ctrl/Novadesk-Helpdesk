@@ -36,15 +36,15 @@ export async function PortalHome({ tenantId }: { tenantId: string }) {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-8 text-center text-white">
+      <div className="rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 p-8 text-center text-white">
         <h1 className="text-2xl font-semibold sm:text-3xl">{settings.heroTitle}</h1>
-        <p className="mt-2 text-blue-100">{settings.heroSubtitle}</p>
+        <p className="mt-2 text-indigo-100">{settings.heroSubtitle}</p>
         {settings.heroShowSearch && (
           <form action="/portal/kb" className="mx-auto mt-5 max-w-md">
             <input
               name="q"
               placeholder="Search for help…"
-              className="w-full rounded-md border-0 px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="w-full rounded-md border-0 px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-300"
             />
           </form>
         )}
@@ -54,12 +54,12 @@ export async function PortalHome({ tenantId }: { tenantId: string }) {
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Link
             href="/portal/tickets/new"
-            className="rounded-xl border border-slate-200 bg-white p-5 hover:border-blue-300"
+            className="rounded-xl border border-slate-200 bg-white p-5 hover:border-indigo-300"
           >
             <p className="font-semibold text-slate-900">Raise a ticket</p>
             <p className="mt-1 text-sm text-slate-700">Report a problem or request something</p>
           </Link>
-          <Link href="/portal/tickets" className="rounded-xl border border-slate-200 bg-white p-5 hover:border-blue-300">
+          <Link href="/portal/tickets" className="rounded-xl border border-slate-200 bg-white p-5 hover:border-indigo-300">
             <p className="font-semibold text-slate-900">My tickets</p>
             <p className="mt-1 text-sm text-slate-700">Check the status of what you&apos;ve raised</p>
           </Link>
@@ -104,7 +104,7 @@ export async function PortalHome({ tenantId }: { tenantId: string }) {
             <ul className="mt-3 space-y-2 text-sm">
               {settings.usefulLinks.map((link) => (
                 <li key={link.id}>
-                  <a href={link.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                  <a href={link.url} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">
                     {link.title}
                   </a>
                 </li>

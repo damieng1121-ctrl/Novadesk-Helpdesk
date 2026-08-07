@@ -59,7 +59,7 @@ export default function NewTicketPage() {
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="e.g. Interactive whiteboard in Year 3 not turning on"
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
           />
         </div>
         <div>
@@ -70,7 +70,7 @@ export default function NewTicketPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Tell us what you were doing, what happened, and which room/device it's affecting."
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -79,7 +79,7 @@ export default function NewTicketPage() {
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
             >
               <option value="">Let AI suggest / uncategorised</option>
               {categories.map((c) => (
@@ -94,7 +94,7 @@ export default function NewTicketPage() {
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
             >
               <option value="LOW">Low</option>
               <option value="MEDIUM">Medium</option>
@@ -115,7 +115,7 @@ export default function NewTicketPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-md bg-blue-600 px-5 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-md bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
         >
           {submitting ? "Submitting…" : "Submit ticket"}
         </button>

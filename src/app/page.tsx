@@ -33,7 +33,7 @@ export default function Home() {
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2 font-semibold text-slate-900">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">N</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">N</span>
             Novadesk Helpdesk
           </div>
           <nav className="flex items-center gap-4 text-sm">
@@ -42,7 +42,7 @@ export default function Home() {
             </Link>
             <Link
               href="/login"
-              className="rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
+              className="rounded-md bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700"
             >
               Get started
             </Link>
@@ -52,7 +52,7 @@ export default function Home() {
 
       <main className="flex-1">
         <section className="mx-auto max-w-6xl px-6 py-20 text-center">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-600">
+          <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-indigo-600">
             Built for UK primary schools
           </p>
           <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
@@ -65,7 +65,7 @@ export default function Home() {
           <div className="mt-8 flex justify-center gap-4">
             <Link
               href="/login"
-              className="rounded-md bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700"
+              className="rounded-md bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-700"
             >
               Sign in with Google
             </Link>

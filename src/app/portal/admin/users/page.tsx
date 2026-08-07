@@ -75,7 +75,7 @@ export default function UsersAdminPage() {
         </div>
         <button
           onClick={() => setShowInvite(!showInvite)}
-          className="shrink-0 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="shrink-0 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
         >
           {showInvite ? "Cancel" : "Invite user"}
         </button>
@@ -110,7 +110,7 @@ export default function UsersAdminPage() {
           <button
             type="submit"
             disabled={inviting}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 sm:col-span-3"
+            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 sm:col-span-3"
           >
             {inviting ? "Inviting…" : "Send invite"}
           </button>

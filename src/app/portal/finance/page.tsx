@@ -91,7 +91,7 @@ export default function FinancePage() {
         <h1 className="text-2xl font-semibold text-slate-900">Finance &amp; procurement</h1>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
         >
           {showForm ? "Cancel" : "New request"}
         </button>
@@ -104,7 +104,7 @@ export default function FinancePage() {
           <input required value={vendor} onChange={(e) => setVendor(e.target.value)} placeholder="Vendor" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
           <input required type="number" step="0.01" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount (£)" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
           <input required value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What's this for?" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <button type="submit" disabled={submitting} className="sm:col-span-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+          <button type="submit" disabled={submitting} className="sm:col-span-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50">
             {submitting ? "Submitting…" : "Submit request"}
           </button>
         </form>

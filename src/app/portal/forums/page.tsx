@@ -46,7 +46,7 @@ export default function ForumsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-slate-900">Forums</h1>
         {isAdmin && (
-          <button onClick={() => setShowForm(!showForm)} className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          <button onClick={() => setShowForm(!showForm)} className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
             {showForm ? "Cancel" : "New category"}
           </button>
         )}
@@ -60,7 +60,7 @@ export default function ForumsPage() {
             <option value="PUBLIC">Public (visible to everyone)</option>
             <option value="INTERNAL">Internal (staff only)</option>
           </select>
-          <button type="submit" className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
             Create
           </button>
         </form>
@@ -68,7 +68,7 @@ export default function ForumsPage() {
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {categories?.map((c) => (
-          <Link key={c.id} href={`/portal/forums/${c.id}`} className="rounded-xl border border-slate-200 bg-white p-5 hover:border-blue-300">
+          <Link key={c.id} href={`/portal/forums/${c.id}`} className="rounded-xl border border-slate-200 bg-white p-5 hover:border-indigo-300">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-slate-900">{c.title}</h3>
               {c.visibility === "INTERNAL" && (

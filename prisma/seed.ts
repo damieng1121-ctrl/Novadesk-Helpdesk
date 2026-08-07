@@ -516,6 +516,11 @@ async function seedDemoTenant() {
         categoryId: categories.find((c) => c.name === "Printing")!.id,
         requesterId: teacher.id,
         assigneeId: agent.id,
+        // Explicit createdAt (rather than relying on @default(now())) so
+        // resolvedAt is guaranteed to land after it — otherwise the two
+        // independently-evaluated "now" values can race by a millisecond
+        // and produce a negative resolution time on the reports/dashboard.
+        createdAt: new Date(Date.now() - 60 * 60 * 1000),
         resolvedAt: new Date(),
       },
     });

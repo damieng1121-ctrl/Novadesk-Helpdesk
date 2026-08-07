@@ -185,7 +185,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
         )}
 
         {ticket.aiSummary && (
-          <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900">
+          <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-sm text-indigo-900">
             <p className="font-medium">AI summary</p>
             <p className="mt-1">{ticket.aiSummary}</p>
           </div>
@@ -219,7 +219,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
             value={reply}
             onChange={(e) => setReply(e.target.value)}
             placeholder="Write a reply…"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
           />
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
@@ -262,7 +262,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
             <button
               type="submit"
               disabled={posting || !reply.trim()}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
             >
               {posting ? "Posting…" : "Post reply"}
             </button>
@@ -342,7 +342,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
           )}
 
           {ticket.aiSuggestedSolution && (
-            <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900">
+            <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-sm text-indigo-900">
               <p className="font-medium">AI suggested first step</p>
               <p className="mt-1">{ticket.aiSuggestedSolution}</p>
             </div>

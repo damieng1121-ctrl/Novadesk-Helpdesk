@@ -52,7 +52,7 @@ export default function NewArticlePage() {
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
           />
         </div>
         <div>
@@ -62,7 +62,7 @@ export default function NewArticlePage() {
             rows={10}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-sm focus:border-blue-500 focus:outline-none"
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-sm focus:border-indigo-500 focus:outline-none"
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -71,7 +71,7 @@ export default function NewArticlePage() {
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
             >
               <option value="">General</option>
               {categories.map((c) => (
@@ -86,7 +86,7 @@ export default function NewArticlePage() {
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as "DRAFT" | "PUBLISHED")}
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
             >
               <option value="DRAFT">Draft</option>
               <option value="PUBLISHED">Published</option>
@@ -97,7 +97,7 @@ export default function NewArticlePage() {
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-md bg-blue-600 px-5 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-md bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
         >
           {submitting ? "Saving…" : "Save article"}
         </button>

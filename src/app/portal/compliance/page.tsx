@@ -51,7 +51,7 @@ export default function CompliancePage() {
       <p className="mt-1 max-w-2xl text-sm text-slate-600">
         Track your school&apos;s readiness against the DfE&apos;s digital and technology standards for
         schools and colleges. This is a working self-assessment tool — always check{" "}
-        <a href="https://www.gov.uk/guidance/meeting-digital-and-technology-standards-in-schools-and-colleges" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+        <a href="https://www.gov.uk/guidance/meeting-digital-and-technology-standards-in-schools-and-colleges" target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">
           the latest official guidance on GOV.UK
         </a>{" "}
         before reporting compliance externally.
@@ -83,7 +83,7 @@ export default function CompliancePage() {
                 </div>
                 <p className="mt-1 text-sm text-slate-600">{standard.description}</p>
                 {standard.officialUrl && (
-                  <a href={standard.officialUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs text-blue-600 hover:underline">
+                  <a href={standard.officialUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs text-indigo-600 hover:underline">
                     Official DfE guidance ↗
                   </a>
                 )}
@@ -157,7 +157,7 @@ function ComplianceItemRow({
         <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
           {item.guidance && <p className="text-sm text-slate-600">{item.guidance}</p>}
           {item.govLink && (
-            <a href={item.govLink} target="_blank" rel="noreferrer" className="inline-block text-xs text-blue-600 hover:underline">
+            <a href={item.govLink} target="_blank" rel="noreferrer" className="inline-block text-xs text-indigo-600 hover:underline">
               Specific DfE guidance for this item ↗
             </a>
           )}
@@ -208,7 +208,7 @@ function ComplianceItemRow({
           <button
             onClick={save}
             disabled={saving}
-            className="rounded-md bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
           >
             {saving ? "Saving…" : "Save"}
           </button>

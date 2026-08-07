@@ -172,13 +172,13 @@ export default function SuperAdminPage() {
         <div className="flex gap-1 rounded-lg border border-slate-200 bg-white p-1">
           <button
             onClick={() => setTab("schools")}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "schools" ? "bg-blue-50 text-blue-700" : "text-slate-700 hover:text-slate-900"}`}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "schools" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:text-slate-900"}`}
           >
             Schools
           </button>
           <button
             onClick={() => setTab("users")}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "users" ? "bg-blue-50 text-blue-700" : "text-slate-700 hover:text-slate-900"}`}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "users" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:text-slate-900"}`}
           >
             Users
           </button>
@@ -249,7 +249,7 @@ export default function SuperAdminPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
               >
                 {submitting ? "Creating…" : "Add school"}
               </button>
@@ -322,7 +322,7 @@ export default function SuperAdminPage() {
             </p>
             <button
               onClick={() => setShowInvite(!showInvite)}
-              className="shrink-0 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="shrink-0 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
             >
               {showInvite ? "Cancel" : "Add user"}
             </button>
@@ -372,7 +372,7 @@ export default function SuperAdminPage() {
               <button
                 type="submit"
                 disabled={inviting}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 sm:col-span-4"
+                className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 sm:col-span-4"
               >
                 {inviting ? "Adding…" : "Add user"}
               </button>
