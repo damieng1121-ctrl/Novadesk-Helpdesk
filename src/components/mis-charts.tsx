@@ -38,7 +38,7 @@ export function AttendanceTrendChart({ trend }: { trend: { week: string; attenda
         />
         <Tooltip
           contentStyle={{ borderRadius: 8, borderColor: "#e2e8f0", fontSize: 13 }}
-          formatter={(v: number) => [`${v}%`, "Attendance"]}
+          formatter={(v) => [`${v}%`, "Attendance"]}
         />
         <Line type="monotone" dataKey="attendancePct" stroke="#4f46e5" strokeWidth={2} dot={{ r: 3 }} />
       </LineChart>
