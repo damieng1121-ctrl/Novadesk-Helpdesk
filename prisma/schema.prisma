@@ -63,6 +63,29 @@ model Tenant {
   cannedResponses       CannedResponse[]
   agentToolCommands     AgentToolCommand[]
   agentToolLinks        AgentToolLink[]
+
+  // --- School MIS additions ---
+  academicYears            AcademicYear[]
+  formGroups               FormGroup[]
+  pupils                   Pupil[]
+  pupilGuardians           PupilGuardian[]
+  attendanceRecords        AttendanceRecord[]
+  behaviourIncidents       BehaviourIncident[]
+  accidentReports          AccidentReport[]
+  sendPlans                SendPlan[]
+  assessmentSubjects       AssessmentSubject[]
+  assessmentResults        AssessmentResult[]
+  pupilTargets             PupilTarget[]
+  mealRecords              MealRecord[]
+  clubs                    Club[]
+  clubMemberships          ClubMembership[]
+  staffProfiles            StaffProfile[]
+  interventions            Intervention[]
+  interventionNotes        InterventionNote[]
+  parentsEveningEvents     ParentsEveningEvent[]
+  appointmentSlots         AppointmentSlot[]
+  parentMessages           ParentMessage[]
+  parentMessageRecipients  ParentMessageRecipient[]
 }
 
 enum SchoolPhase {
@@ -79,6 +102,7 @@ enum Role {
   TENANT_ADMIN // School IT lead / SBM
   AGENT // Helpdesk technician
   REQUESTER // Teacher / staff member raising tickets
+  PARENT // Guardian, signed in via email+password to the separate /parent portal
 }
 
 model User {
@@ -108,6 +132,16 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // --- School MIS additions ---
+  /// Grants MIS classroom access (register-taking, behaviour, assessment, etc.) regardless of Role — a REQUESTER or AGENT can also be a class teacher.
+  isTeacher          Boolean @default(false)
+  /// Gates visibility of confidential (SAFEGUARDING/BULLYING) behaviour incidents, in addition to TENANT_ADMIN/SUPER_ADMIN.
+  isSafeguardingLead Boolean @default(false)
+  /// Only ever set for role=PARENT — staff always sign in via Google SSO.
+  passwordHash       String?
+  /// SMS-ready contact number; no SMS provider is wired up yet.
+  phone              String?
+
   assignedTickets               Ticket[]               @relation("AssignedTickets")
   requestedTickets              Ticket[]               @relation("RequestedTickets")
   ticketComments                TicketComment[]
@@ -119,6 +153,26 @@ model User {
   forumRepliesAuthored          ForumReply[]
   assignedAssets                Asset[]
   announcementsCreated          Announcement[]
+
+  formGroupsLed               FormGroup[]               @relation("FormGroupStaffLead")
+  guardianOf                  PupilGuardian[]           @relation("GuardianLinks")
+  attendanceRecordsRecorded   AttendanceRecord[]        @relation("AttendanceRecordedBy")
+  behaviourIncidentsRecorded  BehaviourIncident[]       @relation("BehaviourRecordedBy")
+  accidentReportsReported     AccidentReport[]          @relation("AccidentReportedBy")
+  accidentReportsFirstAid     AccidentReport[]          @relation("AccidentFirstAidBy")
+  sendPlansCreated             SendPlan[]                @relation("SendPlanCreatedBy")
+  assessmentResultsRecorded   AssessmentResult[]        @relation("AssessmentTeacher")
+  pupilTargetsCreated          PupilTarget[]             @relation("PupilTargetCreatedBy")
+  mealRecordsRecorded          MealRecord[]              @relation("MealRecordedBy")
+  clubsLed                     Club[]                    @relation("ClubStaffLead")
+  staffProfile                  StaffProfile?
+  interventionsProvided        Intervention[]            @relation("InterventionProvider")
+  interventionNotesAuthored    InterventionNote[]        @relation("InterventionNoteAuthor")
+  parentsEveningEventsCreated  ParentsEveningEvent[]      @relation("ParentsEveningCreatedBy")
+  appointmentSlotsAsTeacher    AppointmentSlot[]          @relation("AppointmentTeacher")
+  appointmentSlotsAsGuardian   AppointmentSlot[]          @relation("AppointmentGuardian")
+  parentMessagesSent           ParentMessage[]            @relation("ParentMessageSender")
+  parentMessageRecipientOf     ParentMessageRecipient[]   @relation("ParentMessageRecipientGuardian")
 
   @@index([tenantId])
 }
@@ -678,4 +732,636 @@ model AgentToolLink {
   url      String
 
   createdAt DateTime @default(now())
+}
+
+// =============================================================================
+// School MIS
+//
+// Adds pupils, attendance, behaviour & welfare (incl. SEND), assessment,
+// school operations (meals/clubs/staff/interventions), parents' evenings,
+// and parent communication on top of the helpdesk's existing tenancy/auth.
+// Same rule as everything above: every model here carries `tenantId` and
+// MUST be queried scoped to `session.user.tenantId` — never trust a
+// client-supplied id alone.
+// =============================================================================
+
+enum YearGroup {
+  NURSERY
+  RECEPTION
+  YEAR_1
+  YEAR_2
+  YEAR_3
+  YEAR_4
+  YEAR_5
+  YEAR_6
+  YEAR_7
+  YEAR_8
+  YEAR_9
+  YEAR_10
+  YEAR_11
+  YEAR_12
+  YEAR_13
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum SendStatus {
+  NONE
+  SEND_SUPPORT
+  EHCP
+}
+
+enum SendPrimaryNeed {
+  COMMUNICATION
+  COGNITION
+  SEMH
+  SENSORY_PHYSICAL
+}
+
+enum PupilGuardianRelationship {
+  MOTHER
+  FATHER
+  GUARDIAN
+  GRANDPARENT
+  CARER
+  OTHER
+}
+
+model AcademicYear {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String // e.g. "2025/2026"
+  startDate DateTime
+  endDate   DateTime
+  isCurrent Boolean  @default(false)
+
+  formGroups        FormGroup[]
+  assessmentResults AssessmentResult[]
+  clubs             Club[]
+
+  @@unique([tenantId, name])
+}
+
+model FormGroup {
+  id             String       @id @default(cuid())
+  tenantId       String
+  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  name           String // e.g. "3W"
+  yearGroup      YearGroup
+
+  staffLeadId String?
+  staffLead   User?   @relation("FormGroupStaffLead", fields: [staffLeadId], references: [id])
+
+  pupils Pupil[]
+
+  @@unique([tenantId, academicYearId, name])
+}
+
+model Pupil {
+  id              String     @id @default(cuid())
+  tenantId        String
+  tenant          Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  /// DfE Unique Pupil Number, if allocated yet
+  upn             String?
+  admissionNumber String?
+  firstName       String
+  lastName        String
+  preferredName   String?
+  dob             DateTime
+  gender          Gender
+  formGroupId     String?
+  formGroup       FormGroup? @relation(fields: [formGroupId], references: [id])
+  yearGroup       YearGroup
+
+  ethnicity    String?
+  homeLanguage String?
+  addressLine1 String?
+  addressLine2 String?
+  city         String?
+  postcode     String?
+
+  sendStatus     SendStatus @default(NONE)
+  pupilPremium   Boolean    @default(false)
+  freeSchoolMeals Boolean   @default(false)
+
+  admissionDate DateTime?
+  leavingDate   DateTime?
+  medicalNotes  String?   @db.Text
+  photoUrl      String?
+  isActive      Boolean   @default(true)
+  /// Soft-deleted pupils are hidden from normal views but recoverable from the trash bin
+  isDeleted     Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  guardians          PupilGuardian[]
+  attendanceRecords  AttendanceRecord[]
+  behaviourIncidents BehaviourIncident[]
+  accidentReports    AccidentReport[]
+  sendPlans          SendPlan[]
+  assessmentResults  AssessmentResult[]
+  targets            PupilTarget[]
+  mealRecords        MealRecord[]
+  clubMemberships    ClubMembership[]
+  interventions      Intervention[]
+  appointmentSlots   AppointmentSlot[]
+
+  @@unique([tenantId, upn])
+  @@index([tenantId, formGroupId])
+  @@index([tenantId, isActive])
+}
+
+model PupilGuardian {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pupilId  String
+  pupil    Pupil  @relation(fields: [pupilId], references: [id], onDelete: Cascade)
+  /// A User with role=PARENT
+  guardianId String
+  guardian   User   @relation("GuardianLinks", fields: [guardianId], references: [id], onDelete: Cascade)
+
+  relationship          PupilGuardianRelationship @default(OTHER)
+  parentalResponsibility Boolean                  @default(true)
+  isPrimaryContact       Boolean                  @default(false)
+  isEmergencyContact     Boolean                  @default(true)
+  canCollect             Boolean                  @default(true)
+  priorityOrder          Int                      @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@unique([pupilId, guardianId])
+  @@index([tenantId, guardianId])
+}
+
+// ---------------------------------------------------------------------------
+// Attendance
+// ---------------------------------------------------------------------------
+
+enum AttendanceSession {
+  AM
+  PM
+}
+
+enum AttendanceMark {
+  PRESENT
+  LATE
+  AUTHORISED_ABSENCE
+  UNAUTHORISED_ABSENCE
+  APPROVED_ACTIVITY
+  NOT_RECORDED
+}
+
+model AttendanceRecord {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pupilId  String
+  pupil    Pupil  @relation(fields: [pupilId], references: [id], onDelete: Cascade)
+
+  date    DateTime
+  session AttendanceSession
+  mark    AttendanceMark    @default(NOT_RECORDED)
+  /// DfE attendance mark letter (see src/lib/attendance-codes.ts), e.g. "/", "L", "N"
+  statutoryCode String
+  minutesLate   Int?
+  notes         String? @db.Text
+
+  recordedById String
+  recordedBy   User   @relation("AttendanceRecordedBy", fields: [recordedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, pupilId, date, session])
+  @@index([tenantId, date])
+}
+
+// ---------------------------------------------------------------------------
+// Behaviour & welfare
+// ---------------------------------------------------------------------------
+
+enum BehaviourCategory {
+  ACHIEVEMENT
+  CONCERN
+  BULLYING
+  SAFEGUARDING
+}
+
+model BehaviourIncident {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pupilId  String
+  pupil    Pupil  @relation(fields: [pupilId], references: [id], onDelete: Cascade)
+
+  date        DateTime
+  category    BehaviourCategory
+  points      Int               @default(0)
+  description String            @db.Text
+  location    String?
+  actionTaken String?           @db.Text
+
+  followUpRequired Boolean @default(false)
+  followUpNotes    String? @db.Text
+  /// Auto-true for SAFEGUARDING/BULLYING — only visible to TENANT_ADMIN/SUPER_ADMIN/isSafeguardingLead staff
+  isConfidential   Boolean @default(false)
+
+  recordedById String
+  recordedBy   User   @relation("BehaviourRecordedBy", fields: [recordedById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, pupilId])
+  @@index([tenantId, date])
+}
+
+enum AccidentSeverity {
+  MINOR
+  MODERATE
+  SERIOUS
+}
+
+model AccidentReport {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pupilId  String
+  pupil    Pupil  @relation(fields: [pupilId], references: [id], onDelete: Cascade)
+
+  date        DateTime
+  time        String
+  location    String
+  description String  @db.Text
+  injuryType  String?
+  actionTaken String  @db.Text
+  severity    AccidentSeverity @default(MINOR)
+
+  parentNotified   Boolean   @default(false)
+  parentNotifiedAt DateTime?
+
+  reportedById String
+  reportedBy   User   @relation("AccidentReportedBy", fields: [reportedById], references: [id])
+
+  firstAidGivenById String?
+  firstAidGivenBy   User?   @relation("AccidentFirstAidBy", fields: [firstAidGivenById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, pupilId])
+}
+
+model SendPlan {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pupilId  String
+  pupil    Pupil  @relation(fields: [pupilId], references: [id], onDelete: Cascade)
+
+  status      SendStatus
+  primaryNeed SendPrimaryNeed?
+  description String           @db.Text
+  /// Array of { target: string, progress: string, reviewDate: string }
+  targets     Json             @default("[]")
+  externalAgencies String?     @db.Text
+  reviewDate  DateTime?
+
+  createdById String
+  createdBy   User   @relation("SendPlanCreatedBy", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, pupilId])
+}
+
+// ---------------------------------------------------------------------------
+// Assessment
+// ---------------------------------------------------------------------------
+
+model AssessmentSubject {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name     String
+  order    Int    @default(0)
+
+  results AssessmentResult[]
+  targets PupilTarget[]
+
+  @@unique([tenantId, name])
+}
+
+model AssessmentResult {
+  id             String            @id @default(cuid())
+  tenantId       String
+  tenant         Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pupilId        String
+  pupil          Pupil             @relation(fields: [pupilId], references: [id], onDelete: Cascade)
+  subjectId      String
+  subject        AssessmentSubject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  academicYearId String
+  academicYear   AcademicYear      @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  term       String // e.g. "Autumn 1"
+  /// School-customizable attainment band label (e.g. "Working Towards", "Expected", "Greater Depth", or a numeric score as a string)
+  attainment String
+  effort     String?
+  notes      String? @db.Text
+
+  teacherId String
+  teacher   User   @relation("AssessmentTeacher", fields: [teacherId], references: [id])
+
+  date DateTime @default(now())
+
+  @@index([tenantId, pupilId])
+  @@index([tenantId, subjectId])
+}
+
+enum TargetStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  ACHIEVED
+}
+
+model PupilTarget {
+  id          String             @id @default(cuid())
+  tenantId    String
+  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pupilId     String
+  pupil       Pupil              @relation(fields: [pupilId], references: [id], onDelete: Cascade)
+  subjectId   String?
+  subject     AssessmentSubject? @relation(fields: [subjectId], references: [id])
+
+  title       String
+  description String?      @db.Text
+  targetDate  DateTime?
+  status      TargetStatus @default(NOT_STARTED)
+
+  createdById String
+  createdBy   User   @relation("PupilTargetCreatedBy", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, pupilId])
+}
+
+// ---------------------------------------------------------------------------
+// School operations: meals, clubs, staff records, interventions
+// ---------------------------------------------------------------------------
+
+enum MealType {
+  SCHOOL_MEAL
+  PACKED_LUNCH
+  HOME
+  FSM
+}
+
+model MealRecord {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pupilId  String
+  pupil    Pupil  @relation(fields: [pupilId], references: [id], onDelete: Cascade)
+
+  date     DateTime
+  mealType MealType
+
+  recordedById String
+  recordedBy   User   @relation("MealRecordedBy", fields: [recordedById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, pupilId, date])
+}
+
+model Club {
+  id             String       @id @default(cuid())
+  tenantId       String
+  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String? @db.Text
+  /// 0 = Sunday .. 6 = Saturday
+  dayOfWeek   Int
+  startTime   String
+  endTime     String
+  capacity    Int?
+
+  staffLeadId String?
+  staffLead   User?   @relation("ClubStaffLead", fields: [staffLeadId], references: [id])
+
+  memberships ClubMembership[]
+  createdAt   DateTime         @default(now())
+
+  @@index([tenantId])
+}
+
+enum ClubMembershipStatus {
+  ACTIVE
+  WAITLIST
+}
+
+model ClubMembership {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clubId   String
+  club     Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  pupilId  String
+  pupil    Pupil  @relation(fields: [pupilId], references: [id], onDelete: Cascade)
+
+  status   ClubMembershipStatus @default(ACTIVE)
+  joinedAt DateTime             @default(now())
+
+  @@unique([clubId, pupilId])
+}
+
+enum StaffType {
+  TEACHING
+  TEACHING_ASSISTANT
+  ADMIN
+  SITE
+  MIDDAY
+  SENCO
+  OTHER
+}
+
+model StaffProfile {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId   String @unique
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  staffType                StaffType
+  dbsCheckDate             DateTime?
+  dbsNumber                String?
+  contractType             String?
+  startDate                DateTime?
+  endDate                  DateTime?
+  safeguardingTrainingDate DateTime?
+
+  updatedAt DateTime @updatedAt
+}
+
+enum InterventionStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+}
+
+model Intervention {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pupilId  String
+  pupil    Pupil  @relation(fields: [pupilId], references: [id], onDelete: Cascade)
+
+  title         String
+  subjectArea   String?
+  providerId    String
+  provider      User   @relation("InterventionProvider", fields: [providerId], references: [id])
+  groupSize     Int?
+  startDate     DateTime
+  endDate       DateTime?
+  targetOutcome String    @db.Text
+  status        InterventionStatus @default(PLANNED)
+
+  notes     InterventionNote[]
+  createdAt DateTime           @default(now())
+
+  @@index([tenantId, pupilId])
+}
+
+model InterventionNote {
+  id             String       @id @default(cuid())
+  tenantId       String
+  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  interventionId String
+  intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation("InterventionNoteAuthor", fields: [authorId], references: [id])
+  note     String @db.Text
+
+  createdAt DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Parents' evenings
+// ---------------------------------------------------------------------------
+
+model ParentsEveningEvent {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  title       String
+  date        DateTime
+  startTime   String
+  endTime     String
+  slotMinutes Int      @default(10)
+  /// Array of FormGroup ids this event applies to
+  formGroupIds Json    @default("[]")
+
+  bookingOpensAt  DateTime?
+  bookingClosesAt DateTime?
+  locationNote    String?
+
+  createdById String
+  createdBy   User   @relation("ParentsEveningCreatedBy", fields: [createdById], references: [id])
+
+  slots     AppointmentSlot[]
+  createdAt DateTime          @default(now())
+
+  @@index([tenantId, date])
+}
+
+enum AppointmentStatus {
+  AVAILABLE
+  BOOKED
+  CANCELLED
+}
+
+model AppointmentSlot {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  eventId  String
+  event    ParentsEveningEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  teacherId String
+  teacher   User   @relation("AppointmentTeacher", fields: [teacherId], references: [id])
+
+  pupilId String?
+  pupil   Pupil?  @relation(fields: [pupilId], references: [id])
+
+  guardianId String?
+  guardian   User?   @relation("AppointmentGuardian", fields: [guardianId], references: [id])
+
+  startTime DateTime
+  endTime   DateTime
+  status    AppointmentStatus @default(AVAILABLE)
+  notes     String?
+
+  @@index([tenantId, eventId])
+  @@index([tenantId, teacherId])
+}
+
+// ---------------------------------------------------------------------------
+// Parent communication
+// ---------------------------------------------------------------------------
+
+enum MessageAudience {
+  ALL_PARENTS
+  YEAR_GROUP
+  FORM_GROUP
+  INDIVIDUAL
+}
+
+model ParentMessage {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  senderId String
+  sender   User   @relation("ParentMessageSender", fields: [senderId], references: [id])
+
+  subject  String
+  body     String           @db.Text
+  audience MessageAudience
+  /// Depending on `audience`: a YearGroup value, a FormGroup id, or a Pupil id. Null for ALL_PARENTS.
+  audienceRef String?
+
+  sentAt DateTime @default(now())
+
+  recipients ParentMessageRecipient[]
+
+  @@index([tenantId, sentAt])
+}
+
+model ParentMessageRecipient {
+  id        String        @id @default(cuid())
+  tenantId  String
+  tenant    Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  messageId String
+  message   ParentMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  guardianId String
+  guardian   User   @relation("ParentMessageRecipientGuardian", fields: [guardianId], references: [id])
+  readAt     DateTime?
+
+  @@unique([messageId, guardianId])
+  @@index([tenantId, guardianId])
 }

@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import bcrypt from "bcryptjs";
 
 import { authConfig } from "./auth.config";
 import { prisma } from "./db";
@@ -73,6 +74,28 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
           }),
         ]
       : []),
+    // Parents have no Google Workspace account, so they sign in with a
+    // school-issued email + a password they set via /parent/set-password.
+    // Runs in every environment (unlike dev-login above) — this is parents'
+    // only way into the product.
+    Credentials({
+      id: "parent-login",
+      name: "Parent login",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const email = typeof credentials?.email === "string" ? credentials.email.toLowerCase() : undefined;
+        const password = typeof credentials?.password === "string" ? credentials.password : undefined;
+        if (!email || !password) return null;
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user || user.role !== "PARENT" || !user.passwordHash || !user.isActive) return null;
+        const valid = await bcrypt.compare(password, user.passwordHash);
+        if (!valid) return null;
+        return { id: user.id, email: user.email, name: user.name, image: user.image };
+      },
+    }),
   ],
   callbacks: {
     ...authConfig.callbacks,
@@ -123,6 +146,7 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
           token.actingTenantId = null;
           token.twoFactorEnabled = dbUser.twoFactorEnabled;
           token.twoFactorVerified = !dbUser.twoFactorEnabled;
+          token.isTeacher = dbUser.isTeacher;
         }
       }
 

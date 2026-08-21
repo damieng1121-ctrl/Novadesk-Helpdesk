@@ -5,5 +5,5 @@ export const { auth: middleware } = NextAuth(authConfig);
 export default middleware;
 
 export const config = {
-  matcher: ["/portal/:path*", "/verify-2fa"],
+  matcher: ["/portal/:path*", "/verify-2fa", "/parent/:path*"],
 };
