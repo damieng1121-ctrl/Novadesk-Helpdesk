@@ -27,21 +27,31 @@ const PRIORITY_ORDER = ["CRITICAL", "HIGH", "MEDIUM", "LOW"];
 export default function ReportsPage() {
   const [tab, setTab] = useState<"helpdesk" | "mis">("helpdesk");
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [summaryDenied, setSummaryDenied] = useState(false);
   const [misSummary, setMisSummary] = useState<MisSummary | null>(null);
+  const [misSummaryDenied, setMisSummaryDenied] = useState(false);
   const [subjectId, setSubjectId] = useState("");
 
   useEffect(() => {
-    fetch("/api/reports/summary")
-      .then((r) => r.json())
-      .then(setSummary);
+    fetch("/api/reports/summary").then((r) => {
+      if (!r.ok) {
+        setSummaryDenied(true);
+        return;
+      }
+      r.json().then(setSummary);
+    });
   }, []);
 
   useEffect(() => {
     if (tab !== "mis") return;
     const query = subjectId ? `?subjectId=${subjectId}` : "";
-    fetch(`/api/reports/mis-summary${query}`)
-      .then((r) => r.json())
-      .then(setMisSummary);
+    fetch(`/api/reports/mis-summary${query}`).then((r) => {
+      if (!r.ok) {
+        setMisSummaryDenied(true);
+        return;
+      }
+      r.json().then(setMisSummary);
+    });
   }, [tab, subjectId]);
 
   return (
@@ -57,15 +67,28 @@ export default function ReportsPage() {
         </TabButton>
       </div>
 
-      {tab === "helpdesk" && (summary ? <HelpdeskReports summary={summary} /> : <Loading />)}
+      {tab === "helpdesk" &&
+        (summaryDenied ? (
+          <AccessDenied />
+        ) : summary ? (
+          <HelpdeskReports summary={summary} />
+        ) : (
+          <Loading />
+        ))}
       {tab === "mis" &&
-        (misSummary ? (
+        (misSummaryDenied ? (
+          <AccessDenied />
+        ) : misSummary ? (
           <MisReports summary={misSummary} subjectId={subjectId} onSubjectChange={setSubjectId} />
         ) : (
           <Loading />
         ))}
     </div>
   );
+}
+
+function AccessDenied() {
+  return <p className="mt-6 text-sm text-slate-700">You don&apos;t have access to this section.</p>;
 }
 
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
