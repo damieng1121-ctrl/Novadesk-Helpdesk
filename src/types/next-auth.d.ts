@@ -12,8 +12,6 @@ declare module "next-auth" {
       actingTenantId: string | null;
       twoFactorEnabled: boolean;
       twoFactorVerified: boolean;
-      /** MIS classroom access — see User.isTeacher. Only meaningful for staff roles. */
-      isTeacher: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -29,6 +27,5 @@ declare module "@auth/core/jwt" {
     actingTenantId: string | null;
     twoFactorEnabled: boolean;
     twoFactorVerified: boolean;
-    isTeacher: boolean;
   }
 }

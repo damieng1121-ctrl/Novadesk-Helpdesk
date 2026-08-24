@@ -30,7 +30,6 @@ export const authConfig = {
       session.user.tenantId = token.tenantId ?? (token.role === "SUPER_ADMIN" ? (token.actingTenantId ?? null) : null);
       session.user.twoFactorEnabled = token.twoFactorEnabled;
       session.user.twoFactorVerified = token.twoFactorVerified;
-      session.user.isTeacher = token.isTeacher ?? false;
       return session;
     },
     authorized({ auth, request }) {
@@ -39,15 +38,9 @@ export const authConfig = {
 
       const isPortalRoute = pathname.startsWith("/portal");
       const isTwoFactorRoute = pathname.startsWith("/verify-2fa");
-      const isParentRoute = pathname.startsWith("/parent");
-      const isParentSetPasswordRoute = pathname.startsWith("/parent/set-password");
-      const isParentLoginRoute = pathname === "/parent/login";
 
       if (isPortalRoute) {
         if (!isLoggedIn || !auth?.user) return false;
-        // Parents have their own portal entirely — a parent account should
-        // never end up looking at staff/pupil-admin screens.
-        if (auth.user.role === "PARENT") return Response.redirect(new URL("/parent", request.nextUrl));
 
         // Staff (anyone but a plain requester) must have 2FA enabled at all —
         // it's not optional for accounts that can see other people's tickets,
@@ -68,15 +61,6 @@ export const authConfig = {
       }
 
       if (isTwoFactorRoute && !isLoggedIn) return false;
-
-      // /parent/login and /parent/set-password must stay reachable while
-      // signed out (that's the whole point); every other /parent route
-      // requires a signed-in PARENT account — no 2FA gate, parents don't
-      // have one.
-      if (isParentRoute && !isParentLoginRoute && !isParentSetPasswordRoute) {
-        if (!isLoggedIn || !auth?.user) return Response.redirect(new URL("/parent/login", request.nextUrl));
-        if (auth.user.role !== "PARENT") return Response.redirect(new URL("/portal", request.nextUrl));
-      }
 
       return true;
     },

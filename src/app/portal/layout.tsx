@@ -7,7 +7,6 @@ import { ActingBanner } from "@/components/acting-banner";
 export default async function PortalLayout({ children }: LayoutProps<"/portal">) {
   const session = await auth();
   if (!session?.user) redirect("/login");
-  if (session.user.role === "PARENT") redirect("/parent");
   if (session.user.twoFactorEnabled && !session.user.twoFactorVerified) redirect("/verify-2fa");
 
   const isActing = session.user.role === "SUPER_ADMIN" && Boolean(session.user.actingTenantId);
@@ -31,7 +30,6 @@ export default async function PortalLayout({ children }: LayoutProps<"/portal">)
         hasLogo={Boolean(tenant?.logoUrl)}
         sidebarColor={tenant?.sidebarColor ?? null}
         disabledNavItems={tenant?.disabledNavItems ?? []}
-        isTeacher={isActing ? true : session.user.isTeacher}
       />
       <div className="flex flex-1 flex-col">
         {isActing && <ActingBanner tenantName={tenant?.name ?? "this school"} />}
