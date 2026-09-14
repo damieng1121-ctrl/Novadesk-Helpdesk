@@ -30,6 +30,7 @@ type Standard = { id: string; code: string; title: string; description: string; 
 export default function CompliancePage() {
   const [standards, setStandards] = useState<Standard[] | null>(null);
   const [openItem, setOpenItem] = useState<string | null>(null);
+  const [emailState, setEmailState] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
   function load() {
     fetch("/api/compliance")
@@ -39,6 +40,19 @@ export default function CompliancePage() {
 
   useEffect(load, []);
 
+  async function emailReport() {
+    setEmailState("sending");
+    try {
+      const res = await fetch("/api/compliance/report", { method: "POST" });
+      if (!res.ok) throw new Error("failed");
+      setEmailState("sent");
+    } catch {
+      setEmailState("error");
+    } finally {
+      setTimeout(() => setEmailState("idle"), 4000);
+    }
+  }
+
   if (!standards) return <p className="text-sm text-slate-700">Loading…</p>;
 
   const allItems = standards.flatMap((s) => s.items);
@@ -47,15 +61,26 @@ export default function CompliancePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-slate-900">DfE digital &amp; technology standards</h1>
-      <p className="mt-1 max-w-2xl text-sm text-slate-600">
-        Track your school&apos;s readiness against the DfE&apos;s digital and technology standards for
-        schools and colleges. This is a working self-assessment tool — always check{" "}
-        <a href="https://www.gov.uk/guidance/meeting-digital-and-technology-standards-in-schools-and-colleges" target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">
-          the latest official guidance on GOV.UK
-        </a>{" "}
-        before reporting compliance externally.
-      </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-900">DfE digital &amp; technology standards</h1>
+          <p className="mt-1 max-w-2xl text-sm text-slate-600">
+            Track your school&apos;s readiness against the DfE&apos;s digital and technology standards for
+            schools and colleges. This is a working self-assessment tool — always check{" "}
+            <a href="https://www.gov.uk/guidance/meeting-digital-and-technology-standards-in-schools-and-colleges" target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">
+              the latest official guidance on GOV.UK
+            </a>{" "}
+            before reporting compliance externally.
+          </p>
+        </div>
+        <button
+          onClick={emailReport}
+          disabled={emailState === "sending"}
+          className="shrink-0 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+        >
+          {emailState === "sending" ? "Sending…" : emailState === "sent" ? "Sent ✓" : emailState === "error" ? "Failed — try again" : "Email me this report"}
+        </button>
+      </div>
 
       <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5">
         <div className="flex items-center justify-between text-sm">
