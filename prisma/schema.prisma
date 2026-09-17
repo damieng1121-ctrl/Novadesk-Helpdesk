@@ -1,7 +1,10 @@
-// Novadesk Helpdesk — multi-tenant data model
-// Tenant = one school. Every tenant-scoped model carries a `tenantId` and
-// MUST be queried through the helpers in `src/lib/tenancy.ts` so tenant
-// isolation can't be bypassed by an accidental unscoped query.
+// Novadesk Helpdesk — single-tenant data model.
+// Exactly one Tenant row exists: it holds this helpdesk's own branding and
+// settings (logo, colours, out-of-hours, etc.), not a customer boundary.
+// `tenantId` columns are retained for historical/infra reasons but every
+// row shares the same one; `Company` (below) is the real "who's this
+// person with" grouping, and it is purely organisational — not a security
+// or data-isolation boundary.
 
 generator client {
   provider = "prisma-client-js"
@@ -47,6 +50,7 @@ model Tenant {
   outOfHoursMessage     String  @default("Thanks for your ticket — our IT team is currently out of hours. We'll pick this up next school day.") @db.Text
 
   users                 User[]
+  companies             Company[]
   categories            Category[]
   tickets               Ticket[]
   kbCategories          KbCategory[]
@@ -74,6 +78,28 @@ enum SchoolPhase {
   MULTI_ACADEMY_TRUST
 }
 
+/// A client organisation (e.g. a school) whose people use this one shared
+/// helpdesk. Purely an organisational label for filtering/reporting — NOT a
+/// security or data-isolation boundary. Every Company belongs to the same
+/// single Tenant; there is no per-Company data separation.
+model Company {
+  id        String       @id @default(cuid())
+  tenantId  String
+  tenant    Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  /// Informational only — no longer used to gate sign-in.
+  domain    String?
+  /// DfE unique reference number, if this Company is a school.
+  urn       String?
+  phase     SchoolPhase?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  users User[]
+
+  @@unique([tenantId, name])
+}
+
 enum Role {
   SUPER_ADMIN // Novadesk platform staff, cross-tenant
   TENANT_ADMIN // School IT lead / SBM
@@ -85,6 +111,10 @@ model User {
   id       String  @id @default(cuid())
   tenantId String?
   tenant   Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  /// Which client organisation (e.g. school) this person belongs to, if any.
+  /// Purely organisational — see Company's own doc comment.
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
   /// Globally unique (not just per-tenant): Auth.js's Prisma adapter looks
   /// users up by email directly, and in practice one Google account maps to
   /// exactly one school via its Workspace domain anyway.

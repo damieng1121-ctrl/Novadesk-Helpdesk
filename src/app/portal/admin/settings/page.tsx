@@ -158,11 +158,11 @@ export default function AdminSettingsPage() {
       <h1 className="text-2xl font-semibold text-slate-900">Settings</h1>
 
       <section className="rounded-xl border border-slate-200 bg-white p-6">
-        <h2 className="font-semibold text-slate-900">School details</h2>
+        <h2 className="font-semibold text-slate-900">Organisation details</h2>
         {tenant && (
           <div className="mt-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700">School name</label>
+              <label className="block text-sm font-medium text-slate-700">Organisation name</label>
               <input
                 value={tenant.name}
                 onChange={(e) => setTenant({ ...tenant, name: e.target.value })}
@@ -183,7 +183,7 @@ export default function AdminSettingsPage() {
                 <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-white">
                   {tenant.logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element -- small admin-uploaded logo, not worth next/image's remote-loader setup
-                    <img key={logoNonce} src={`/api/tenant/logo?v=${logoNonce}`} alt="School logo" className="h-full w-full object-contain" />
+                    <img key={logoNonce} src={`/api/tenant/logo?v=${logoNonce}`} alt="Organisation logo" className="h-full w-full object-contain" />
                   ) : (
                     <span className="text-xs text-slate-500">None</span>
                   )}
@@ -218,7 +218,7 @@ export default function AdminSettingsPage() {
                 className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
               />
               <p className="mt-1 text-xs text-slate-700">
-                Replaces the &quot;Novadesk&quot; wordmark in the nav header — for schools that want to fully rebrand.
+                Replaces the &quot;Novadesk&quot; wordmark in the nav header — if you want to fully rebrand.
               </p>
             </div>
             <div>
@@ -241,7 +241,7 @@ export default function AdminSettingsPage() {
             </div>
             <div className="border-t border-slate-100 pt-4">
               <p className="text-sm font-medium text-slate-900">Nav modules</p>
-              <p className="mt-1 text-sm text-slate-700">Hide modules this school doesn&apos;t use from the staff sidebar.</p>
+              <p className="mt-1 text-sm text-slate-700">Hide modules you don&apos;t use from the staff sidebar.</p>
               <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {TOGGLEABLE_NAV_ITEMS.map((item) => (
                   <label key={item.href} className="flex items-center gap-2 text-sm text-slate-700">
@@ -357,7 +357,7 @@ export default function AdminSettingsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">
-                    School&apos;s own API key {ai.hasOwnApiKey && <span className="text-green-600">(set)</span>}
+                    Your own API key {ai.hasOwnApiKey && <span className="text-green-600">(set)</span>}
                   </label>
                   <input
                     type="password"

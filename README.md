@@ -159,7 +159,7 @@ and update `prisma/seed.ts` (or edit rows directly) accordingly.
 prisma/schema.prisma       Data model (multi-tenant)
 prisma/seed.ts             DfE compliance catalogue + demo school data
 src/lib/auth.ts            Auth.js config (Google provider, Prisma adapter, tenant resolution)
-src/lib/auth.config.ts     Edge-safe auth config used by middleware
+src/lib/auth.config.ts     Edge-safe auth config used by proxy
 src/lib/session.ts         Server-side session/tenant/role guards for API routes
 src/lib/tenancy.ts         Tenant resolution helpers
 src/lib/twofactor.ts       TOTP generation/verification

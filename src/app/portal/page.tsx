@@ -51,20 +51,13 @@ export default async function DashboardPage() {
   }
 
   if (!tenantId) {
-    const tenantCount = await prisma.tenant.count();
     return (
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Platform admin</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">No helpdesk account</h1>
         <p className="mt-2 text-slate-600">
-          You&apos;re signed in as a Novadesk platform administrator. School portal features (tickets,
-          knowledge base, compliance) are scoped per-tenant, so there&apos;s nothing school-specific to show
-          here — manage schools from{" "}
-          <Link href="/portal/super-admin" className="text-indigo-600 hover:underline">
-            Schools
-          </Link>
-          .
+          Your account isn&apos;t attached to the helpdesk yet. Ask an admin to invite you from
+          Users &amp; Companies.
         </p>
-        <p className="mt-4 text-sm text-slate-700">{tenantCount} school{tenantCount === 1 ? "" : "s"} onboarded.</p>
       </div>
     );
   }

@@ -5,33 +5,8 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 
 import { authConfig } from "./auth.config";
 import { prisma } from "./db";
-import { getEmailDomain } from "./tenancy";
 
 const isDevLoginEnabled = process.env.NODE_ENV !== "production";
-
-function superAdminEmails(): string[] {
-  return (process.env.NOVADESK_SUPER_ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-/**
- * Resolve which tenant a sign-in belongs to, from the email's domain
- * against each Tenant's Google Workspace `domain`. Also handles the
- * platform super-admin allowlist. Idempotent — safe to call on every
- * sign-in, not just the first.
- */
-async function resolveTenantAndRole(email: string) {
-  if (superAdminEmails().includes(email.toLowerCase())) {
-    return { tenantId: null, role: "SUPER_ADMIN" as const };
-  }
-  const domain = getEmailDomain(email);
-  if (!domain) return null;
-  const tenant = await prisma.tenant.findUnique({ where: { domain } });
-  if (!tenant || !tenant.isActive) return null;
-  return { tenantId: tenant.id, role: "REQUESTER" as const };
-}
 
 export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   ...authConfig,
@@ -40,9 +15,6 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
     Google({
       authorization: {
         params: {
-          // Nudges Google's account chooser toward the user's Workspace
-          // account rather than a personal Gmail account.
-          hd: "*",
           prompt: "select_account",
         },
       },
@@ -76,17 +48,15 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   ],
   callbacks: {
     ...authConfig.callbacks,
+    // Invite-only: sign-in is allowed only for an email an admin has
+    // already added (via /portal/admin/users). There is no domain-based
+    // auto-provisioning — this is one shared helpdesk, not a per-domain
+    // multi-tenant product, so "which company's Workspace this email
+    // belongs to" is no longer a signal we trust for access at all.
     async signIn({ user }) {
       if (!user.email) return false;
-      // A pre-provisioned row (an admin's manual invite/assignment) is
-      // always allowed to sign in, regardless of its email's domain —
-      // that manual assignment is what makes it a member of a school.
       const existing = await prisma.user.findUnique({ where: { email: user.email } });
-      if (existing && (existing.tenantId !== null || existing.role === "SUPER_ADMIN")) return true;
-      // Otherwise fall back to domain-based auto-provisioning for a
-      // genuinely first-ever sign-in.
-      const resolved = await resolveTenantAndRole(user.email);
-      return resolved !== null;
+      return Boolean(existing);
     },
     async jwt({ token, user, trigger, session }) {
       if (trigger === "update" && session) {
@@ -94,33 +64,18 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
         // flows) — trust it rather than re-hitting the DB on every session read.
         if (typeof session.twoFactorVerified === "boolean") token.twoFactorVerified = session.twoFactorVerified;
         if (typeof session.twoFactorEnabled === "boolean") token.twoFactorEnabled = session.twoFactorEnabled;
-        // Only a real platform SUPER_ADMIN can ever set this — never an
-        // ordinary tenant user overriding their own membership. Validated
-        // against a real, active school so a stale/bogus id can't linger.
-        if ("actingTenantId" in session && token.role === "SUPER_ADMIN") {
-          if (session.actingTenantId === null) {
-            token.actingTenantId = null;
-          } else if (typeof session.actingTenantId === "string") {
-            const tenant = await prisma.tenant.findUnique({ where: { id: session.actingTenantId } });
-            token.actingTenantId = tenant?.isActive ? tenant.id : null;
-          }
-        }
         return token;
       }
 
       // Only present on a fresh sign-in. Deliberately just reads whatever
-      // tenantId/role the user row already has — never recomputes it from
-      // the email's domain here. Domain-based auto-provisioning only ever
-      // happens once, in the createUser event below, for a brand-new row;
-      // after that, an admin's manual invite/reassignment is the source of
-      // truth and must not be silently overwritten on the next login.
+      // tenantId/role the user row already has — an admin's invite is the
+      // source of truth and must not be silently overwritten on login.
       if (user?.id) {
         const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
         if (dbUser) {
           token.id = dbUser.id;
           token.role = dbUser.role;
           token.tenantId = dbUser.tenantId;
-          token.actingTenantId = null;
           token.twoFactorEnabled = dbUser.twoFactorEnabled;
           token.twoFactorVerified = !dbUser.twoFactorEnabled;
         }
@@ -133,21 +88,21 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
     // as-is rather than duplicated here.
   },
   events: {
+    // In the intended flow this never fires: `signIn` above rejects any
+    // email without a pre-existing row, and PrismaAdapter only calls
+    // createUser for a genuinely brand-new one. Kept as a defensive
+    // fallback (e.g. a future auth change relaxing that gate) so a stray
+    // new row still lands in the one tenant instead of dangling with a
+    // null tenantId.
     async createUser({ user }) {
-      if (!user.email || !user.id) return;
-      const resolved = await resolveTenantAndRole(user.email);
-      if (resolved) {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            tenantId: resolved.tenantId,
-            role: resolved.role,
-          },
-        });
+      if (!user.id) return;
+      const tenant = await prisma.tenant.findFirst();
+      if (tenant) {
+        await prisma.user.update({ where: { id: user.id }, data: { tenantId: tenant.id } });
       }
       await prisma.auditLog.create({
         data: {
-          tenantId: resolved?.tenantId ?? null,
+          tenantId: tenant?.id ?? null,
           action: "user.created",
           entityType: "User",
           entityId: user.id,

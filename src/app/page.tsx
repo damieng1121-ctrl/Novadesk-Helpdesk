@@ -11,7 +11,7 @@ const features = [
   },
   {
     title: "Google SSO + 2FA",
-    body: "Staff sign in with their existing Google Workspace for Education account, secured by Google Identity Platform and an enforced second factor.",
+    body: "Users sign in with their existing Google account, secured by Google Identity Platform and an enforced second factor — access is invite-only, so no domain has to match.",
   },
   {
     title: "AI-assisted triage",
@@ -19,11 +19,11 @@ const features = [
   },
   {
     title: "DfE digital standards checklist",
-    body: "Track your school's readiness against the DfE's digital and technology standards — cyber security, filtering, connectivity, and more — in one place.",
+    body: "Track readiness against the DfE's digital and technology standards — cyber security, filtering, connectivity, and more — in one place.",
   },
   {
-    title: "Multi-tenant by design",
-    body: "Every school (or trust) is fully isolated: its own users, tickets, articles, and compliance record, on one shared platform.",
+    title: "One shared desk, organised by client",
+    body: "Your technicians work every ticket from one queue; tag each user with the school or organisation they belong to for filtering and reporting.",
   },
 ];
 
@@ -56,11 +56,12 @@ export default function Home() {
             Built for UK primary schools
           </p>
           <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
-            One IT helpdesk for every school in your trust
+            One IT helpdesk for every school you support
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600">
             Ticketing, a knowledge base, Google SSO with 2FA, AI-assisted triage, and a live DfE digital
-            standards compliance checklist — a fully multi-tenant portal purpose-built for primary schools.
+            standards compliance checklist — one shared helpdesk for your technicians, invite-only for
+            everyone else.
           </p>
           <div className="mt-8 flex justify-center gap-4">
             <Link
@@ -91,7 +92,7 @@ export default function Home() {
       </main>
 
       <footer className="border-t border-slate-200 py-8 text-center text-sm text-slate-700">
-        Novadesk Helpdesk — a multi-tenant helpdesk platform for UK primary schools.
+        Novadesk Helpdesk — one IT helpdesk for teams supporting multiple schools.
       </footer>
     </div>
   );

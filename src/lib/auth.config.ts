@@ -2,8 +2,13 @@ import type { NextAuthConfig } from "next-auth";
 
 /**
  * Edge-safe Auth.js config (no Prisma adapter — the adapter needs a Node.js
- * runtime). This is what middleware.ts uses to gate routes; the full config
+ * runtime). This is what proxy.ts uses to gate routes; the full config
  * with the Prisma adapter and provider secrets lives in src/lib/auth.ts.
+ *
+ * Note: as of Next.js 16, Proxy defaults to the Node.js runtime (it used to
+ * be Edge-only), so this split may no longer be strictly necessary — worth
+ * revisiting whether proxy.ts can just import the full auth.ts config
+ * directly. Left as-is for now to avoid an untested refactor.
  */
 export const authConfig = {
   pages: {
@@ -14,20 +19,14 @@ export const authConfig = {
   },
   callbacks: {
     // Pure token -> session.user field mapping, no DB access — safe to share
-    // between the edge (middleware, via this config) and the full Node
-    // config in auth.ts. Without this here, middleware's `auth` object
+    // between the edge (proxy, via this config) and the full Node
+    // config in auth.ts. Without this here, proxy's `auth` object
     // would only have next-auth's default session.user shape (no role,
     // tenantId, or 2FA flags), silently breaking every role/2FA check below.
     session({ session, token }) {
       session.user.id = token.id;
       session.user.role = token.role;
-      session.user.actingTenantId = token.actingTenantId ?? null;
-      // A real tenant membership always wins; otherwise, for a SUPER_ADMIN
-      // "managing" a school, tenantId resolves to that school so every
-      // existing tenant-scoped check (requireTenantSession, API routes,
-      // page queries) just works without threading actingTenantId through
-      // each of them individually.
-      session.user.tenantId = token.tenantId ?? (token.role === "SUPER_ADMIN" ? (token.actingTenantId ?? null) : null);
+      session.user.tenantId = token.tenantId;
       session.user.twoFactorEnabled = token.twoFactorEnabled;
       session.user.twoFactorVerified = token.twoFactorVerified;
       return session;

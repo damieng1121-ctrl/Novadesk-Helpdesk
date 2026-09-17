@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import { computeDueAt } from "../src/lib/sla";
 
 const prisma = new PrismaClient();
 
@@ -395,201 +394,40 @@ async function seedComplianceCatalogue() {
   console.log(`Seeded ${STANDARDS.length} DfE compliance standards.`);
 }
 
-async function seedDemoTenant() {
+/**
+ * One helpdesk, one founding admin — no demo companies, tickets, or KB
+ * articles. Everything else (technicians, users, companies, tickets) gets
+ * added through the real UI once the admin signs in, rather than faked
+ * here.
+ */
+async function seedSingleOrg() {
   const tenant = await prisma.tenant.upsert({
-    where: { slug: "willowbrook" },
+    where: { slug: "novadesk" },
     create: {
-      name: "Willowbrook Primary School",
-      slug: "willowbrook",
-      domain: "willowbrook-primary.sch.uk",
-      urn: "999999",
-      phase: "PRIMARY",
-      brandColor: "#2563eb",
+      name: "Novadesk Helpdesk",
+      slug: "novadesk",
+      brandColor: "#4f46e5",
     },
     update: {},
   });
 
   await prisma.user.upsert({
-    where: { email: "admin@willowbrook-primary.sch.uk" },
+    where: { email: "damieng1121@gmail.com" },
     create: {
-      email: "admin@willowbrook-primary.sch.uk",
-      name: "Priya Shah",
+      email: "damieng1121@gmail.com",
+      name: "Damien",
       role: "TENANT_ADMIN",
       tenantId: tenant.id,
-      jobTitle: "School Business Manager",
     },
     update: { tenantId: tenant.id },
   });
 
-  const agent = await prisma.user.upsert({
-    where: { email: "it-support@willowbrook-primary.sch.uk" },
-    create: {
-      email: "it-support@willowbrook-primary.sch.uk",
-      name: "Sam Okafor",
-      role: "AGENT",
-      tenantId: tenant.id,
-      jobTitle: "IT Technician",
-    },
-    update: { tenantId: tenant.id },
-  });
-
-  const teacher = await prisma.user.upsert({
-    where: { email: "j.taylor@willowbrook-primary.sch.uk" },
-    create: {
-      email: "j.taylor@willowbrook-primary.sch.uk",
-      name: "Jamie Taylor",
-      role: "REQUESTER",
-      tenantId: tenant.id,
-      jobTitle: "Year 3 Teacher",
-    },
-    update: { tenantId: tenant.id },
-  });
-
-  const categoryNames = ["Hardware", "Network", "MIS / Software", "Printing", "Account access", "Classroom AV"];
-  const categories = await Promise.all(
-    categoryNames.map((name) =>
-      prisma.category.upsert({
-        where: { tenantId_name: { tenantId: tenant.id, name } },
-        create: { tenantId: tenant.id, name },
-        update: {},
-      }),
-    ),
-  );
-
-  const existingTickets = await prisma.ticket.count({ where: { tenantId: tenant.id } });
-  if (existingTickets === 0) {
-    const ticket1 = await prisma.ticket.create({
-      data: {
-        tenantId: tenant.id,
-        number: 1,
-        subject: "Interactive whiteboard in Year 3 won't turn on",
-        description: "The Promethean board in Room 3B has no power. Checked the plug socket and it's fine.",
-        status: "IN_PROGRESS",
-        priority: "HIGH",
-        // Deliberately in the past so the demo data shows an overdue ticket.
-        dueAt: new Date(Date.now() - 60 * 60 * 1000),
-        categoryId: categories.find((c) => c.name === "Classroom AV")!.id,
-        requesterId: teacher.id,
-        assigneeId: agent.id,
-        aiSummary: "Whiteboard in Room 3B is completely unresponsive despite a working power socket; likely a hardware fault.",
-      },
-    });
-    await prisma.ticketComment.create({
-      data: {
-        ticketId: ticket1.id,
-        authorId: agent.id,
-        body: "Thanks Jamie — I'll pop over at lunchtime with a replacement power lead to rule that out first.",
-        isInternal: false,
-      },
-    });
-    await prisma.ticketComment.create({
-      data: {
-        ticketId: ticket1.id,
-        authorId: agent.id,
-        body: "Power lead wasn't it — looks like the board itself has failed. Raising a claim with the supplier's warranty.",
-        isInternal: true,
-      },
-    });
-
-    await prisma.ticket.create({
-      data: {
-        tenantId: tenant.id,
-        number: 2,
-        subject: "Can't log into SIMS this morning",
-        description: "Getting 'invalid credentials' on SIMS even though I haven't changed my password.",
-        status: "OPEN",
-        priority: "MEDIUM",
-        dueAt: computeDueAt("MEDIUM"),
-        categoryId: categories.find((c) => c.name === "Account access")!.id,
-        requesterId: teacher.id,
-      },
-    });
-
-    await prisma.ticket.create({
-      data: {
-        tenantId: tenant.id,
-        number: 3,
-        subject: "Staff room printer jamming constantly",
-        description: "The printer in the staff room jams on almost every print job today.",
-        status: "RESOLVED",
-        priority: "LOW",
-        categoryId: categories.find((c) => c.name === "Printing")!.id,
-        requesterId: teacher.id,
-        assigneeId: agent.id,
-        // Explicit createdAt (rather than relying on @default(now())) so
-        // resolvedAt is guaranteed to land after it — otherwise the two
-        // independently-evaluated "now" values can race by a millisecond
-        // and produce a negative resolution time on the reports/dashboard.
-        createdAt: new Date(Date.now() - 60 * 60 * 1000),
-        resolvedAt: new Date(),
-      },
-    });
-  }
-
-  const kbCategory = await prisma.kbCategory.upsert({
-    where: { tenantId_slug: { tenantId: tenant.id, slug: "getting-started" } },
-    create: { tenantId: tenant.id, name: "Getting started", slug: "getting-started" },
-    update: {},
-  });
-
-  await prisma.kbArticle.upsert({
-    where: { tenantId_slug: { tenantId: tenant.id, slug: "resetting-your-password" } },
-    create: {
-      tenantId: tenant.id,
-      categoryId: kbCategory.id,
-      title: "Resetting your password",
-      slug: "resetting-your-password",
-      status: "PUBLISHED",
-      authorId: agent.id,
-      content:
-        "# Resetting your password\n\nIf you've forgotten your password:\n\n1. Go to the sign-in page and click **Sign in with Google**.\n2. Use the 'Forgot password' link on the Google sign-in screen — Novadesk uses your school Google account, so there's no separate Novadesk password to remember.\n3. If you still can't get in, ask the IT team to check your Google Workspace account is active.\n\nIf two-factor authentication is asking for a code you don't have, use one of your recovery codes from Account > Security, or ask an admin to reset your 2FA.",
-    },
-    update: {},
-  });
-
-  await prisma.kbArticle.upsert({
-    where: { tenantId_slug: { tenantId: tenant.id, slug: "connecting-to-the-interactive-whiteboard" } },
-    create: {
-      tenantId: tenant.id,
-      categoryId: kbCategory.id,
-      title: "Connecting a laptop to the interactive whiteboard",
-      slug: "connecting-to-the-interactive-whiteboard",
-      status: "PUBLISHED",
-      authorId: agent.id,
-      content:
-        "# Connecting a laptop to the interactive whiteboard\n\n1. Connect the HDMI cable from the whiteboard to your laptop.\n2. Select the whiteboard's input source (usually HDMI 1) using the remote or front panel buttons.\n3. On Windows, press Windows + P and choose 'Duplicate' or 'Extend'.\n\nIf there's no picture, check the board is powered on and the correct input is selected before raising a ticket.",
-    },
-    update: {},
-  });
-
-  console.log(`Seeded demo tenant '${tenant.name}' (${tenant.slug}) with admin/agent/teacher users, tickets, and KB articles.`);
-}
-
-/**
- * A platform-wide super admin, not tied to any school. Only usable if its
- * email is also listed in NOVADESK_SUPER_ADMIN_EMAILS — that env var is
- * what actually grants the role on sign-in (see resolveTenantAndRole in
- * src/lib/auth.ts); this row just gives the "Dev login" button on /login
- * something to sign into locally, without needing real Google OAuth.
- */
-async function seedPlatformSuperAdmin() {
-  await prisma.user.upsert({
-    where: { email: "superadmin@novadesk.dev" },
-    create: {
-      email: "superadmin@novadesk.dev",
-      name: "Novadesk Platform Admin",
-      role: "SUPER_ADMIN",
-      tenantId: null,
-    },
-    update: {},
-  });
-  console.log("Seeded platform super admin (superadmin@novadesk.dev).");
+  console.log(`Seeded '${tenant.name}' with one founding admin (damieng1121@gmail.com).`);
 }
 
 async function main() {
   await seedComplianceCatalogue();
-  await seedDemoTenant();
-  await seedPlatformSuperAdmin();
+  await seedSingleOrg();
 }
 
 main()

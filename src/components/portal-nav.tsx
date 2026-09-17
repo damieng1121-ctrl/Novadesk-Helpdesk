@@ -20,31 +20,29 @@ import {
   Trash2,
   Users,
   Settings,
-  School,
   User as UserIcon,
   LogOut,
   type LucideIcon,
 } from "lucide-react";
 
-// Tickets/KB/compliance/admin are all tenant-scoped, so they only make sense
-// for staff who actually belong to a school — a platform SUPER_ADMIN (who
-// has no tenantId) sees "Schools" instead.
+// One shared helpdesk — every signed-in role sees the same nav, scoped by
+// what they're allowed to do (a plain User only sees Tickets/KB/Forums; an
+// Admin/Technician sees the rest).
 const links = [
   { href: "/portal", label: "Dashboard", icon: LayoutDashboard, roles: null },
-  { href: "/portal/tickets", label: "Tickets", icon: Ticket, roles: ["REQUESTER", "AGENT", "TENANT_ADMIN"] },
-  { href: "/portal/kb", label: "Knowledge base", icon: BookOpen, roles: ["REQUESTER", "AGENT", "TENANT_ADMIN"] },
-  { href: "/portal/forums", label: "Forums", icon: MessageSquare, roles: ["REQUESTER", "AGENT", "TENANT_ADMIN"] },
-  { href: "/portal/reports", label: "Reports", icon: BarChart3, roles: ["TENANT_ADMIN", "AGENT"] },
-  { href: "/portal/compliance", label: "DfE compliance", icon: ShieldCheck, roles: ["TENANT_ADMIN", "AGENT"] },
-  { href: "/portal/finance", label: "Finance", icon: CreditCard, roles: ["TENANT_ADMIN", "AGENT"] },
-  { href: "/portal/assets", label: "Assets", icon: Laptop, roles: ["TENANT_ADMIN", "AGENT"] },
-  { href: "/portal/agent-tools", label: "Agent tools", icon: Wrench, roles: ["TENANT_ADMIN", "AGENT"] },
-  { href: "/portal/admin/announcements", label: "Announcements", icon: Megaphone, roles: ["TENANT_ADMIN"] },
-  { href: "/portal/admin/canned-responses", label: "Canned responses", icon: MessageCircle, roles: ["TENANT_ADMIN"] },
-  { href: "/portal/admin/trash", label: "Trash", icon: Trash2, roles: ["TENANT_ADMIN"] },
-  { href: "/portal/admin/users", label: "Users", icon: Users, roles: ["TENANT_ADMIN"] },
-  { href: "/portal/admin/settings", label: "Settings", icon: Settings, roles: ["TENANT_ADMIN"] },
-  { href: "/portal/super-admin", label: "Schools", icon: School, roles: ["SUPER_ADMIN"] },
+  { href: "/portal/tickets", label: "Tickets", icon: Ticket, roles: ["REQUESTER", "AGENT", "TENANT_ADMIN", "SUPER_ADMIN"] },
+  { href: "/portal/kb", label: "Knowledge base", icon: BookOpen, roles: ["REQUESTER", "AGENT", "TENANT_ADMIN", "SUPER_ADMIN"] },
+  { href: "/portal/forums", label: "Forums", icon: MessageSquare, roles: ["REQUESTER", "AGENT", "TENANT_ADMIN", "SUPER_ADMIN"] },
+  { href: "/portal/reports", label: "Reports", icon: BarChart3, roles: ["TENANT_ADMIN", "AGENT", "SUPER_ADMIN"] },
+  { href: "/portal/compliance", label: "DfE compliance", icon: ShieldCheck, roles: ["TENANT_ADMIN", "AGENT", "SUPER_ADMIN"] },
+  { href: "/portal/finance", label: "Finance", icon: CreditCard, roles: ["TENANT_ADMIN", "AGENT", "SUPER_ADMIN"] },
+  { href: "/portal/assets", label: "Assets", icon: Laptop, roles: ["TENANT_ADMIN", "AGENT", "SUPER_ADMIN"] },
+  { href: "/portal/agent-tools", label: "Agent tools", icon: Wrench, roles: ["TENANT_ADMIN", "AGENT", "SUPER_ADMIN"] },
+  { href: "/portal/admin/announcements", label: "Announcements", icon: Megaphone, roles: ["TENANT_ADMIN", "SUPER_ADMIN"] },
+  { href: "/portal/admin/canned-responses", label: "Canned responses", icon: MessageCircle, roles: ["TENANT_ADMIN", "SUPER_ADMIN"] },
+  { href: "/portal/admin/trash", label: "Trash", icon: Trash2, roles: ["TENANT_ADMIN", "SUPER_ADMIN"] },
+  { href: "/portal/admin/users", label: "Users & Companies", icon: Users, roles: ["TENANT_ADMIN", "SUPER_ADMIN"] },
+  { href: "/portal/admin/settings", label: "Settings", icon: Settings, roles: ["TENANT_ADMIN", "SUPER_ADMIN"] },
 ] as const satisfies { href: string; label: string; icon: LucideIcon; roles: readonly string[] | null }[];
 
 /** Modules a school can hide entirely if they don't use them — see /portal/admin/settings. Core nav (dashboard/tickets/KB/settings/users/trash) always shows. */

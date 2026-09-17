@@ -19,6 +19,8 @@ export async function GET() {
         isActive: true,
         twoFactorEnabled: true,
         createdAt: true,
+        companyId: true,
+        company: { select: { id: true, name: true } },
         _count: { select: { accounts: true } },
       },
     });
@@ -29,38 +31,45 @@ const inviteSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(200),
   name: z.string().trim().max(150).optional(),
   role: z.enum(["REQUESTER", "AGENT", "TENANT_ADMIN"]),
+  companyId: z.string().nullable().optional(),
 });
 
 /**
- * Pre-provisions a user row for this tenant so the invited person lands in
- * the right school/role the moment they first sign in with Google — see
- * signIn/jwt in src/lib/auth.ts, which honour an existing tenantId instead
- * of re-deriving it from the email's domain.
+ * Pre-provisions a user row so the invited person lands with the right
+ * role (and Company, if given) the moment they first sign in with Google —
+ * see signIn/jwt in src/lib/auth.ts, which only ever allow sign-in for an
+ * email that already has a row here. There's no domain-based
+ * auto-provisioning any more: this invite is the only way in.
  */
 export async function POST(req: Request) {
   return withApiErrors(async () => {
     const session = await requireTenantSession();
     if (!isAdmin(session.user.role)) throw new AuthError("Only admins can invite users", 403);
     const body = inviteSchema.parse(await req.json());
-    const email = body.email.toLowerCase();
+    const email = body.email;
+
+    if (body.companyId) {
+      const company = await prisma.company.findUnique({ where: { id: body.companyId } });
+      if (!company || company.tenantId !== session.user.tenantId) throw new AuthError("Company not found", 404);
+    }
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      // Never let a tenant admin retarget the platform super admin, or
-      // pull a user out of another school without that school's consent.
       if (existing.role === "SUPER_ADMIN") throw new AuthError("This email is reserved", 409);
-      if (existing.tenantId && existing.tenantId !== session.user.tenantId) {
-        throw new AuthError("This email is already assigned to another school", 409);
-      }
       const user = await prisma.user.update({
         where: { id: existing.id },
-        data: { tenantId: session.user.tenantId, role: body.role, name: body.name ?? existing.name },
+        data: {
+          tenantId: session.user.tenantId,
+          role: body.role,
+          name: body.name ?? existing.name,
+          companyId: body.companyId ?? existing.companyId,
+        },
       });
       return user;
     }
 
     const user = await prisma.user.create({
-      data: { email, name: body.name, role: body.role, tenantId: session.user.tenantId },
+      data: { email, name: body.name, role: body.role, tenantId: session.user.tenantId, companyId: body.companyId },
     });
 
     await prisma.auditLog.create({

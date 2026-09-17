@@ -9,6 +9,7 @@ type Params = { params: Promise<{ id: string }> };
 const bodySchema = z.object({
   role: z.enum(["REQUESTER", "AGENT", "TENANT_ADMIN"]).optional(),
   isActive: z.boolean().optional(),
+  companyId: z.string().nullable().optional(),
 });
 
 export async function PATCH(req: Request, { params }: Params) {
@@ -22,6 +23,10 @@ export async function PATCH(req: Request, { params }: Params) {
     if (target.id === session.user.id) throw new AuthError("You can't change your own role here", 400);
 
     const body = bodySchema.parse(await req.json());
+    if (body.companyId) {
+      const company = await prisma.company.findUnique({ where: { id: body.companyId } });
+      if (!company || company.tenantId !== session.user.tenantId) throw new AuthError("Company not found", 404);
+    }
     const user = await prisma.user.update({ where: { id }, data: body });
 
     await prisma.auditLog.create({

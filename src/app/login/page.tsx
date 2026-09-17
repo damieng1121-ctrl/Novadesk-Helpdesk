@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -11,7 +12,7 @@ function LoginError() {
   return (
     <p className="mt-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
       {error === "AccessDenied"
-        ? "Your Google account's domain isn't registered to a Novadesk school yet. Ask your school's IT admin to set this up, or contact us."
+        ? "This Google account hasn't been invited yet. Ask your helpdesk admin to add you under Users & Companies."
         : "Something went wrong signing you in. Please try again."}
     </p>
   );
@@ -22,14 +23,10 @@ function LoginError() {
 // purely a UI convenience, not the actual security boundary.
 const DEV_LOGIN_ENABLED = process.env.NODE_ENV !== "production";
 
-const DEV_ACCOUNTS = [
-  { email: "superadmin@novadesk.dev", label: "Novadesk Platform — Super Admin" },
-  { email: "admin@willowbrook-primary.sch.uk", label: "Priya Shah — Tenant Admin" },
-  { email: "it-support@willowbrook-primary.sch.uk", label: "Sam Okafor — Agent" },
-  { email: "j.taylor@willowbrook-primary.sch.uk", label: "Jamie Taylor — Requester" },
-];
+const DEV_ACCOUNTS = [{ email: "admin@novadesk.dev", label: "Founding Admin" }];
 
 function DevLogin() {
+  const [otherEmail, setOtherEmail] = useState("");
   if (!DEV_LOGIN_ENABLED) return null;
   return (
     <div className="mt-6 border-t border-slate-200 pt-6 text-left">
@@ -37,8 +34,8 @@ function DevLogin() {
         Dev login (local only — no Google OAuth needed)
       </p>
       <p className="mt-1 text-xs text-slate-700">
-        Requires the seed script to have run. Admin/Agent will still be prompted to set up 2FA —
-        that part of the real flow isn&apos;t skipped.
+        Signs into an existing invited row by email, no password. Admins/Technicians will still be
+        prompted to set up 2FA — that part of the real flow isn&apos;t skipped.
       </p>
       <div className="mt-3 space-y-2">
         {DEV_ACCOUNTS.map((a) => (
@@ -52,6 +49,24 @@ function DevLogin() {
           </button>
         ))}
       </div>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (otherEmail.trim()) signIn("dev-login", { email: otherEmail.trim(), callbackUrl: "/portal" });
+        }}
+        className="mt-3 flex gap-2"
+      >
+        <input
+          type="email"
+          value={otherEmail}
+          onChange={(e) => setOtherEmail(e.target.value)}
+          placeholder="Or sign in as another invited email…"
+          className="flex-1 rounded-md border border-slate-300 px-2.5 py-1.5 text-xs"
+        />
+        <button type="submit" className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">
+          Go
+        </button>
+      </form>
     </div>
   );
 }
@@ -65,8 +80,8 @@ export default function LoginPage() {
         </div>
         <h1 className="text-xl font-semibold text-slate-900">Sign in to Novadesk</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Use your school&apos;s Google Workspace account. Admins and agents will also be asked for a
-          second factor.
+          This helpdesk is invite-only. Sign in with the Google account your admin invited — admins
+          and technicians will also be asked for a second factor.
         </p>
         <button
           onClick={() => signIn("google", { callbackUrl: "/portal" })}
