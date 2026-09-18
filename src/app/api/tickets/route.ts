@@ -19,10 +19,20 @@ export async function GET(req: Request) {
     const search = searchParams.get("q");
 
     const where: Prisma.TicketWhereInput = { tenantId: session.user.tenantId, isDeleted: false };
+    // Collected as AND-ed sub-clauses rather than reusing `where.OR` directly,
+    // since both the requester/company scope below and the search clause
+    // need their own OR — assigning to `where.OR` twice would silently drop
+    // the first one.
+    const conditions: Prisma.TicketWhereInput[] = [];
 
-    // Requesters only ever see their own tickets, regardless of query params.
+    // Requesters see their own tickets plus any raised by a colleague in the
+    // same Company (e.g. other staff at their school) — never anyone else's.
     if (!canManageTickets(session.user.role)) {
-      where.requesterId = session.user.id;
+      conditions.push(
+        session.user.companyId
+          ? { OR: [{ requesterId: session.user.id }, { requester: { companyId: session.user.companyId } }] }
+          : { requesterId: session.user.id },
+      );
     } else {
       if (assignee === "me") where.assigneeId = session.user.id;
       if (assignee === "unassigned") where.assigneeId = null;
@@ -31,11 +41,14 @@ export async function GET(req: Request) {
     if (status) where.status = status as Prisma.EnumTicketStatusFilter["equals"];
     if (categoryId) where.categoryId = categoryId;
     if (search) {
-      where.OR = [
-        { subject: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-      ];
+      conditions.push({
+        OR: [
+          { subject: { contains: search, mode: "insensitive" } },
+          { description: { contains: search, mode: "insensitive" } },
+        ],
+      });
     }
+    if (conditions.length) where.AND = conditions;
 
     const tickets = await prisma.ticket.findMany({
       where,

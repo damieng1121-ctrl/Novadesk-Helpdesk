@@ -8,12 +8,18 @@ import { notifyTicketResolved } from "@/lib/notifications/events";
 
 type Params = { params: Promise<{ id: string }> };
 
-async function loadTicketForSession(id: string, tenantId: string, userId: string, staff: boolean) {
+async function loadTicketForSession(
+  id: string,
+  tenantId: string,
+  userId: string,
+  staff: boolean,
+  companyId: string | null,
+) {
   const ticket = await prisma.ticket.findUnique({
     where: { id },
     include: {
       category: true,
-      requester: { select: { id: true, name: true, email: true } },
+      requester: { select: { id: true, name: true, email: true, companyId: true } },
       assignee: { select: { id: true, name: true, email: true } },
       comments: {
         orderBy: { createdAt: "asc" },
@@ -24,7 +30,10 @@ async function loadTicketForSession(id: string, tenantId: string, userId: string
     },
   });
   if (!ticket || ticket.tenantId !== tenantId || ticket.isDeleted) return null;
-  if (!staff && ticket.requesterId !== userId) return null;
+  // A requester may view their own ticket or one raised by a colleague in
+  // their own Company (e.g. another staff member at their school).
+  const sameCompany = companyId && ticket.requester.companyId === companyId;
+  if (!staff && ticket.requesterId !== userId && !sameCompany) return null;
   if (!staff) {
     const internalCommentIds = new Set(ticket.comments.filter((c) => c.isInternal).map((c) => c.id));
     ticket.comments = ticket.comments.filter((c) => !c.isInternal);
@@ -39,7 +48,7 @@ export async function GET(_req: Request, { params }: Params) {
     const session = await requireTenantSession();
     const { id } = await params;
     const staff = canManageTickets(session.user.role);
-    const ticket = await loadTicketForSession(id, session.user.tenantId, session.user.id, staff);
+    const ticket = await loadTicketForSession(id, session.user.tenantId, session.user.id, staff, session.user.companyId);
     if (!ticket) throw new AuthError("Ticket not found", 404);
     return ticket;
   });

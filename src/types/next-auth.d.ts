@@ -7,6 +7,7 @@ declare module "next-auth" {
       id: string;
       role: Role;
       tenantId: string | null;
+      companyId: string | null;
       twoFactorEnabled: boolean;
       twoFactorVerified: boolean;
     } & DefaultSession["user"];
@@ -21,6 +22,7 @@ declare module "@auth/core/jwt" {
     id: string;
     role: Role;
     tenantId: string | null;
+    companyId: string | null;
     twoFactorEnabled: boolean;
     twoFactorVerified: boolean;
   }

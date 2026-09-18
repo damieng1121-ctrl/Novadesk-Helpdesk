@@ -27,6 +27,7 @@ export const authConfig = {
       session.user.id = token.id;
       session.user.role = token.role;
       session.user.tenantId = token.tenantId;
+      session.user.companyId = token.companyId;
       session.user.twoFactorEnabled = token.twoFactorEnabled;
       session.user.twoFactorVerified = token.twoFactorVerified;
       return session;

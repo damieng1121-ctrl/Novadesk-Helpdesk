@@ -76,6 +76,7 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
           token.id = dbUser.id;
           token.role = dbUser.role;
           token.tenantId = dbUser.tenantId;
+          token.companyId = dbUser.companyId;
           token.twoFactorEnabled = dbUser.twoFactorEnabled;
           token.twoFactorVerified = !dbUser.twoFactorEnabled;
         }
