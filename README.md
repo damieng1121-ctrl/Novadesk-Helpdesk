@@ -71,26 +71,35 @@ Without real Google OAuth credentials, `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`
 blank for now — use the dev login described below to sign in and explore the UI, then
 come back and fill those in when you're ready to test real SSO.
 
-## Multi-tenancy model
+## Single-tenant model, with Companies and Brands
 
-Every school is a `Tenant` row. All tenant-owned data (`Ticket`, `KbArticle`,
-`ComplianceAssessment`, etc.) carries a `tenantId` foreign key. **Isolation is enforced
-in application code, not the database**: every API route resolves `tenantId` from the
-authenticated session (`src/lib/session.ts`) — never from a client-supplied value — so a
-crafted request can't read another school's data. See `src/lib/tenancy.ts` for the
-rationale and the (cosmetic, non-security) subdomain-routing helper.
+This is **one shared helpdesk**, not multi-tenant SaaS — exactly one `Tenant` row
+exists (it just holds this helpdesk's own branding/settings), and every user and
+ticket belongs to it. `tenantId` columns are retained on every model but are purely
+historical at this point; they're not a data-isolation boundary.
+
+Two lightweight, non-isolating groupings sit on top of that single tenant:
+
+- **Company** — which client organisation (e.g. a school) a `User` belongs to. A
+  `REQUESTER` sees tickets raised by themselves or anyone else in their Company.
+  Purely organisational — every Company shares the same tenant, same database, same
+  admins.
+- **Brand** — for running more than one business through this one helpdesk (e.g. two
+  differently-branded support desks). A `Technician` (`AGENT`) assigned to one or more
+  Brands only sees that Brand's tickets in their queue; `TENANT_ADMIN`/`SUPER_ADMIN`
+  always see everything regardless of Brand. A helpdesk with zero or one Brand
+  configured (the common case) behaves exactly as if Brands didn't exist.
 
 ## Authentication & 2FA
 
-- Sign-in is Google-only, matched against each `Tenant.domain` (a school's Google
-  Workspace domain, e.g. `willowbrook-primary.sch.uk`). The first person from a
-  registered domain to sign in is auto-provisioned as a `REQUESTER`; a `TENANT_ADMIN`
-  promotes staff to `AGENT`/`TENANT_ADMIN` from **Users**.
-- A platform-level `SUPER_ADMIN` allowlist is controlled by the
-  `NOVADESK_SUPER_ADMIN_EMAILS` env var (comma-separated), for Novadesk staff, not tied
-  to any school domain. A super admin gets a **Schools** page (`/portal/super-admin`) to
-  onboard new schools (name, slug, Workspace domain, phase) and suspend existing ones —
-  no more direct DB/seed-script access needed for this.
+- Sign-in is Google-only and **invite-only**: `src/lib/auth.ts`'s `signIn` callback only
+  allows sign-in for an email an admin has already added under **Users & Companies**
+  (`/portal/admin/users`) with `portalAccessGranted` true. There's no domain-based
+  auto-provisioning — which Google Workspace domain an email belongs to is not a trust
+  signal here.
+- The inbound email-to-ticket webhook (`/api/inbound-email`, see below) can create a
+  `User` row for a sender nobody has invited, but with `portalAccessGranted: false` —
+  they get a ticket, never portal login, until an admin actually invites that email.
 - 2FA (TOTP) is **mandatory for staff** (`AGENT`, `TENANT_ADMIN`, `SUPER_ADMIN`) and
   optional for `REQUESTER`s. A staff account without 2FA enabled is redirected to
   **Account → Security** on every route except that page itself until they enrol —
@@ -161,7 +170,6 @@ prisma/seed.ts             DfE compliance catalogue + demo school data
 src/lib/auth.ts            Auth.js config (Google provider, Prisma adapter, tenant resolution)
 src/lib/auth.config.ts     Edge-safe auth config used by proxy
 src/lib/session.ts         Server-side session/tenant/role guards for API routes
-src/lib/tenancy.ts         Tenant resolution helpers
 src/lib/twofactor.ts       TOTP generation/verification
 src/lib/crypto.ts          AES-256-GCM encryption for secrets at rest
 src/lib/ai/                Pluggable AI provider abstraction (Claude / Gemini)
@@ -183,9 +191,9 @@ by `docker-entrypoint.sh`) is written to run as-is on:
 - **Secret Manager** for `AUTH_SECRET`, `APP_ENCRYPTION_KEY`, the OAuth client secret,
   and AI API keys, mounted as env vars into Cloud Run
 - **Google Identity Platform** for SSO, as described above
-- A wildcard DNS record / Cloud Run domain mapping if you want true per-school
-  subdomains (`{slug}.yourdomain.com`) — `src/lib/tenancy.ts` already resolves the
-  subdomain, but tenancy is enforced by session, not subdomain, so this is optional.
+- A Cloud Run domain mapping if you want a real subdomain (e.g.
+  `helpdesk.yourdomain.com`) instead of the default `*.run.app` URL — optional, the
+  auto-generated URL works fine for a demo.
 
 Not yet wired in: an actual `cloudbuild.yaml`/CI pipeline that builds and deploys the
 image automatically on push — today deploying is a manual `gcloud run deploy` (or
