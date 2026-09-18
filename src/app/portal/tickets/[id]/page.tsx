@@ -84,6 +84,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
   const [replyFile, setReplyFile] = useState<File | null>(null);
   const [posting, setPosting] = useState(false);
   const [cannedResponses, setCannedResponses] = useState<{ id: string; title: string; content: string }[]>([]);
+  const [staffList, setStaffList] = useState<Person[]>([]);
 
   async function load() {
     const res = await fetch(`/api/tickets/${id}`);
@@ -101,6 +102,9 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
     fetch("/api/canned-responses")
       .then((r) => (r.ok ? r.json() : []))
       .then(setCannedResponses);
+    fetch("/api/staff")
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setStaffList);
   }, [staff]);
 
   function insertCannedResponse(responseId: string) {
@@ -348,15 +352,24 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
             </div>
           )}
 
-          <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
-            <p>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm">
+            <p className="text-slate-600">
               <span className="font-medium text-slate-900">Requester:</span>{" "}
               {ticket.requester.name ?? ticket.requester.email}
             </p>
-            <p className="mt-1">
-              <span className="font-medium text-slate-900">Assignee:</span>{" "}
-              {ticket.assignee?.name ?? "Unassigned"}
-            </p>
+            <p className="mt-3 font-medium text-slate-900">Assignee</p>
+            <select
+              value={ticket.assignee?.id ?? ""}
+              onChange={(e) => updateTicket({ assigneeId: e.target.value || null })}
+              className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            >
+              <option value="">Unassigned</option>
+              {staffList.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name ?? s.email}
+                </option>
+              ))}
+            </select>
           </div>
 
           {isAdmin && (
