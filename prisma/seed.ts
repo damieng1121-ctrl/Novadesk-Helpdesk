@@ -395,10 +395,14 @@ async function seedComplianceCatalogue() {
 }
 
 /**
- * One helpdesk, one founding admin — no demo companies, tickets, or KB
+ * One helpdesk, two admin accounts — no demo companies, tickets, or KB
  * articles. Everything else (technicians, users, companies, tickets) gets
- * added through the real UI once the admin signs in, rather than faked
- * here.
+ * added through the real UI once an admin signs in, rather than faked here.
+ *
+ * - damieng1121@gmail.com: the real founding admin, for real Google sign-in
+ *   once OAuth credentials are configured.
+ * - superadmin@novadesk.dev: a dedicated internal test/dev-login account,
+ *   kept separate from the real admin's personal email.
  */
 async function seedSingleOrg() {
   const tenant = await prisma.tenant.upsert({
@@ -422,7 +426,18 @@ async function seedSingleOrg() {
     update: { tenantId: tenant.id },
   });
 
-  console.log(`Seeded '${tenant.name}' with one founding admin (damieng1121@gmail.com).`);
+  await prisma.user.upsert({
+    where: { email: "superadmin@novadesk.dev" },
+    create: {
+      email: "superadmin@novadesk.dev",
+      name: "Internal Test Admin",
+      role: "TENANT_ADMIN",
+      tenantId: tenant.id,
+    },
+    update: { tenantId: tenant.id },
+  });
+
+  console.log(`Seeded '${tenant.name}' with admin accounts (damieng1121@gmail.com, superadmin@novadesk.dev).`);
 }
 
 async function main() {

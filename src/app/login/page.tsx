@@ -23,7 +23,10 @@ function LoginError() {
 // purely a UI convenience, not the actual security boundary.
 const DEV_LOGIN_ENABLED = process.env.NODE_ENV !== "production";
 
-const DEV_ACCOUNTS = [{ email: "damieng1121@gmail.com", label: "Founding Admin" }];
+const DEV_ACCOUNTS = [
+  { email: "superadmin@novadesk.dev", label: "Internal Test Admin" },
+  { email: "damieng1121@gmail.com", label: "Founding Admin (real account)" },
+];
 
 function DevLogin() {
   const [otherEmail, setOtherEmail] = useState("");
