@@ -2,10 +2,16 @@
 
 import { useEffect, useState } from "react";
 
+type Ranked = { label: string; count: number };
+type AgentRow = { name: string; open: number; resolved: number; avgResolutionHours: number | null };
+
 type Summary = {
   totalTickets: number;
   byStatus: { status: string; count: number }[];
   byPriority: { priority: string; count: number }[];
+  byCategory: Ranked[];
+  byCompany: Ranked[];
+  agentLeaderboard: AgentRow[];
   openOverdue: number;
   avgResolutionHours: number | null;
   resolvedSampleSize: number;
@@ -13,24 +19,61 @@ type Summary = {
 
 const STATUS_ORDER = ["OPEN", "IN_PROGRESS", "ON_HOLD", "RESOLVED", "CLOSED"];
 const PRIORITY_ORDER = ["CRITICAL", "HIGH", "MEDIUM", "LOW"];
+const RANGE_OPTIONS = [
+  { label: "Last 7 days", days: 7 },
+  { label: "Last 30 days", days: 30 },
+  { label: "Last 90 days", days: 90 },
+  { label: "Last 12 months", days: 365 },
+  { label: "All time", days: 0 },
+];
 
 export default function ReportsPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [days, setDays] = useState(0);
 
   useEffect(() => {
-    fetch("/api/reports/summary")
+    let cancelled = false;
+    fetch(`/api/reports/summary?days=${days}`)
       .then((r) => r.json())
-      .then(setSummary);
-  }, []);
+      .then((data) => {
+        if (!cancelled) setSummary(data);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [days]);
 
   if (!summary) return <p className="text-sm text-slate-700">Loading…</p>;
 
   const maxStatusCount = Math.max(1, ...summary.byStatus.map((s) => s.count));
   const maxPriorityCount = Math.max(1, ...summary.byPriority.map((p) => p.count));
+  const maxCategoryCount = Math.max(1, ...summary.byCategory.map((c) => c.count));
+  const maxCompanyCount = Math.max(1, ...summary.byCompany.map((c) => c.count));
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-slate-900">Reports</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold text-slate-900">Reports</h1>
+        <div className="flex items-center gap-2">
+          <select
+            value={days}
+            onChange={(e) => setDays(Number(e.target.value))}
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+          >
+            {RANGE_OPTIONS.map((o) => (
+              <option key={o.days} value={o.days}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <a
+            href={`/api/reports/export?days=${days}`}
+            className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Export CSV
+          </a>
+        </div>
+      </div>
 
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat label="Total tickets" value={summary.totalTickets} />
@@ -43,47 +86,75 @@ export default function ReportsPage() {
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <h2 className="font-semibold text-slate-900">By status</h2>
-          <div className="mt-4 space-y-2">
-            {STATUS_ORDER.map((status) => {
-              const count = summary.byStatus.find((s) => s.status === status)?.count ?? 0;
-              return (
-                <div key={status} className="flex items-center gap-3 text-sm">
-                  <span className="w-28 shrink-0 text-slate-600">{status.replace("_", " ")}</span>
-                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className="h-full rounded-full bg-indigo-500"
-                      style={{ width: `${(count / maxStatusCount) * 100}%` }}
-                    />
-                  </div>
-                  <span className="w-8 shrink-0 text-right text-slate-700">{count}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <RankedList title="By status" rows={summary.byStatus.map((s) => ({ label: s.status.replace("_", " "), count: s.count }))} order={STATUS_ORDER.map((s) => s.replace("_", " "))} max={maxStatusCount} colorClass="bg-indigo-500" />
+        <RankedList title="By priority" rows={summary.byPriority.map((p) => ({ label: p.priority, count: p.count }))} order={PRIORITY_ORDER} max={maxPriorityCount} colorClass="bg-orange-500" />
+        <RankedList title="By category" rows={summary.byCategory} max={maxCategoryCount} colorClass="bg-teal-500" />
+        <RankedList title="By company" rows={summary.byCompany} max={maxCompanyCount} colorClass="bg-purple-500" />
+      </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <h2 className="font-semibold text-slate-900">By priority</h2>
-          <div className="mt-4 space-y-2">
-            {PRIORITY_ORDER.map((priority) => {
-              const count = summary.byPriority.find((p) => p.priority === priority)?.count ?? 0;
-              return (
-                <div key={priority} className="flex items-center gap-3 text-sm">
-                  <span className="w-28 shrink-0 text-slate-600">{priority}</span>
-                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className="h-full rounded-full bg-orange-500"
-                      style={{ width: `${(count / maxPriorityCount) * 100}%` }}
-                    />
-                  </div>
-                  <span className="w-8 shrink-0 text-right text-slate-700">{count}</span>
-                </div>
-              );
-            })}
+      <div className="mt-8 rounded-xl border border-slate-200 bg-white p-5">
+        <h2 className="font-semibold text-slate-900">Agent leaderboard</h2>
+        {summary.agentLeaderboard.length === 0 ? (
+          <p className="mt-4 text-sm text-slate-600">No tickets have been assigned yet.</p>
+        ) : (
+          <table className="mt-4 w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-600">
+                <th className="py-2 font-medium">Technician</th>
+                <th className="py-2 font-medium">Currently open</th>
+                <th className="py-2 font-medium">Resolved</th>
+                <th className="py-2 font-medium">Avg. resolution time</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {summary.agentLeaderboard.map((a) => (
+                <tr key={a.name}>
+                  <td className="py-2.5 font-medium text-slate-900">{a.name}</td>
+                  <td className="py-2.5 text-slate-700">{a.open}</td>
+                  <td className="py-2.5 text-slate-700">{a.resolved}</td>
+                  <td className="py-2.5 text-slate-700">
+                    {a.avgResolutionHours !== null ? `${a.avgResolutionHours.toFixed(1)}h` : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RankedList({
+  title,
+  rows,
+  order,
+  max,
+  colorClass,
+}: {
+  title: string;
+  rows: { label: string; count: number }[];
+  order?: string[];
+  max: number;
+  colorClass: string;
+}) {
+  const ordered = order ? order.map((label) => rows.find((r) => r.label === label) ?? { label, count: 0 }) : rows;
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-5">
+      <h2 className="font-semibold text-slate-900">{title}</h2>
+      <div className="mt-4 space-y-2">
+        {ordered.length === 0 && <p className="text-sm text-slate-600">No data yet.</p>}
+        {ordered.map((row) => (
+          <div key={row.label} className="flex items-center gap-3 text-sm">
+            <span className="w-28 shrink-0 truncate text-slate-600" title={row.label}>
+              {row.label}
+            </span>
+            <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+              <div className={`h-full rounded-full ${colorClass}`} style={{ width: `${(row.count / max) * 100}%` }} />
+            </div>
+            <span className="w-8 shrink-0 text-right text-slate-700">{row.count}</span>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   );
