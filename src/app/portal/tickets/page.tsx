@@ -15,9 +15,12 @@ type Ticket = {
   createdAt: string;
   dueAt: string | null;
   category: { name: string } | null;
+  brand: { id: string; name: string } | null;
   requester: { name: string | null; email: string | null };
   assignee: { name: string | null; email: string | null } | null;
 };
+
+type Brand = { id: string; name: string };
 
 export default function TicketsPage() {
   return (
@@ -32,15 +35,24 @@ function TicketsList() {
   const assignee = searchParams.get("assignee");
   const [tickets, setTickets] = useState<Ticket[] | null>(null);
   const [status, setStatus] = useState("");
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [brandId, setBrandId] = useState("");
+
+  useEffect(() => {
+    fetch("/api/brands")
+      .then((r) => r.json())
+      .then(setBrands);
+  }, []);
 
   useEffect(() => {
     const qs = new URLSearchParams();
     if (assignee) qs.set("assignee", assignee);
     if (status) qs.set("status", status);
+    if (brandId) qs.set("brandId", brandId);
     fetch(`/api/tickets?${qs.toString()}`)
       .then((r) => r.json())
       .then(setTickets);
-  }, [assignee, status]);
+  }, [assignee, status, brandId]);
 
   return (
     <div>
@@ -54,7 +66,7 @@ function TicketsList() {
         </Link>
       </div>
 
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         {["", "OPEN", "IN_PROGRESS", "ON_HOLD", "RESOLVED", "CLOSED"].map((s) => (
           <button
             key={s}
@@ -66,6 +78,20 @@ function TicketsList() {
             {s ? s.replace("_", " ") : "All"}
           </button>
         ))}
+        {brands.length > 1 && (
+          <select
+            value={brandId}
+            onChange={(e) => setBrandId(e.target.value)}
+            className="rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-600"
+          >
+            <option value="">All brands</option>
+            {brands.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -81,6 +107,7 @@ function TicketsList() {
                   </Link>
                   <p className="mt-0.5 text-xs text-slate-700">
                     {t.category?.name ?? "Uncategorised"} · {t.requester.name ?? t.requester.email}
+                    {t.brand && <> · {t.brand.name}</>}
                   </p>
                 </td>
                 <td className="p-4">

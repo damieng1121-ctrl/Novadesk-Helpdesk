@@ -51,6 +51,7 @@ model Tenant {
 
   users                 User[]
   companies             Company[]
+  brands                Brand[]
   categories            Category[]
   tickets               Ticket[]
   kbCategories          KbCategory[]
@@ -100,6 +101,31 @@ model Company {
   @@unique([tenantId, name])
 }
 
+/// A distinct trading name/business this one helpdesk answers tickets for
+/// (e.g. "Education Lincs" and "Schools Online"). Unlike Company, this DOES
+/// restrict what a Technician sees by default: an AGENT assigned to one or
+/// more Brands only sees that Brand's tickets in their queue, so two
+/// businesses can share one Novadesk install without technicians treading
+/// on each other's work. Admins are never restricted — they see every
+/// Brand's tickets regardless of their own Brand assignments. A Technician
+/// with no Brand assignments at all also sees everything, so a
+/// single-brand helpdesk (the common case) needs no configuration.
+model Brand {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name         String
+  /// The inbound support address for this brand (e.g. helpdesk@education-lincs.com) — used to route inbound email-to-ticket to the right brand.
+  supportEmail String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tickets     Ticket[]
+  technicians User[]   @relation("BrandTechnicians")
+
+  @@unique([tenantId, name])
+}
+
 enum Role {
   SUPER_ADMIN // Novadesk platform staff, cross-tenant
   TENANT_ADMIN // School IT lead / SBM
@@ -137,6 +163,17 @@ model User {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  /// False for a User row auto-created from an inbound support email whose
+  /// sender wasn't already invited — they get a ticket, not portal access.
+  /// An admin invite (POST /api/admin/users) always sets this true, since
+  /// that's an explicit decision to let someone in. signIn() in auth.ts
+  /// checks this in addition to the row simply existing.
+  portalAccessGranted Boolean @default(true)
+
+  /// Which Brand(s) this Technician's ticket queue is scoped to (see
+  /// Brand's doc comment). Irrelevant for other roles.
+  technicianBrands Brand[] @relation("BrandTechnicians")
 
   assignedTickets               Ticket[]               @relation("AssignedTickets")
   requestedTickets              Ticket[]               @relation("RequestedTickets")
@@ -242,6 +279,11 @@ model Ticket {
 
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id])
+
+  /// Which business this ticket is for — see Brand's doc comment. Null for
+  /// a helpdesk that hasn't set up Brands at all (the common single-brand case).
+  brandId String?
+  brand   Brand?  @relation(fields: [brandId], references: [id])
 
   requesterId String
   requester   User   @relation("RequestedTickets", fields: [requesterId], references: [id])

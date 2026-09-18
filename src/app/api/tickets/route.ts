@@ -3,11 +3,8 @@ import type { Prisma } from "@prisma/client";
 import { requireTenantSession } from "@/lib/session";
 import { withApiErrors } from "@/lib/api";
 import { prisma } from "@/lib/db";
-import { canManageTickets } from "@/lib/roles";
-import { getAiProviderForTenant } from "@/lib/ai";
-import { computeDueAt } from "@/lib/sla";
-import { notifyTicketCreated } from "@/lib/notifications/events";
-import { isOutsideBusinessHours } from "@/lib/out-of-hours";
+import { canManageTickets, isAdmin } from "@/lib/roles";
+import { createTicket } from "@/lib/tickets";
 
 export async function GET(req: Request) {
   return withApiErrors(async () => {
@@ -36,10 +33,26 @@ export async function GET(req: Request) {
     } else {
       if (assignee === "me") where.assigneeId = session.user.id;
       if (assignee === "unassigned") where.assigneeId = null;
+
+      // A Technician (never an Admin) assigned to one or more Brands only
+      // sees that Brand's tickets, plus any ticket with no Brand at all —
+      // this is a queue-organisation default, not a hard security wall.
+      if (!isAdmin(session.user.role)) {
+        const me = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { technicianBrands: { select: { id: true } } },
+        });
+        const brandIds = me?.technicianBrands.map((b) => b.id) ?? [];
+        if (brandIds.length > 0) {
+          conditions.push({ OR: [{ brandId: { in: brandIds } }, { brandId: null }] });
+        }
+      }
     }
 
     if (status) where.status = status as Prisma.EnumTicketStatusFilter["equals"];
     if (categoryId) where.categoryId = categoryId;
+    const brandFilter = searchParams.get("brandId");
+    if (brandFilter) where.brandId = brandFilter;
     if (search) {
       conditions.push({
         OR: [
@@ -56,6 +69,7 @@ export async function GET(req: Request) {
       take: 100,
       include: {
         category: true,
+        brand: { select: { id: true, name: true } },
         requester: { select: { id: true, name: true, email: true } },
         assignee: { select: { id: true, name: true, email: true } },
       },
@@ -68,6 +82,7 @@ const createSchema = z.object({
   subject: z.string().min(3).max(150),
   description: z.string().min(1).max(5000),
   categoryId: z.string().optional(),
+  brandId: z.string().optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
   type: z.enum(["PROBLEM", "INCIDENT", "REQUEST", "INFORMATION", "TRAINING", "QUOTE"]).optional(),
 });
@@ -76,69 +91,6 @@ export async function POST(req: Request) {
   return withApiErrors(async () => {
     const session = await requireTenantSession();
     const body = createSchema.parse(await req.json());
-    const tenantId = session.user.tenantId;
-
-    const [categories, tenant] = await Promise.all([
-      prisma.category.findMany({ where: { tenantId } }),
-      prisma.tenant.findUniqueOrThrow({
-        where: { id: tenantId },
-        select: { outOfHoursEnabled: true, outOfHoursStart: true, outOfHoursEnd: true, outOfHoursWeekendOnly: true },
-      }),
-    ]);
-    const outOfHours = isOutsideBusinessHours(tenant);
-
-    const ai = await getAiProviderForTenant(tenantId);
-    const triage = await ai.triageTicket({
-      subject: body.subject,
-      description: body.description,
-      categoryNames: categories.map((c) => c.name),
-    });
-    const aiCategory = categories.find((c) => c.name === triage.suggestedCategory);
-
-    let ticket = null;
-    for (let attempt = 0; attempt < 3 && !ticket; attempt++) {
-      const agg = await prisma.ticket.aggregate({ where: { tenantId }, _max: { number: true } });
-      const number = (agg._max.number ?? 0) + 1;
-      const priority = body.priority ?? triage.suggestedPriority ?? "MEDIUM";
-      try {
-        ticket = await prisma.ticket.create({
-          data: {
-            tenantId,
-            number,
-            subject: body.subject,
-            description: body.description,
-            categoryId: body.categoryId ?? aiCategory?.id,
-            type: body.type ?? "INCIDENT",
-            priority,
-            dueAt: computeDueAt(priority),
-            isOutOfHours: outOfHours,
-            requesterId: session.user.id,
-            aiSuggestedCategory: triage.suggestedCategory,
-            aiSuggestedPriority: triage.suggestedPriority,
-            aiSummary: triage.summary || null,
-            sentimentScore: triage.sentimentScore,
-            aiSuggestedSolution: triage.suggestedSolution,
-          },
-          include: { category: true, requester: true },
-        });
-      } catch (err) {
-        const isUniqueClash = typeof err === "object" && err !== null && "code" in err && err.code === "P2002";
-        if (!isUniqueClash || attempt === 2) throw err;
-      }
-    }
-
-    await prisma.auditLog.create({
-      data: {
-        tenantId,
-        userId: session.user.id,
-        action: "ticket.created",
-        entityType: "Ticket",
-        entityId: ticket!.id,
-      },
-    });
-
-    await notifyTicketCreated(ticket!);
-
-    return ticket;
+    return createTicket({ ...body, tenantId: session.user.tenantId, requesterId: session.user.id });
   });
 }

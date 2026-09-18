@@ -15,6 +15,7 @@ export async function buildReportRows(prisma: PrismaClient, tenantId: string, da
       resolvedAt: true,
       dueAt: true,
       category: { select: { name: true } },
+      brand: { select: { name: true } },
       requester: { select: { name: true, email: true, company: { select: { name: true } } } },
       assignee: { select: { id: true, name: true, email: true } },
     },
@@ -37,6 +38,7 @@ export function summarizeReportRows(rows: ReportRow[]) {
   const byPriority = rankedCounts(rows.map((r) => r.priority)).map((r) => ({ priority: r.label, count: r.count }));
   const byCategory = rankedCounts(rows.map((r) => r.category?.name ?? null));
   const byCompany = rankedCounts(rows.map((r) => r.requester.company?.name ?? null));
+  const byBrand = rankedCounts(rows.map((r) => r.brand?.name ?? null));
 
   const now = Date.now();
   const openOverdue = rows.filter(
@@ -85,6 +87,7 @@ export function summarizeReportRows(rows: ReportRow[]) {
     byPriority,
     byCategory,
     byCompany,
+    byBrand,
     agentLeaderboard,
     openOverdue,
     avgResolutionHours,

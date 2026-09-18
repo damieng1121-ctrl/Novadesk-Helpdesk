@@ -14,11 +14,14 @@ async function loadTicketForSession(
   userId: string,
   staff: boolean,
   companyId: string | null,
+  /** Non-admin staff only — null/omitted means "no Brand restriction" (admin, or a Technician with no Brand assignments). */
+  restrictToBrandIds: string[] | null,
 ) {
   const ticket = await prisma.ticket.findUnique({
     where: { id },
     include: {
       category: true,
+      brand: { select: { id: true, name: true } },
       requester: { select: { id: true, name: true, email: true, companyId: true } },
       assignee: { select: { id: true, name: true, email: true } },
       comments: {
@@ -34,6 +37,7 @@ async function loadTicketForSession(
   // their own Company (e.g. another staff member at their school).
   const sameCompany = companyId && ticket.requester.companyId === companyId;
   if (!staff && ticket.requesterId !== userId && !sameCompany) return null;
+  if (staff && restrictToBrandIds && ticket.brandId && !restrictToBrandIds.includes(ticket.brandId)) return null;
   if (!staff) {
     const internalCommentIds = new Set(ticket.comments.filter((c) => c.isInternal).map((c) => c.id));
     ticket.comments = ticket.comments.filter((c) => !c.isInternal);
@@ -48,7 +52,23 @@ export async function GET(_req: Request, { params }: Params) {
     const session = await requireTenantSession();
     const { id } = await params;
     const staff = canManageTickets(session.user.role);
-    const ticket = await loadTicketForSession(id, session.user.tenantId, session.user.id, staff, session.user.companyId);
+    let restrictToBrandIds: string[] | null = null;
+    if (staff && !isAdmin(session.user.role)) {
+      const me = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { technicianBrands: { select: { id: true } } },
+      });
+      const brandIds = me?.technicianBrands.map((b) => b.id) ?? [];
+      if (brandIds.length > 0) restrictToBrandIds = brandIds;
+    }
+    const ticket = await loadTicketForSession(
+      id,
+      session.user.tenantId,
+      session.user.id,
+      staff,
+      session.user.companyId,
+      restrictToBrandIds,
+    );
     if (!ticket) throw new AuthError("Ticket not found", 404);
     return ticket;
   });
@@ -59,6 +79,7 @@ const updateSchema = z.object({
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
   type: z.enum(["PROBLEM", "INCIDENT", "REQUEST", "INFORMATION", "TRAINING", "QUOTE"]).optional(),
   categoryId: z.string().nullable().optional(),
+  brandId: z.string().nullable().optional(),
   assigneeId: z.string().nullable().optional(),
   isDeleted: z.boolean().optional(),
 });

@@ -11,6 +11,7 @@ type Summary = {
   byPriority: { priority: string; count: number }[];
   byCategory: Ranked[];
   byCompany: Ranked[];
+  byBrand: Ranked[];
   agentLeaderboard: AgentRow[];
   openOverdue: number;
   avgResolutionHours: number | null;
@@ -49,6 +50,11 @@ export default function ReportsPage() {
   const maxPriorityCount = Math.max(1, ...summary.byPriority.map((p) => p.count));
   const maxCategoryCount = Math.max(1, ...summary.byCategory.map((c) => c.count));
   const maxCompanyCount = Math.max(1, ...summary.byCompany.map((c) => c.count));
+  const maxBrandCount = Math.max(1, ...summary.byBrand.map((c) => c.count));
+  // Only worth its own section once a second Brand actually exists — a
+  // single-brand helpdesk (the common case) would otherwise just show one
+  // "Uncategorised" bar, which tells you nothing.
+  const showBrandBreakdown = summary.byBrand.length > 1 || summary.byBrand.some((b) => b.label !== "Uncategorised");
 
   return (
     <div>
@@ -90,6 +96,9 @@ export default function ReportsPage() {
         <RankedList title="By priority" rows={summary.byPriority.map((p) => ({ label: p.priority, count: p.count }))} order={PRIORITY_ORDER} max={maxPriorityCount} colorClass="bg-orange-500" />
         <RankedList title="By category" rows={summary.byCategory} max={maxCategoryCount} colorClass="bg-teal-500" />
         <RankedList title="By company" rows={summary.byCompany} max={maxCompanyCount} colorClass="bg-purple-500" />
+        {showBrandBreakdown && (
+          <RankedList title="By brand" rows={summary.byBrand} max={maxBrandCount} colorClass="bg-rose-500" />
+        )}
       </div>
 
       <div className="mt-8 rounded-xl border border-slate-200 bg-white p-5">

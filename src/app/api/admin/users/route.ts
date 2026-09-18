@@ -63,6 +63,10 @@ export async function POST(req: Request) {
           role: body.role,
           name: body.name ?? existing.name,
           companyId: body.companyId ?? existing.companyId,
+          // An admin explicitly inviting this email is exactly the decision
+          // that grants portal access — flips it true even if this row was
+          // only an email-to-ticket contact until now (see auth.ts signIn).
+          portalAccessGranted: true,
         },
       });
       return user;

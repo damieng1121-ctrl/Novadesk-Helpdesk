@@ -4,13 +4,16 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type Category = { id: string; name: string };
+type Brand = { id: string; name: string };
 
 export default function NewTicketPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [brandId, setBrandId] = useState("");
   const [priority, setPriority] = useState("MEDIUM");
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -20,6 +23,9 @@ export default function NewTicketPage() {
     fetch("/api/categories")
       .then((r) => r.json())
       .then(setCategories);
+    fetch("/api/brands")
+      .then((r) => r.json())
+      .then(setBrands);
   }, []);
 
   async function onSubmit(e: React.FormEvent) {
@@ -30,7 +36,13 @@ export default function NewTicketPage() {
       const res = await fetch("/api/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject, description, categoryId: categoryId || undefined, priority }),
+        body: JSON.stringify({
+          subject,
+          description,
+          categoryId: categoryId || undefined,
+          brandId: brandId || undefined,
+          priority,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -73,6 +85,26 @@ export default function NewTicketPage() {
             className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
           />
         </div>
+        {brands.length > 1 && (
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Who is this for?</label>
+            <select
+              required
+              value={brandId}
+              onChange={(e) => setBrandId(e.target.value)}
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+            >
+              <option value="" disabled>
+                Choose one…
+              </option>
+              {brands.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-700">Category</label>

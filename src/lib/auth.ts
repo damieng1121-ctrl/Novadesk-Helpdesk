@@ -56,7 +56,11 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
     async signIn({ user }) {
       if (!user.email) return false;
       const existing = await prisma.user.findUnique({ where: { email: user.email } });
-      return Boolean(existing);
+      // A row auto-created from an inbound support email (see the email-to-
+      // ticket webhook) has portalAccessGranted: false — it's a ticket
+      // requester, not someone an admin has actually invited into the
+      // portal, so it must not be enough on its own to sign in.
+      return Boolean(existing?.portalAccessGranted);
     },
     async jwt({ token, user, trigger, session }) {
       if (trigger === "update" && session) {

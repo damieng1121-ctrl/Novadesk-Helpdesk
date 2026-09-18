@@ -29,6 +29,7 @@ type TicketDetail = {
   sentimentScore: number | null;
   aiSuggestedSolution: string | null;
   category: { id: string; name: string } | null;
+  brand: { id: string; name: string } | null;
   requester: Person;
   assignee: Person | null;
   comments: Comment[];
@@ -85,6 +86,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
   const [posting, setPosting] = useState(false);
   const [cannedResponses, setCannedResponses] = useState<{ id: string; title: string; content: string }[]>([]);
   const [staffList, setStaffList] = useState<Person[]>([]);
+  const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
 
   async function load() {
     const res = await fetch(`/api/tickets/${id}`);
@@ -105,6 +107,9 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
     fetch("/api/staff")
       .then((r) => (r.ok ? r.json() : []))
       .then(setStaffList);
+    fetch("/api/brands")
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setBrands);
   }, [staff]);
 
   function insertCannedResponse(responseId: string) {
@@ -370,6 +375,24 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
                 </option>
               ))}
             </select>
+
+            {brands.length > 0 && (
+              <>
+                <p className="mt-3 font-medium text-slate-900">Brand</p>
+                <select
+                  value={ticket.brand?.id ?? ""}
+                  onChange={(e) => updateTicket({ brandId: e.target.value || null })}
+                  className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                >
+                  <option value="">None</option>
+                  {brands.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
           </div>
 
           {isAdmin && (
