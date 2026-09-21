@@ -4,7 +4,7 @@ import { withApiErrors } from "@/lib/api";
 import { prisma } from "@/lib/db";
 import { canManageTickets, isAdmin } from "@/lib/roles";
 import { computeDueAt } from "@/lib/sla";
-import { notifyTicketResolved } from "@/lib/notifications/events";
+import { notifyTicketResolved, notifyTicketAssigned } from "@/lib/notifications/events";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -30,6 +30,7 @@ async function loadTicketForSession(
       },
       attachments: true,
       tenant: { select: { outOfHoursMessage: true } },
+      satisfaction: true,
     },
   });
   if (!ticket || ticket.tenantId !== tenantId || ticket.isDeleted) return null;
@@ -129,6 +130,9 @@ export async function PATCH(req: Request, { params }: Params) {
 
     if (body.status === "RESOLVED" && existing.status !== "RESOLVED") {
       await notifyTicketResolved(ticket);
+    }
+    if (body.assigneeId && body.assigneeId !== existing.assigneeId) {
+      await notifyTicketAssigned(ticket, body.assigneeId);
     }
 
     return ticket;

@@ -19,6 +19,9 @@ type Summary = {
   avgResolutionHours: number | null;
   resolvedSampleSize: number;
   volumeTrend: { bucketBy: "day" | "week" | "month"; data: { label: string; created: number; resolved: number }[] };
+  avgSatisfaction: number | null;
+  satisfactionDistribution: { rating: number; count: number }[];
+  satisfactionResponses: number;
 };
 
 const STATUS_ORDER = ["OPEN", "IN_PROGRESS", "ON_HOLD", "RESOLVED", "CLOSED"];
@@ -36,7 +39,7 @@ export default function ReportsPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [days, setDays] = useState(0);
   const [companyId, setCompanyId] = useState("");
-  const [tab, setTab] = useState<"overview" | "volume" | "agents">("overview");
+  const [tab, setTab] = useState<"overview" | "volume" | "agents" | "satisfaction">("overview");
 
   useEffect(() => {
     fetch("/api/admin/companies")
@@ -105,6 +108,12 @@ export default function ReportsPage() {
               className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "agents" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:text-slate-900"}`}
             >
               Agent Performance
+            </button>
+            <button
+              onClick={() => setTab("satisfaction")}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "satisfaction" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:text-slate-900"}`}
+            >
+              Satisfaction
             </button>
           </div>
         </div>
@@ -224,6 +233,49 @@ export default function ReportsPage() {
                 </tbody>
               </table>
             )}
+          </div>
+        </>
+      )}
+
+      {tab === "satisfaction" && (
+        <>
+          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <Stat
+              label="Average rating"
+              value={summary.avgSatisfaction !== null ? `${summary.avgSatisfaction.toFixed(1)} / 5` : "—"}
+            />
+            <Stat label="Responses" value={summary.satisfactionResponses} />
+            <Stat
+              label="Response rate"
+              value={
+                summary.resolvedSampleSize
+                  ? `${Math.round((summary.satisfactionResponses / summary.resolvedSampleSize) * 100)}%`
+                  : "—"
+              }
+            />
+            <Stat
+              label="Happy (4-5 stars)"
+              value={
+                summary.satisfactionResponses
+                  ? `${Math.round(
+                      ((summary.satisfactionDistribution.find((d) => d.rating === 4)?.count ?? 0) +
+                        (summary.satisfactionDistribution.find((d) => d.rating === 5)?.count ?? 0)) /
+                        summary.satisfactionResponses *
+                        100,
+                    )}%`
+                  : "—"
+              }
+            />
+          </div>
+
+          <div className="mt-8 max-w-xl">
+            <RankedList
+              title="Rating distribution"
+              rows={summary.satisfactionDistribution.map((d) => ({ label: `${d.rating} star${d.rating === 1 ? "" : "s"}`, count: d.count }))}
+              order={["5 stars", "4 stars", "3 stars", "2 stars", "1 star"]}
+              max={Math.max(1, ...summary.satisfactionDistribution.map((d) => d.count))}
+              colorClass="bg-amber-400"
+            />
           </div>
         </>
       )}

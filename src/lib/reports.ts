@@ -28,6 +28,7 @@ export async function buildReportRows(
       brand: { select: { name: true } },
       requester: { select: { name: true, email: true, company: { select: { name: true } } } },
       assignee: { select: { id: true, name: true, email: true } },
+      satisfaction: { select: { rating: true } },
     },
   });
 }
@@ -91,6 +92,15 @@ export function summarizeReportRows(rows: ReportRow[]) {
     }))
     .sort((a, b) => b.resolved - a.resolved);
 
+  const rated = rows.filter((r) => r.satisfaction);
+  const avgSatisfaction = rated.length
+    ? rated.reduce((sum, r) => sum + r.satisfaction!.rating, 0) / rated.length
+    : null;
+  const satisfactionDistribution = [1, 2, 3, 4, 5].map((rating) => ({
+    rating,
+    count: rated.filter((r) => r.satisfaction!.rating === rating).length,
+  }));
+
   return {
     totalTickets: rows.length,
     byStatus,
@@ -102,6 +112,9 @@ export function summarizeReportRows(rows: ReportRow[]) {
     openOverdue,
     avgResolutionHours,
     resolvedSampleSize: resolved.length,
+    avgSatisfaction,
+    satisfactionDistribution,
+    satisfactionResponses: rated.length,
   };
 }
 

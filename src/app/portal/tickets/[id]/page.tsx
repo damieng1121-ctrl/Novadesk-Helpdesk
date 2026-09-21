@@ -3,6 +3,7 @@
 import { useEffect, useState, use as usePromise } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { Star } from "lucide-react";
 import { StatusBadge, PriorityBadge } from "@/components/badges";
 import { isOverdue } from "@/lib/sla";
 
@@ -38,6 +39,7 @@ type TicketDetail = {
   dueAt: string | null;
   isOutOfHours: boolean;
   tenant: { outOfHoursMessage: string };
+  satisfaction: { rating: number; comment: string | null } | null;
 };
 
 function formatFileSize(bytes: number | null): string {
@@ -71,6 +73,103 @@ function AttachmentList({ ticketId, attachments }: { ticketId: string; attachmen
 }
 
 const STAFF_ROLES = new Set(["AGENT", "TENANT_ADMIN", "SUPER_ADMIN"]);
+
+function StarRow({ rating, size = 16 }: { rating: number; size?: number }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Star
+          key={n}
+          size={size}
+          className={n <= rating ? "fill-amber-400 text-amber-400" : "text-slate-300"}
+        />
+      ))}
+    </div>
+  );
+}
+
+function SatisfactionCard({
+  ticketId,
+  satisfaction,
+  canRate,
+  onSubmitted,
+}: {
+  ticketId: string;
+  satisfaction: { rating: number; comment: string | null } | null;
+  canRate: boolean;
+  onSubmitted: () => void;
+}) {
+  const [rating, setRating] = useState(0);
+  const [hover, setHover] = useState(0);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  if (!satisfaction && !canRate) return null;
+
+  if (satisfaction) {
+    return (
+      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+        <p className="text-sm font-medium text-slate-900">Satisfaction rating</p>
+        <div className="mt-1.5">
+          <StarRow rating={satisfaction.rating} />
+        </div>
+        {satisfaction.comment && <p className="mt-2 text-sm text-slate-600">{satisfaction.comment}</p>}
+      </div>
+    );
+  }
+
+  async function submit() {
+    if (!rating) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/tickets/${ticketId}/satisfaction`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rating, comment: comment || undefined }),
+      });
+      if (res.ok) onSubmitted();
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+      <p className="text-sm font-medium text-slate-900">How did we do?</p>
+      <div className="mt-2 flex items-center gap-1" onMouseLeave={() => setHover(0)}>
+        {[1, 2, 3, 4, 5].map((n) => (
+          <button
+            key={n}
+            type="button"
+            onClick={() => setRating(n)}
+            onMouseEnter={() => setHover(n)}
+            className="p-0.5"
+          >
+            <Star size={22} className={n <= (hover || rating) ? "fill-amber-400 text-amber-400" : "text-slate-300"} />
+          </button>
+        ))}
+      </div>
+      {rating > 0 && (
+        <>
+          <textarea
+            rows={2}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Anything you'd like to add? (optional)"
+            className="mt-3 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          />
+          <button
+            onClick={submit}
+            disabled={submitting}
+            className="mt-3 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {submitting ? "Submitting…" : "Submit rating"}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/[id]">) {
   const { id } = usePromise(params);
@@ -203,6 +302,15 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
             <p className="font-medium">AI summary</p>
             <p className="mt-1">{ticket.aiSummary}</p>
           </div>
+        )}
+
+        {(ticket.status === "RESOLVED" || ticket.status === "CLOSED") && (
+          <SatisfactionCard
+            ticketId={ticket.id}
+            satisfaction={ticket.satisfaction}
+            canRate={!staff && ticket.requester.id === session?.user.id}
+            onSubmitted={load}
+          />
         )}
 
         <div className="mt-6 space-y-4">

@@ -6,6 +6,7 @@ import { signOut } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import type { Role } from "@prisma/client";
 import clsx from "clsx";
+import { NotificationBell } from "@/components/notification-bell";
 import {
   LayoutDashboard,
   Ticket,
@@ -210,6 +211,7 @@ export function PortalNav({
       </nav>
 
       <div className="flex items-center gap-1">
+        <NotificationBell />
         <Link
           href="/portal/account/security"
           className="flex items-center gap-2 truncate rounded-lg px-3 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white"

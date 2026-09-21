@@ -1,17 +1,22 @@
 import { prisma } from "@/lib/db";
 import { getNotificationProvider } from "./index";
+import { createNotification, createNotifications } from "./inapp";
 
 function ticketUrl(ticketId: string): string {
   const base = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
   return `${base}/portal/tickets/${ticketId}`;
 }
 
-async function tenantStaffEmails(tenantId: string): Promise<string[]> {
-  const staff = await prisma.user.findMany({
+/** In-app notifications link by relative path, not the absolute mail URL above. */
+function ticketPath(ticketId: string): string {
+  return `/portal/tickets/${ticketId}`;
+}
+
+async function tenantStaff(tenantId: string): Promise<{ id: string; email: string }[]> {
+  return prisma.user.findMany({
     where: { tenantId, role: { in: ["AGENT", "TENANT_ADMIN"] }, isActive: true },
-    select: { email: true },
+    select: { id: true, email: true },
   });
-  return staff.map((s) => s.email);
 }
 
 interface TicketForNotification {
@@ -32,17 +37,33 @@ export async function notifyTicketCreated(ticket: TicketForNotification): Promis
       subject: `We've got your ticket: #${ticket.number} ${ticket.subject}`,
       text: `Thanks — your ticket has been logged.\n\nYou can follow its progress here: ${ticketUrl(ticket.id)}`,
     });
+    await createNotification({
+      tenantId: ticket.tenantId,
+      userId: requester.id,
+      type: "ticket.created",
+      title: `Ticket logged: #${ticket.number} ${ticket.subject}`,
+      link: ticketPath(ticket.id),
+    });
   }
 
-  const staffEmails = await tenantStaffEmails(ticket.tenantId);
+  const staff = await tenantStaff(ticket.tenantId);
   await Promise.all(
-    staffEmails.map((email) =>
+    staff.map((s) =>
       notifications.send({
-        to: email,
+        to: s.email,
         subject: `New ticket: #${ticket.number} ${ticket.subject}`,
         text: `A new ticket needs triage.\n\n${ticketUrl(ticket.id)}`,
       }),
     ),
+  );
+  await createNotifications(
+    staff.map((s) => ({
+      tenantId: ticket.tenantId,
+      userId: s.id,
+      type: "ticket.created" as const,
+      title: `New ticket: #${ticket.number} ${ticket.subject}`,
+      link: ticketPath(ticket.id),
+    })),
   );
 }
 
@@ -63,25 +84,41 @@ export async function notifyNewComment(
         subject: `New reply on ticket #${ticket.number}: ${ticket.subject}`,
         text: `There's a new reply on your ticket.\n\n${ticketUrl(ticket.id)}`,
       });
+      await createNotification({
+        tenantId: ticket.tenantId,
+        userId: requester.id,
+        type: "ticket.comment",
+        title: `New reply on #${ticket.number}: ${ticket.subject}`,
+        link: ticketPath(ticket.id),
+      });
     }
     return;
   }
 
   // Requester replied — notify the assignee, or the whole team if unassigned.
-  const recipientEmails = ticket.assigneeId
-    ? [(await prisma.user.findUnique({ where: { id: ticket.assigneeId } }))?.email].filter(
-        (e): e is string => !!e,
+  const recipients = ticket.assigneeId
+    ? [await prisma.user.findUnique({ where: { id: ticket.assigneeId }, select: { id: true, email: true } })].filter(
+        (u): u is { id: string; email: string } => !!u,
       )
-    : await tenantStaffEmails(ticket.tenantId);
+    : await tenantStaff(ticket.tenantId);
 
   await Promise.all(
-    recipientEmails.map((email) =>
+    recipients.map((r) =>
       notifications.send({
-        to: email,
+        to: r.email,
         subject: `New reply on ticket #${ticket.number}: ${ticket.subject}`,
         text: `The requester replied.\n\n${ticketUrl(ticket.id)}`,
       }),
     ),
+  );
+  await createNotifications(
+    recipients.map((r) => ({
+      tenantId: ticket.tenantId,
+      userId: r.id,
+      type: "ticket.comment" as const,
+      title: `New reply on #${ticket.number}: ${ticket.subject}`,
+      link: ticketPath(ticket.id),
+    })),
   );
 }
 
@@ -89,20 +126,29 @@ export async function notifySlaBreach(ticket: TicketForNotification): Promise<vo
   const notifications = getNotificationProvider();
   // The assignee if there is one, otherwise the whole team — same fallback
   // as a requester's reply on an unassigned ticket.
-  const recipientEmails = ticket.assigneeId
-    ? [(await prisma.user.findUnique({ where: { id: ticket.assigneeId } }))?.email].filter(
-        (e): e is string => !!e,
+  const recipients = ticket.assigneeId
+    ? [await prisma.user.findUnique({ where: { id: ticket.assigneeId }, select: { id: true, email: true } })].filter(
+        (u): u is { id: string; email: string } => !!u,
       )
-    : await tenantStaffEmails(ticket.tenantId);
+    : await tenantStaff(ticket.tenantId);
 
   await Promise.all(
-    recipientEmails.map((email) =>
+    recipients.map((r) =>
       notifications.send({
-        to: email,
+        to: r.email,
         subject: `SLA breached: ticket #${ticket.number} ${ticket.subject}`,
         text: `This ticket has passed its SLA due date and is still open.\n\n${ticketUrl(ticket.id)}`,
       }),
     ),
+  );
+  await createNotifications(
+    recipients.map((r) => ({
+      tenantId: ticket.tenantId,
+      userId: r.id,
+      type: "sla.breach" as const,
+      title: `SLA breached: #${ticket.number} ${ticket.subject}`,
+      link: ticketPath(ticket.id),
+    })),
   );
 }
 
@@ -114,5 +160,31 @@ export async function notifyTicketResolved(ticket: TicketForNotification): Promi
     to: requester.email,
     subject: `Resolved: ticket #${ticket.number} ${ticket.subject}`,
     text: `Your ticket has been marked resolved. Reply on the ticket if it's not actually fixed and we'll reopen it.\n\n${ticketUrl(ticket.id)}`,
+  });
+  await createNotification({
+    tenantId: ticket.tenantId,
+    userId: requester.id,
+    type: "ticket.resolved",
+    title: `Resolved: #${ticket.number} ${ticket.subject}`,
+    body: "Let us know how we did — rate this ticket on the ticket page.",
+    link: ticketPath(ticket.id),
+  });
+}
+
+export async function notifyTicketAssigned(ticket: TicketForNotification, assigneeId: string): Promise<void> {
+  const notifications = getNotificationProvider();
+  const assignee = await prisma.user.findUnique({ where: { id: assigneeId } });
+  if (!assignee) return;
+  await notifications.send({
+    to: assignee.email,
+    subject: `Assigned to you: ticket #${ticket.number} ${ticket.subject}`,
+    text: `This ticket has been assigned to you.\n\n${ticketUrl(ticket.id)}`,
+  });
+  await createNotification({
+    tenantId: ticket.tenantId,
+    userId: assignee.id,
+    type: "ticket.assigned",
+    title: `Assigned to you: #${ticket.number} ${ticket.subject}`,
+    link: ticketPath(ticket.id),
   });
 }

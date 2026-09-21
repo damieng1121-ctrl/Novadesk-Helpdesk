@@ -85,6 +85,7 @@ model Tenant {
   holidays              Holiday[]
   passwordEntries       PasswordEntry[]
   agentTodos            AgentTodo[]
+  notifications         Notification[]
 }
 
 enum SchoolPhase {
@@ -205,6 +206,7 @@ model User {
   announcementsCreated          Announcement[]
   passwordEntriesCreated        PasswordEntry[]
   todos                         AgentTodo[]
+  notifications                 Notification[]
 
   @@index([tenantId])
 }
@@ -334,8 +336,9 @@ model Ticket {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  comments    TicketComment[]
-  attachments TicketAttachment[]
+  comments     TicketComment[]
+  attachments  TicketAttachment[]
+  satisfaction TicketSatisfaction?
 
   @@unique([tenantId, number])
   @@index([tenantId, status])
@@ -839,4 +842,48 @@ model AgentTodo {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Customer satisfaction — one optional rating per ticket, left by the
+// requester once it's resolved/closed. Not solicited by a separate email
+// survey flow; the prompt lives directly on the ticket page.
+// ---------------------------------------------------------------------------
+
+model TicketSatisfaction {
+  id       String @id @default(cuid())
+  ticketId String @unique
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  /// 1 (very unhappy) to 5 (very happy)
+  rating   Int
+  comment  String? @db.Text
+
+  createdAt DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// In-app notifications — the bell-icon inbox in the portal nav. Deliberately
+// separate from the email NotificationProvider in src/lib/notifications: the
+// same ticket events (created/commented/assigned/resolved/SLA breach) fan
+// out to both, but this is what actually renders in-app.
+// ---------------------------------------------------------------------------
+
+model Notification {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// e.g. "ticket.created" | "ticket.comment" | "ticket.assigned" | "ticket.resolved" | "sla.breach"
+  type   String
+  title  String
+  body   String?
+  /// In-app path to navigate to on click, e.g. "/portal/tickets/abc123"
+  link   String?
+  isRead Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@index([tenantId])
 }
