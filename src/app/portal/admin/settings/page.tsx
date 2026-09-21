@@ -437,10 +437,23 @@ export default function AdminSettingsPage() {
       </section>
 
       <section className={`mt-6 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 ${tab === "portal" ? "" : "hidden"}`}>
-        <h2 className="font-semibold text-slate-900 dark:text-slate-100">Self-service portal</h2>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-          What staff see on their dashboard before raising a ticket.
-        </p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="font-semibold text-slate-900 dark:text-slate-100">Self-service portal</h2>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+              What a User sees as their portal home, before raising a ticket. Technicians and admins never land
+              here day-to-day — use the preview to check your changes.
+            </p>
+          </div>
+          <a
+            href="/portal/preview-home"
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+          >
+            Preview →
+          </a>
+        </div>
         {portal && (
           <div className="mt-4 space-y-4">
             <div>

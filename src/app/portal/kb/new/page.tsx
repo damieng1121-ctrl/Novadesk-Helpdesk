@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type Category = { id: string; name: string };
 
@@ -94,13 +95,18 @@ export default function NewArticlePage() {
           </div>
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="rounded-md bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
-        >
-          {submitting ? "Saving…" : "Save article"}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="submit"
+            disabled={submitting}
+            className="rounded-md bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {submitting ? "Saving…" : "Save article"}
+          </button>
+          <Link href="/portal/kb" className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
+            Cancel
+          </Link>
+        </div>
       </form>
     </div>
   );

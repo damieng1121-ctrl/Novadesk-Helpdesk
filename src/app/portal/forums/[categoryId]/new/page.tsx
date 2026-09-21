@@ -2,6 +2,7 @@
 
 import { useState, use as usePromise } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function NewTopicPage({ params }: PageProps<"/portal/forums/[categoryId]/new">) {
   const { categoryId } = usePromise(params);
@@ -52,13 +53,18 @@ export default function NewTopicPage({ params }: PageProps<"/portal/forums/[cate
           className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="rounded-md bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
-        >
-          {submitting ? "Posting…" : "Post topic"}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="submit"
+            disabled={submitting}
+            className="rounded-md bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {submitting ? "Posting…" : "Post topic"}
+          </button>
+          <Link href={`/portal/forums/${categoryId}`} className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
+            Cancel
+          </Link>
+        </div>
       </form>
     </div>
   );
