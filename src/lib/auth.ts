@@ -13,6 +13,16 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
     Google({
+      // Auth.js v5 only auto-reads clientId/clientSecret from
+      // AUTH_GOOGLE_ID/AUTH_GOOGLE_SECRET (its own naming convention) when
+      // they're omitted here — it does NOT fall back to the
+      // GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET names used everywhere else in
+      // this project (.env.example, docker-compose.yml, README). Without
+      // this, clientId silently resolves to undefined and every real
+      // Google sign-in fails at Google's end with "OAuth client was not
+      // found" — Google literally receives client_id=undefined.
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
           prompt: "select_account",
