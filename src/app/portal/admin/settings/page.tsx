@@ -53,6 +53,7 @@ export default function AdminSettingsPage() {
   const [savingPortal, setSavingPortal] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [logoNonce, setLogoNonce] = useState(0);
+  const [tab, setTab] = useState<"organisation" | "hours" | "ai" | "portal">("organisation");
 
   useEffect(() => {
     fetch("/api/admin/ai-config").then((r) => r.json()).then(setAi);
@@ -153,11 +154,29 @@ export default function AdminSettingsPage() {
     }
   }
 
-  return (
-    <div className="max-w-2xl space-y-8">
-      <h1 className="text-2xl font-semibold text-slate-900">Settings</h1>
+  const TABS = [
+    { key: "organisation", label: "Organisation" },
+    { key: "hours", label: "Out of hours" },
+    { key: "ai", label: "AI assistance" },
+    { key: "portal", label: "Self-service portal" },
+  ] as const;
 
-      <section className="rounded-xl border border-slate-200 bg-white p-6">
+  return (
+    <div className="max-w-3xl">
+      <h1 className="text-2xl font-semibold text-slate-900">Settings</h1>
+      <div className="mt-3 flex gap-1 rounded-lg border border-slate-200 bg-white p-1">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === t.key ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:text-slate-900"}`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <section className={`mt-6 rounded-xl border border-slate-200 bg-white p-6 ${tab === "organisation" ? "" : "hidden"}`}>
         <h2 className="font-semibold text-slate-900">Organisation details</h2>
         {tenant && (
           <div className="mt-4 space-y-4">
@@ -262,57 +281,6 @@ export default function AdminSettingsPage() {
                 ))}
               </div>
             </div>
-            <div className="border-t border-slate-100 pt-4">
-              <label className="flex items-center gap-2 text-sm font-medium text-slate-900">
-                <input
-                  type="checkbox"
-                  checked={tenant.outOfHoursEnabled}
-                  onChange={(e) => setTenant({ ...tenant, outOfHoursEnabled: e.target.checked })}
-                />
-                Out-of-hours auto-notice
-              </label>
-              <p className="mt-1 text-sm text-slate-700">
-                Shown on tickets raised outside these hours (or on weekends, if selected).
-              </p>
-              {tenant.outOfHoursEnabled && (
-                <div className="mt-3 space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs text-slate-700">Starts</label>
-                      <input
-                        type="time"
-                        value={tenant.outOfHoursStart}
-                        onChange={(e) => setTenant({ ...tenant, outOfHoursStart: e.target.value })}
-                        className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-slate-700">Ends</label>
-                      <input
-                        type="time"
-                        value={tenant.outOfHoursEnd}
-                        onChange={(e) => setTenant({ ...tenant, outOfHoursEnd: e.target.value })}
-                        className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                      />
-                    </div>
-                  </div>
-                  <label className="flex items-center gap-2 text-sm text-slate-700">
-                    <input
-                      type="checkbox"
-                      checked={tenant.outOfHoursWeekendOnly}
-                      onChange={(e) => setTenant({ ...tenant, outOfHoursWeekendOnly: e.target.checked })}
-                    />
-                    Weekends only (ignore the daily time window above)
-                  </label>
-                  <textarea
-                    value={tenant.outOfHoursMessage}
-                    onChange={(e) => setTenant({ ...tenant, outOfHoursMessage: e.target.value })}
-                    rows={2}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                  />
-                </div>
-              )}
-            </div>
             <button
               onClick={saveTenant}
               disabled={savingTenant}
@@ -324,7 +292,79 @@ export default function AdminSettingsPage() {
         )}
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-6">
+      <section className={`mt-6 rounded-xl border border-slate-200 bg-white p-6 ${tab === "hours" ? "" : "hidden"}`}>
+        <h2 className="font-semibold text-slate-900">Out-of-hours auto-notice</h2>
+        <p className="mt-1 text-sm text-slate-600">Shown on tickets raised outside these hours (or on weekends, if selected) — also used to route tickets into the out-of-hours queue.</p>
+        {tenant && (
+          <div className="mt-4 space-y-4">
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-900">
+              <input
+                type="checkbox"
+                checked={tenant.outOfHoursEnabled}
+                onChange={(e) => setTenant({ ...tenant, outOfHoursEnabled: e.target.checked })}
+              />
+              Enable out-of-hours tracking
+            </label>
+            {tenant.outOfHoursEnabled && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3 sm:max-w-sm">
+                  <div>
+                    <label className="block text-xs text-slate-700">Starts</label>
+                    <input
+                      type="time"
+                      value={tenant.outOfHoursStart}
+                      onChange={(e) => setTenant({ ...tenant, outOfHoursStart: e.target.value })}
+                      className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-700">Ends</label>
+                    <input
+                      type="time"
+                      value={tenant.outOfHoursEnd}
+                      onChange={(e) => setTenant({ ...tenant, outOfHoursEnd: e.target.value })}
+                      className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    />
+                  </div>
+                </div>
+                <label className="flex items-center gap-2 text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={tenant.outOfHoursWeekendOnly}
+                    onChange={(e) => setTenant({ ...tenant, outOfHoursWeekendOnly: e.target.checked })}
+                  />
+                  Weekends only (ignore the daily time window above)
+                </label>
+                <div className="sm:max-w-md">
+                  <label className="block text-xs text-slate-700">Notice shown to the requester</label>
+                  <textarea
+                    value={tenant.outOfHoursMessage}
+                    onChange={(e) => setTenant({ ...tenant, outOfHoursMessage: e.target.value })}
+                    rows={2}
+                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  />
+                </div>
+                <p className="text-xs text-slate-600">
+                  Manage bank/school holidays (also counted as out-of-hours) from{" "}
+                  <a href="/portal/admin/holidays" className="text-indigo-600 hover:underline">
+                    Admin → Holidays
+                  </a>
+                  .
+                </p>
+              </div>
+            )}
+            <button
+              onClick={saveTenant}
+              disabled={savingTenant}
+              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+            >
+              {savingTenant ? "Saving…" : "Save"}
+            </button>
+          </div>
+        )}
+      </section>
+
+      <section className={`mt-6 rounded-xl border border-slate-200 bg-white p-6 ${tab === "ai" ? "" : "hidden"}`}>
         <h2 className="font-semibold text-slate-900">AI assistance</h2>
         <p className="mt-1 text-sm text-slate-600">
           Choose the AI provider used for ticket triage and knowledge base suggestions. Leave the API key
@@ -396,7 +436,7 @@ export default function AdminSettingsPage() {
         )}
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-6">
+      <section className={`mt-6 rounded-xl border border-slate-200 bg-white p-6 ${tab === "portal" ? "" : "hidden"}`}>
         <h2 className="font-semibold text-slate-900">Self-service portal</h2>
         <p className="mt-1 text-sm text-slate-600">
           What staff see on their dashboard before raising a ticket.
