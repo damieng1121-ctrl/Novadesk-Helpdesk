@@ -16,7 +16,7 @@ export default async function PortalLayout({ children }: LayoutProps<"/portal">)
     : null;
 
   return (
-    <div className="flex min-h-screen flex-1">
+    <div className="flex min-h-screen flex-1 flex-col">
       <PortalNav
         role={session.user.role}
         userName={session.user.name ?? session.user.email ?? "Account"}
