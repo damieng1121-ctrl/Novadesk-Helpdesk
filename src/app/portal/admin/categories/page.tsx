@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
+import { SlideOver } from "@/components/slide-over";
 
 type Category = { id: string; name: string; description: string | null; color: string };
 
 export default function CategoriesAdminPage() {
   const [categories, setCategories] = useState<Category[] | null>(null);
+  const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [color, setColor] = useState("#64748b");
@@ -37,6 +40,7 @@ export default function CategoriesAdminPage() {
       setName("");
       setDescription("");
       setColor("#64748b");
+      setOpen(false);
       load();
     } finally {
       setSubmitting(false);
@@ -51,42 +55,21 @@ export default function CategoriesAdminPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-semibold text-slate-900">Categories</h1>
-      <p className="mt-1 text-sm text-slate-600">
-        Ticket categories used for triage, filtering, and reporting — shown to Users when they raise a ticket.
-      </p>
-
-      <form onSubmit={create} className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-white p-5">
-        <div className="grid grid-cols-[1fr_auto] gap-3">
-          <input
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Name, e.g. Printers"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
-          />
-          <input
-            type="color"
-            value={color}
-            onChange={(e) => setColor(e.target.value)}
-            className="h-10 w-14 rounded-md border border-slate-300"
-          />
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-900">Categories</h1>
+          <p className="mt-1 text-sm text-slate-600">
+            Ticket categories used for triage, filtering, and reporting — shown to Users when they raise a ticket.
+          </p>
         </div>
-        <input
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Description (optional)"
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-        />
-        {error && <p className="text-sm text-red-600">{error}</p>}
         <button
-          type="submit"
-          disabled={submitting}
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          onClick={() => setOpen(true)}
+          className="flex shrink-0 items-center gap-1.5 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
         >
-          {submitting ? "Saving…" : "Add category"}
+          <Plus size={16} />
+          Add category
         </button>
-      </form>
+      </div>
 
       <div className="mt-6 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
         {categories?.map((c) => (
@@ -105,6 +88,45 @@ export default function CategoriesAdminPage() {
         ))}
         {categories?.length === 0 && <p className="p-6 text-sm text-slate-700">No categories yet.</p>}
       </div>
+
+      <SlideOver open={open} onClose={() => setOpen(false)} title="Add a category" description="Used for triage, filtering, and reporting — shown to Users when they raise a ticket.">
+        <form onSubmit={create} className="space-y-4">
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-slate-700">Name</label>
+              <input
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Printers"
+                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              className="h-10 w-14 shrink-0 rounded-md border border-slate-300"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Description (optional)</label>
+            <input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            />
+          </div>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {submitting ? "Saving…" : "Add category"}
+          </button>
+        </form>
+      </SlideOver>
     </div>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
+import { SlideOver } from "@/components/slide-over";
 
 type Staff = { id: string; name: string | null; email: string | null };
 type Brand = { id: string; name: string; supportEmail: string | null; technicians: Staff[] };
@@ -8,6 +10,7 @@ type Brand = { id: string; name: string; supportEmail: string | null; technician
 export default function BrandsAdminPage() {
   const [brands, setBrands] = useState<Brand[] | null>(null);
   const [staff, setStaff] = useState<Staff[]>([]);
+  const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [supportEmail, setSupportEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +45,7 @@ export default function BrandsAdminPage() {
       }
       setName("");
       setSupportEmail("");
+      setOpen(false);
       load();
     } finally {
       setSubmitting(false);
@@ -69,39 +73,24 @@ export default function BrandsAdminPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-semibold text-slate-900">Brands</h1>
-      <p className="mt-1 text-sm text-slate-600">
-        For running more than one business through this helpdesk (e.g. Education Lincs and Schools Online). Assign a
-        Technician to a Brand and their ticket queue is scoped to just that Brand&apos;s tickets — leave a
-        Technician unassigned to any Brand and they keep seeing everything, as today. Admins always see everything.
-      </p>
-
-      <form onSubmit={create} className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-white p-5">
-        <div className="grid grid-cols-2 gap-3">
-          <input
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Brand name, e.g. Schools Online"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
-          />
-          <input
-            type="email"
-            value={supportEmail}
-            onChange={(e) => setSupportEmail(e.target.value)}
-            placeholder="Support email (optional)"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
-          />
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-900">Brands</h1>
+          <p className="mt-1 text-sm text-slate-600">
+            For running more than one business through this helpdesk (e.g. Education Lincs and Schools Online).
+            Assign a Technician to a Brand and their ticket queue is scoped to just that Brand&apos;s tickets — leave
+            a Technician unassigned to any Brand and they keep seeing everything, as today. Admins always see
+            everything.
+          </p>
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
         <button
-          type="submit"
-          disabled={submitting}
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          onClick={() => setOpen(true)}
+          className="flex shrink-0 items-center gap-1.5 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
         >
-          {submitting ? "Saving…" : "Add brand"}
+          <Plus size={16} />
+          Add brand
         </button>
-      </form>
+      </div>
 
       <div className="mt-6 space-y-4">
         {brands?.map((b) => (
@@ -143,6 +132,38 @@ export default function BrandsAdminPage() {
           </p>
         )}
       </div>
+
+      <SlideOver open={open} onClose={() => setOpen(false)} title="Add a brand" description="A separate business/trading name run through this same helpdesk.">
+        <form onSubmit={create} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Brand name</label>
+            <input
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Schools Online"
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Support email (optional)</label>
+            <input
+              type="email"
+              value={supportEmail}
+              onChange={(e) => setSupportEmail(e.target.value)}
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            />
+          </div>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {submitting ? "Saving…" : "Add brand"}
+          </button>
+        </form>
+      </SlideOver>
     </div>
   );
 }
