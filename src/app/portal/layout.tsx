@@ -11,7 +11,7 @@ export default async function PortalLayout({ children }: LayoutProps<"/portal">)
   const tenant = session.user.tenantId
     ? await prisma.tenant.findUnique({
         where: { id: session.user.tenantId },
-        select: { name: true, logoUrl: true, appName: true, sidebarColor: true, disabledNavItems: true },
+        select: { logoUrl: true, appName: true, sidebarColor: true, disabledNavItems: true },
       })
     : null;
 
@@ -20,7 +20,6 @@ export default async function PortalLayout({ children }: LayoutProps<"/portal">)
       <PortalNav
         role={session.user.role}
         userName={session.user.name ?? session.user.email ?? "Account"}
-        tenantName={tenant?.name ?? "Novadesk"}
         appName={tenant?.appName ?? "Novadesk"}
         hasLogo={Boolean(tenant?.logoUrl)}
         sidebarColor={tenant?.sidebarColor ?? null}

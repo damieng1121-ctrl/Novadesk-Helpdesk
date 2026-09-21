@@ -39,11 +39,19 @@ function describeApiError(data: { error?: string; issues?: { path: (string | num
   return data.error ?? "Something went wrong";
 }
 
+type PendingEdit = { role?: Role; companyId?: string | null };
+
 export default function UsersAdminPage() {
   const [tab, setTab] = useState<"users" | "companies">("users");
 
   const [users, setUsers] = useState<User[] | null>(null);
   const [companies, setCompanies] = useState<Company[] | null>(null);
+
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [companyFilter, setCompanyFilter] = useState("");
+  const [pending, setPending] = useState<Record<string, PendingEdit>>({});
+  const [savingId, setSavingId] = useState<string | null>(null);
 
   const [showInvite, setShowInvite] = useState(false);
   const [email, setEmail] = useState("");
@@ -74,12 +82,37 @@ export default function UsersAdminPage() {
   }, []);
 
   async function updateUser(id: string, patch: Partial<Pick<User, "role" | "isActive" | "companyId">>) {
-    await fetch(`/api/admin/users/${id}`, {
+    const res = await fetch(`/api/admin/users/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(patch),
     });
+    if (!res.ok) {
+      const data = await res.json();
+      alert(describeApiError(data));
+      return;
+    }
     loadUsers();
+  }
+
+  function stageEdit(id: string, patch: PendingEdit) {
+    setPending((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
+  }
+
+  async function saveEdit(id: string) {
+    const edit = pending[id];
+    if (!edit) return;
+    setSavingId(id);
+    try {
+      await updateUser(id, edit);
+      setPending((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    } finally {
+      setSavingId(null);
+    }
   }
 
   async function inviteUser(e: React.FormEvent) {
@@ -149,6 +182,17 @@ export default function UsersAdminPage() {
     loadUsers();
   }
 
+  const filterQuery = search.trim().toLowerCase();
+  const filteredUsers = (users ?? []).filter((u) => {
+    if (filterQuery && !(u.name?.toLowerCase().includes(filterQuery) || u.email?.toLowerCase().includes(filterQuery))) {
+      return false;
+    }
+    if (roleFilter && u.role !== roleFilter) return false;
+    if (companyFilter === "none" && u.companyId) return false;
+    if (companyFilter && companyFilter !== "none" && u.companyId !== companyFilter) return false;
+    return true;
+  });
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -176,7 +220,38 @@ export default function UsersAdminPage() {
 
       {tab === "users" && (
         <>
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search name or email…"
+                className="w-56 rounded-md border border-slate-300 px-3 py-2 text-sm"
+              />
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700"
+              >
+                <option value="">All roles</option>
+                <option value="REQUESTER">User</option>
+                <option value="AGENT">Technician</option>
+                <option value="TENANT_ADMIN">Admin</option>
+              </select>
+              <select
+                value={companyFilter}
+                onChange={(e) => setCompanyFilter(e.target.value)}
+                className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700"
+              >
+                <option value="">All companies</option>
+                <option value="none">No company</option>
+                {companies?.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
             <button
               onClick={() => setShowInvite(!showInvite)}
               className="shrink-0 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
@@ -246,7 +321,11 @@ export default function UsersAdminPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {users?.map((u) => (
+                {filteredUsers.map((u) => {
+                  const edit = pending[u.id];
+                  const effectiveCompanyId = edit?.companyId !== undefined ? edit.companyId : u.companyId;
+                  const effectiveRole = edit?.role ?? u.role;
+                  return (
                   <tr key={u.id}>
                     <td className="p-4">
                       <p className="font-medium text-slate-900">
@@ -261,8 +340,8 @@ export default function UsersAdminPage() {
                     </td>
                     <td className="p-4">
                       <select
-                        value={u.companyId ?? ""}
-                        onChange={(e) => updateUser(u.id, { companyId: e.target.value || null })}
+                        value={effectiveCompanyId ?? ""}
+                        onChange={(e) => stageEdit(u.id, { companyId: e.target.value || null })}
                         className="rounded-md border border-slate-300 px-2 py-1 text-sm"
                       >
                         <option value="">No company</option>
@@ -275,9 +354,9 @@ export default function UsersAdminPage() {
                     </td>
                     <td className="p-4">
                       <select
-                        value={u.role}
+                        value={effectiveRole}
                         disabled={u.role === "SUPER_ADMIN"}
-                        onChange={(e) => updateUser(u.id, { role: e.target.value as User["role"] })}
+                        onChange={(e) => stageEdit(u.id, { role: e.target.value as User["role"] })}
                         className="rounded-md border border-slate-300 px-2 py-1 text-sm"
                       >
                         <option value="REQUESTER">User</option>
@@ -298,21 +377,33 @@ export default function UsersAdminPage() {
                       </button>
                     </td>
                     <td className="p-4 text-right">
-                      {u.role !== "SUPER_ADMIN" && (
-                        <button
-                          onClick={() => removeUser(u.id, u.name ?? u.email ?? "this user")}
-                          className="text-xs text-red-600 hover:underline"
-                        >
-                          Delete
-                        </button>
-                      )}
+                      <div className="flex items-center justify-end gap-3">
+                        {edit && (
+                          <button
+                            onClick={() => saveEdit(u.id)}
+                            disabled={savingId === u.id}
+                            className="rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                          >
+                            {savingId === u.id ? "Saving…" : "Save"}
+                          </button>
+                        )}
+                        {u.role !== "SUPER_ADMIN" && (
+                          <button
+                            onClick={() => removeUser(u.id, u.name ?? u.email ?? "this user")}
+                            className="text-xs text-red-600 hover:underline"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
-                ))}
-                {users?.length === 0 && (
+                  );
+                })}
+                {filteredUsers.length === 0 && (
                   <tr>
                     <td colSpan={6} className="p-6 text-center text-sm text-slate-600">
-                      No users yet — invite someone above.
+                      {users?.length === 0 ? "No users yet — invite someone above." : "No users match these filters."}
                     </td>
                   </tr>
                 )}

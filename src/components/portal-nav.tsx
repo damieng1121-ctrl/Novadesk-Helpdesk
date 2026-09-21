@@ -131,7 +131,6 @@ function NavDropdown({
 export function PortalNav({
   role,
   userName,
-  tenantName,
   appName = "Novadesk",
   hasLogo = false,
   sidebarColor,
@@ -139,7 +138,6 @@ export function PortalNav({
 }: {
   role: Role;
   userName: string;
-  tenantName: string;
   appName?: string;
   hasLogo?: boolean;
   sidebarColor?: string | null;
@@ -171,7 +169,6 @@ export function PortalNav({
         )}
         <span className="hidden sm:inline">{appName}</span>
       </div>
-      <p className="hidden truncate pr-4 text-xs text-white/60 lg:block">{tenantName}</p>
 
       {/*
         No overflow-x-auto here on purpose: setting overflow-x without

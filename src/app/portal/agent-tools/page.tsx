@@ -89,119 +89,127 @@ export default function AgentToolsPage() {
   const customCommandsForOs = commands?.filter((c) => c.os === os) ?? [];
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-6xl">
       <h1 className="text-2xl font-semibold text-slate-900">Agent tools</h1>
       <p className="mt-1 text-sm text-slate-600">Quick-reference commands and admin console links for triaging tickets.</p>
 
-      <div className="mt-4 flex gap-1 border-b border-slate-200">
-        {OS_TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setOs(tab)}
-            className={`px-4 py-2 text-sm font-medium ${
-              os === tab ? "border-b-2 border-indigo-600 text-indigo-700" : "text-slate-700 hover:text-slate-900"
-            }`}
-          >
-            {AGENT_OS_LABELS[tab]}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-4 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
-        {DEFAULT_AGENT_COMMANDS[os].map((c) => (
-          <div key={c.title} className="flex items-start justify-between gap-3 p-4">
-            <div className="min-w-0">
-              <p className="font-medium text-slate-900">{c.title}</p>
-              <p className="mt-0.5 text-xs text-slate-700">{c.description}</p>
-              <code className="mt-1.5 block truncate rounded bg-slate-50 px-2 py-1 text-xs text-slate-700">{c.command}</code>
-            </div>
-            <CopyButton text={c.command} />
+      <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[1fr_22rem]">
+        <div>
+          <div className="flex gap-1 border-b border-slate-200">
+            {OS_TABS.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setOs(tab)}
+                className={`px-4 py-2 text-sm font-medium ${
+                  os === tab ? "border-b-2 border-indigo-600 text-indigo-700" : "text-slate-700 hover:text-slate-900"
+                }`}
+              >
+                {AGENT_OS_LABELS[tab]}
+              </button>
+            ))}
           </div>
-        ))}
-        {customCommandsForOs.map((c) => (
-          <div key={c.id} className="flex items-start justify-between gap-3 p-4">
-            <div className="min-w-0">
-              <p className="font-medium text-slate-900">{c.title}</p>
-              {c.description && <p className="mt-0.5 text-xs text-slate-700">{c.description}</p>}
-              <code className="mt-1.5 block truncate rounded bg-slate-50 px-2 py-1 text-xs text-slate-700">{c.command}</code>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <CopyButton text={c.command} />
-              {isAdmin && (
-                <button onClick={() => removeCommand(c.id)} className="text-xs text-red-600 hover:underline">
-                  Delete
+
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {DEFAULT_AGENT_COMMANDS[os].map((c) => (
+              <div key={c.title} className="flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4">
+                <div className="min-w-0">
+                  <p className="font-medium text-slate-900">{c.title}</p>
+                  <p className="mt-0.5 text-xs text-slate-700">{c.description}</p>
+                  <code className="mt-1.5 block truncate rounded bg-slate-50 px-2 py-1 text-xs text-slate-700">{c.command}</code>
+                </div>
+                <CopyButton text={c.command} />
+              </div>
+            ))}
+            {customCommandsForOs.map((c) => (
+              <div key={c.id} className="flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4">
+                <div className="min-w-0">
+                  <p className="font-medium text-slate-900">{c.title}</p>
+                  {c.description && <p className="mt-0.5 text-xs text-slate-700">{c.description}</p>}
+                  <code className="mt-1.5 block truncate rounded bg-slate-50 px-2 py-1 text-xs text-slate-700">{c.command}</code>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <CopyButton text={c.command} />
+                  {isAdmin && (
+                    <button onClick={() => removeCommand(c.id)} className="text-xs text-red-600 hover:underline">
+                      Delete
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {isAdmin && (
+            <div className="mt-3">
+              {showCommandForm ? (
+                <form onSubmit={createCommand} className="grid grid-cols-1 gap-2 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2">
+                  <input required value={cmdTitle} onChange={(e) => setCmdTitle(e.target.value)} placeholder="Title" className="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
+                  <input required value={cmdCommand} onChange={(e) => setCmdCommand(e.target.value)} placeholder="Command" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-mono sm:col-span-2" />
+                  <input value={cmdDescription} onChange={(e) => setCmdDescription(e.target.value)} placeholder="Description (optional)" className="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
+                  <div className="flex gap-2 sm:col-span-2">
+                    <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+                      Add for {AGENT_OS_LABELS[os]}
+                    </button>
+                    <button type="button" onClick={() => setShowCommandForm(false)} className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <button onClick={() => setShowCommandForm(true)} className="text-sm text-indigo-700 hover:underline">
+                  + Add a {AGENT_OS_LABELS[os]} command
                 </button>
               )}
             </div>
-          </div>
-        ))}
-      </div>
+          )}
+        </div>
 
-      {isAdmin && (
-        <div className="mt-3">
-          {showCommandForm ? (
-            <form onSubmit={createCommand} className="space-y-2 rounded-xl border border-slate-200 bg-white p-4">
-              <input required value={cmdTitle} onChange={(e) => setCmdTitle(e.target.value)} placeholder="Title" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-              <input required value={cmdCommand} onChange={(e) => setCmdCommand(e.target.value)} placeholder="Command" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-mono" />
-              <input value={cmdDescription} onChange={(e) => setCmdDescription(e.target.value)} placeholder="Description (optional)" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-              <div className="flex gap-2">
-                <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
-                  Add for {AGENT_OS_LABELS[os]}
-                </button>
-                <button type="button" onClick={() => setShowCommandForm(false)} className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
-                  Cancel
-                </button>
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">Admin console links</h2>
+          <div className="mt-3 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+            {DEFAULT_AGENT_CONSOLE_LINKS.map((l) => (
+              <a key={l.title} href={l.url} target="_blank" rel="noreferrer" className="block p-4 text-sm text-indigo-700 hover:bg-slate-50 hover:underline">
+                {l.title}
+              </a>
+            ))}
+            {links?.map((l) => (
+              <div key={l.id} className="flex items-center justify-between p-4">
+                <a href={l.url} target="_blank" rel="noreferrer" className="text-sm text-indigo-700 hover:underline">
+                  {l.title}
+                </a>
+                {isAdmin && (
+                  <button onClick={() => removeLink(l.id)} className="text-xs text-red-600 hover:underline">
+                    Delete
+                  </button>
+                )}
               </div>
-            </form>
-          ) : (
-            <button onClick={() => setShowCommandForm(true)} className="text-sm text-indigo-700 hover:underline">
-              + Add a {AGENT_OS_LABELS[os]} command
-            </button>
-          )}
-        </div>
-      )}
-
-      <h2 className="mt-8 text-lg font-semibold text-slate-900">Admin console links</h2>
-      <div className="mt-3 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
-        {DEFAULT_AGENT_CONSOLE_LINKS.map((l) => (
-          <a key={l.title} href={l.url} target="_blank" rel="noreferrer" className="block p-4 text-sm text-indigo-700 hover:bg-slate-50 hover:underline">
-            {l.title}
-          </a>
-        ))}
-        {links?.map((l) => (
-          <div key={l.id} className="flex items-center justify-between p-4">
-            <a href={l.url} target="_blank" rel="noreferrer" className="text-sm text-indigo-700 hover:underline">
-              {l.title}
-            </a>
-            {isAdmin && (
-              <button onClick={() => removeLink(l.id)} className="text-xs text-red-600 hover:underline">
-                Delete
-              </button>
-            )}
+            ))}
           </div>
-        ))}
-      </div>
 
-      {isAdmin && (
-        <div className="mt-3">
-          {showLinkForm ? (
-            <form onSubmit={createLink} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-4">
-              <input required value={linkTitle} onChange={(e) => setLinkTitle(e.target.value)} placeholder="Title" className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
-              <input required type="url" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://…" className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
-              <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
-                Add
-              </button>
-              <button type="button" onClick={() => setShowLinkForm(false)} className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
-                Cancel
-              </button>
-            </form>
-          ) : (
-            <button onClick={() => setShowLinkForm(true)} className="text-sm text-indigo-700 hover:underline">
-              + Add a console link
-            </button>
+          {isAdmin && (
+            <div className="mt-3">
+              {showLinkForm ? (
+                <form onSubmit={createLink} className="space-y-2 rounded-xl border border-slate-200 bg-white p-4">
+                  <input required value={linkTitle} onChange={(e) => setLinkTitle(e.target.value)} placeholder="Title" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
+                  <input required type="url" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://…" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
+                  <div className="flex gap-2">
+                    <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+                      Add
+                    </button>
+                    <button type="button" onClick={() => setShowLinkForm(false)} className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <button onClick={() => setShowLinkForm(true)} className="text-sm text-indigo-700 hover:underline">
+                  + Add a console link
+                </button>
+              )}
+            </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
