@@ -26,6 +26,7 @@ services:
       - "3000:3000"
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/novadesk
+      DIRECT_URL: postgresql://postgres:postgres@db:5432/novadesk
       AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env — generate with openssl rand -base64 32}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?set GOOGLE_CLIENT_ID in .env}

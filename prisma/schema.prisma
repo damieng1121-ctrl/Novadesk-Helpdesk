@@ -12,7 +12,21 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // DATABASE_URL: the app's normal runtime connection — fine (preferred,
+  // even) to point this at a pooled connection (e.g. Neon's "-pooler"
+  // endpoint), since Cloud Run can run many container instances at once.
+  url = env("DATABASE_URL")
+  // DIRECT_URL: an *unpooled* connection, used only by `prisma migrate
+  // deploy`/`migrate dev` (docker-entrypoint.sh runs this on every
+  // container start). Migrations need session-level Postgres features
+  // (advisory locks, prepared statements) that a PgBouncer-style pooler
+  // doesn't support — pointing migrations at a pooled connection is a
+  // well-known way for `migrate deploy` to hang or fail silently.
+  // DIRECT_URL must actually be set wherever DATABASE_URL is (see
+  // .env.example / docker-compose.yml) — docker-entrypoint.sh additionally
+  // falls back to DATABASE_URL if it's missing, but that fallback doesn't
+  // reach a bare `npx prisma ...` run outside that script.
+  directUrl = env("DIRECT_URL")
 }
 
 // ---------------------------------------------------------------------------
