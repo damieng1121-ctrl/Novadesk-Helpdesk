@@ -39,7 +39,10 @@ export async function POST(req: Request, { params }: Params) {
     // Reopen a resolved/closed ticket if the requester who raised it replies
     // again — a company-mate who can only view it shouldn't reopen it.
     if (isOwnTicket && (ticket.status === "RESOLVED" || ticket.status === "CLOSED")) {
-      await prisma.ticket.update({ where: { id }, data: { status: "OPEN", resolvedAt: null, closedAt: null } });
+      await prisma.ticket.update({
+        where: { id },
+        data: { status: "OPEN", resolvedAt: null, closedAt: null, slaBreachAlertedAt: null },
+      });
     }
 
     // Internal notes are staff-only chatter — don't email the requester about them.

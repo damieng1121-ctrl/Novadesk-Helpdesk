@@ -107,6 +107,9 @@ export async function PATCH(req: Request, { params }: Params) {
         // time whenever priority changes, so escalating/de-escalating a
         // ticket doesn't just reset the clock to "now".
         dueAt: body.priority ? computeDueAt(body.priority, existing.createdAt) : undefined,
+        // A changed due date (or reopening from resolved/closed) can breach
+        // again — let the scheduled check alert on it a second time.
+        slaBreachAlertedAt: body.priority || (body.status && body.status !== "RESOLVED" && body.status !== "CLOSED") ? null : undefined,
         resolvedAt: body.status === "RESOLVED" ? now : body.status ? null : undefined,
         closedAt: body.status === "CLOSED" ? now : body.status ? null : undefined,
       },

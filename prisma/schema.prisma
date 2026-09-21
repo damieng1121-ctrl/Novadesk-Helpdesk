@@ -316,6 +316,12 @@ model Ticket {
   dueAt        DateTime?
   resolvedAt   DateTime?
   closedAt     DateTime?
+  /// Set the first time an SLA-breach alert email goes out for this ticket
+  /// (see src/lib/triggers.ts) — stops the scheduled check from re-sending
+  /// the same alert on every run. Cleared whenever dueAt changes (priority
+  /// edited or ticket reopened) so a ticket can alert again if it breaches
+  /// a second time.
+  slaBreachAlertedAt DateTime?
   /// True if raised while the tenant's configured out-of-hours window was active
   isOutOfHours Boolean   @default(false)
   /// Soft-deleted tickets are hidden from normal views but recoverable from the trash bin

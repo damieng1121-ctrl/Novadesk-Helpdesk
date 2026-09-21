@@ -85,6 +85,27 @@ export async function notifyNewComment(
   );
 }
 
+export async function notifySlaBreach(ticket: TicketForNotification): Promise<void> {
+  const notifications = getNotificationProvider();
+  // The assignee if there is one, otherwise the whole team — same fallback
+  // as a requester's reply on an unassigned ticket.
+  const recipientEmails = ticket.assigneeId
+    ? [(await prisma.user.findUnique({ where: { id: ticket.assigneeId } }))?.email].filter(
+        (e): e is string => !!e,
+      )
+    : await tenantStaffEmails(ticket.tenantId);
+
+  await Promise.all(
+    recipientEmails.map((email) =>
+      notifications.send({
+        to: email,
+        subject: `SLA breached: ticket #${ticket.number} ${ticket.subject}`,
+        text: `This ticket has passed its SLA due date and is still open.\n\n${ticketUrl(ticket.id)}`,
+      }),
+    ),
+  );
+}
+
 export async function notifyTicketResolved(ticket: TicketForNotification): Promise<void> {
   const notifications = getNotificationProvider();
   const requester = await prisma.user.findUnique({ where: { id: ticket.requesterId } });
