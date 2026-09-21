@@ -53,6 +53,7 @@ export async function GET(req: Request) {
     if (categoryId) where.categoryId = categoryId;
     const brandFilter = searchParams.get("brandId");
     if (brandFilter) where.brandId = brandFilter;
+    if (searchParams.get("outOfHours") === "true") where.isOutOfHours = true;
     if (search) {
       conditions.push({
         OR: [

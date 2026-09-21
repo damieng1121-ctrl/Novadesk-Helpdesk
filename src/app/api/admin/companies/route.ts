@@ -4,14 +4,17 @@ import { withApiErrors } from "@/lib/api";
 import { prisma } from "@/lib/db";
 import { isAdmin } from "@/lib/roles";
 
+// Any signed-in tenant member can read the bare list (e.g. Reports' company
+// filter, staff-only but not admin-only); only an admin gets the per-company
+// user count, which isn't needed outside the management page.
 export async function GET() {
   return withApiErrors(async () => {
     const session = await requireTenantSession();
-    if (!isAdmin(session.user.role)) throw new AuthError("Only admins can view companies", 403);
+    const admin = isAdmin(session.user.role);
     return prisma.company.findMany({
       where: { tenantId: session.user.tenantId },
       orderBy: { name: "asc" },
-      include: { _count: { select: { users: true } } },
+      include: admin ? { _count: { select: { users: true } } } : undefined,
     });
   });
 }

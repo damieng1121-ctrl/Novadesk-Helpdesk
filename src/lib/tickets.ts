@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import { getAiProviderForTenant } from "@/lib/ai";
 import { computeDueAt } from "@/lib/sla";
 import { notifyTicketCreated } from "@/lib/notifications/events";
-import { isOutsideBusinessHours } from "@/lib/out-of-hours";
+import { isOutsideBusinessHours, dateKey } from "@/lib/out-of-hours";
 import type { TicketPriority, TicketType } from "@prisma/client";
 
 /**
@@ -22,15 +22,17 @@ export async function createTicket(input: {
 }) {
   const { tenantId, requesterId } = input;
 
-  const [categories, brands, tenant] = await Promise.all([
+  const [categories, brands, tenant, holidays] = await Promise.all([
     prisma.category.findMany({ where: { tenantId } }),
     prisma.brand.findMany({ where: { tenantId }, select: { id: true } }),
     prisma.tenant.findUniqueOrThrow({
       where: { id: tenantId },
       select: { outOfHoursEnabled: true, outOfHoursStart: true, outOfHoursEnd: true, outOfHoursWeekendOnly: true },
     }),
+    prisma.holiday.findMany({ where: { tenantId }, select: { date: true } }),
   ]);
-  const outOfHours = isOutsideBusinessHours(tenant);
+  const holidayDates = new Set(holidays.map((h) => dateKey(h.date)));
+  const outOfHours = isOutsideBusinessHours(tenant, new Date(), holidayDates);
   // Only trust a caller-supplied brandId if it's actually one of this
   // tenant's Brands; a single-brand helpdesk (the common case) gets that
   // one Brand automatically without anyone having to pick anything.

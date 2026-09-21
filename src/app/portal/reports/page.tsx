@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { TicketVolumeTrendChart } from "@/components/dashboard-charts";
 
 type Ranked = { label: string; count: number };
 type AgentRow = { name: string; open: number; resolved: number; avgResolutionHours: number | null };
+type Company = { id: string; name: string };
 
 type Summary = {
   totalTickets: number;
@@ -16,6 +18,7 @@ type Summary = {
   openOverdue: number;
   avgResolutionHours: number | null;
   resolvedSampleSize: number;
+  volumeTrend: { bucketBy: "day" | "week" | "month"; data: { label: string; created: number; resolved: number }[] };
 };
 
 const STATUS_ORDER = ["OPEN", "IN_PROGRESS", "ON_HOLD", "RESOLVED", "CLOSED"];
@@ -30,12 +33,22 @@ const RANGE_OPTIONS = [
 
 export default function ReportsPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [days, setDays] = useState(0);
-  const [tab, setTab] = useState<"overview" | "agents">("overview");
+  const [companyId, setCompanyId] = useState("");
+  const [tab, setTab] = useState<"overview" | "volume" | "agents">("overview");
+
+  useEffect(() => {
+    fetch("/api/admin/companies")
+      .then((r) => r.json())
+      .then(setCompanies);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/reports/summary?days=${days}`)
+    const qs = new URLSearchParams({ days: String(days) });
+    if (companyId) qs.set("companyId", companyId);
+    fetch(`/api/reports/summary?${qs.toString()}`)
       .then((r) => r.json())
       .then((data) => {
         if (!cancelled) setSummary(data);
@@ -43,9 +56,12 @@ export default function ReportsPage() {
     return () => {
       cancelled = true;
     };
-  }, [days]);
+  }, [days, companyId]);
 
   if (!summary) return <p className="text-sm text-slate-700">Loading…</p>;
+
+  const exportQs = new URLSearchParams({ days: String(days), ...(companyId ? { companyId } : {}) }).toString();
+  const selectedCompanyName = companies.find((c) => c.id === companyId)?.name;
 
   const maxStatusCount = Math.max(1, ...summary.byStatus.map((s) => s.count));
   const maxPriorityCount = Math.max(1, ...summary.byPriority.map((p) => p.count));
@@ -79,6 +95,12 @@ export default function ReportsPage() {
               Helpdesk Performance
             </button>
             <button
+              onClick={() => setTab("volume")}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "volume" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:text-slate-900"}`}
+            >
+              Ticket Volume
+            </button>
+            <button
               onClick={() => setTab("agents")}
               className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "agents" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:text-slate-900"}`}
             >
@@ -87,6 +109,18 @@ export default function ReportsPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <select
+            value={companyId}
+            onChange={(e) => setCompanyId(e.target.value)}
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+          >
+            <option value="">All schools/companies</option>
+            {companies.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
           <select
             value={days}
             onChange={(e) => setDays(Number(e.target.value))}
@@ -99,13 +133,22 @@ export default function ReportsPage() {
             ))}
           </select>
           <a
-            href={`/api/reports/export?days=${days}`}
+            href={`/api/reports/export?${exportQs}`}
             className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
             Export CSV
           </a>
         </div>
       </div>
+
+      {selectedCompanyName && (
+        <p className="mt-4 text-sm text-slate-600">
+          Showing <span className="font-medium text-slate-900">{selectedCompanyName}</span> only —{" "}
+          <button onClick={() => setCompanyId("")} className="text-indigo-600 hover:underline">
+            clear
+          </button>
+        </p>
+      )}
 
       {tab === "overview" && (
         <>
@@ -129,6 +172,16 @@ export default function ReportsPage() {
             )}
           </div>
         </>
+      )}
+
+      {tab === "volume" && (
+        <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
+          <h2 className="font-semibold text-slate-900">Tickets created vs resolved</h2>
+          <p className="mt-1 text-sm text-slate-600">Bucketed by {summary.volumeTrend.bucketBy} for this range.</p>
+          <div className="mt-4">
+            <TicketVolumeTrendChart data={summary.volumeTrend.data} />
+          </div>
+        </div>
       )}
 
       {tab === "agents" && (

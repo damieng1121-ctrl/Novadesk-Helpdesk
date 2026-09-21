@@ -25,6 +25,9 @@ import {
   User as UserIcon,
   LogOut,
   ChevronDown,
+  KeyRound,
+  ListChecks,
+  CalendarDays,
   type LucideIcon,
 } from "lucide-react";
 
@@ -44,10 +47,13 @@ const links = [
   { href: "/portal/finance", label: "Finance", icon: CreditCard, roles: ["TENANT_ADMIN", "AGENT", "SUPER_ADMIN"], group: "tools" },
   { href: "/portal/assets", label: "Assets", icon: Laptop, roles: ["TENANT_ADMIN", "AGENT", "SUPER_ADMIN"], group: "tools" },
   { href: "/portal/agent-tools", label: "Agent tools", icon: Wrench, roles: ["TENANT_ADMIN", "AGENT", "SUPER_ADMIN"], group: "tools" },
+  { href: "/portal/passwords", label: "Passwords", icon: KeyRound, roles: ["TENANT_ADMIN", "AGENT", "SUPER_ADMIN"], group: "tools" },
+  { href: "/portal/todos", label: "To-do list", icon: ListChecks, roles: ["TENANT_ADMIN", "AGENT", "SUPER_ADMIN"], group: "tools" },
   { href: "/portal/admin/announcements", label: "Announcements", icon: Megaphone, roles: ["TENANT_ADMIN", "SUPER_ADMIN"], group: "admin" },
   { href: "/portal/admin/canned-responses", label: "Canned responses", icon: MessageCircle, roles: ["TENANT_ADMIN", "SUPER_ADMIN"], group: "admin" },
   { href: "/portal/admin/categories", label: "Categories", icon: Tag, roles: ["TENANT_ADMIN", "SUPER_ADMIN"], group: "admin" },
   { href: "/portal/admin/brands", label: "Brands", icon: Building2, roles: ["TENANT_ADMIN", "SUPER_ADMIN"], group: "admin" },
+  { href: "/portal/admin/holidays", label: "Holidays", icon: CalendarDays, roles: ["TENANT_ADMIN", "SUPER_ADMIN"], group: "admin" },
   { href: "/portal/admin/trash", label: "Trash", icon: Trash2, roles: ["TENANT_ADMIN", "SUPER_ADMIN"], group: "admin" },
   { href: "/portal/admin/users", label: "Users & Companies", icon: Users, roles: ["TENANT_ADMIN", "SUPER_ADMIN"], group: "admin" },
   { href: "/portal/admin/settings", label: "Settings", icon: Settings, roles: ["TENANT_ADMIN", "SUPER_ADMIN"], group: "admin" },
@@ -60,6 +66,8 @@ export const TOGGLEABLE_NAV_ITEMS = [
   { href: "/portal/finance", label: "Finance" },
   { href: "/portal/assets", label: "Assets" },
   { href: "/portal/agent-tools", label: "Agent tools" },
+  { href: "/portal/passwords", label: "Passwords" },
+  { href: "/portal/todos", label: "To-do list" },
   { href: "/portal/admin/announcements", label: "Announcements" },
   { href: "/portal/admin/canned-responses", label: "Canned responses" },
 ] as const;

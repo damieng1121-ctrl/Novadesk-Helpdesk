@@ -174,6 +174,11 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
             {isOverdue(ticket.dueAt, ticket.status) && (
               <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">Overdue</span>
             )}
+            {ticket.isOutOfHours && (
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                Out of hours
+              </span>
+            )}
           </div>
         </div>
 

@@ -34,8 +34,10 @@ export async function GET(req: Request) {
     return Response.json({ error: "Only helpdesk staff can export reports" }, { status: 403 });
   }
 
-  const days = Number(new URL(req.url).searchParams.get("days") ?? "0") || null;
-  const rows = await buildReportRows(prisma, session.user.tenantId, days);
+  const { searchParams } = new URL(req.url);
+  const days = Number(searchParams.get("days") ?? "0") || null;
+  const companyId = searchParams.get("companyId") || null;
+  const rows = await buildReportRows(prisma, session.user.tenantId, days, companyId);
 
   const lines = [
     HEADERS.join(","),

@@ -82,6 +82,9 @@ model Tenant {
   cannedResponses       CannedResponse[]
   agentToolCommands     AgentToolCommand[]
   agentToolLinks        AgentToolLink[]
+  holidays              Holiday[]
+  passwordEntries       PasswordEntry[]
+  agentTodos            AgentTodo[]
 }
 
 enum SchoolPhase {
@@ -200,6 +203,8 @@ model User {
   forumRepliesAuthored          ForumReply[]
   assignedAssets                Asset[]
   announcementsCreated          Announcement[]
+  passwordEntriesCreated        PasswordEntry[]
+  todos                         AgentTodo[]
 
   @@index([tenantId])
 }
@@ -770,4 +775,68 @@ model AgentToolLink {
   url      String
 
   createdAt DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Holidays — bank/school holiday dates. A ticket raised on one of these
+// counts as out-of-hours regardless of time of day (see
+// src/lib/out-of-hours.ts), same treatment as a weekend.
+// ---------------------------------------------------------------------------
+
+model Holiday {
+  id       String   @id @default(cuid())
+  tenantId String
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  date     DateTime @db.Date
+  name     String
+
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, date])
+}
+
+// ---------------------------------------------------------------------------
+// Password vault — shared credentials for the IT team (admin consoles,
+// vendor logins, etc.), not customer-facing. Staff-only (AGENT/TENANT_ADMIN/
+// SUPER_ADMIN), same access level as Agent tools' console links, which this
+// is the natural extension of. The password itself is AES-256-GCM encrypted
+// at rest via src/lib/crypto.ts (same helper already used for TOTP secrets
+// and AI provider API keys) — never stored or returned in plaintext except
+// to an authenticated staff member explicitly asking to reveal one entry.
+// ---------------------------------------------------------------------------
+
+model PasswordEntry {
+  id                String   @id @default(cuid())
+  tenantId          String
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  title             String
+  username          String?
+  encryptedPassword String
+  url               String?
+  notes             String?  @db.Text
+
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Agent to-dos — a personal task list per technician/admin. Deliberately
+// not shared/assignable to others; that's what ticket assignment is for.
+// ---------------------------------------------------------------------------
+
+model AgentTodo {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text     String
+  isDone   Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }

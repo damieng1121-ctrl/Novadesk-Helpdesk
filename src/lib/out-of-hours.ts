@@ -10,8 +10,20 @@ function toMinutes(hhmm: string): number {
   return h * 60 + m;
 }
 
-export function isOutsideBusinessHours(config: OutOfHoursConfig, at: Date = new Date()): boolean {
+/** "YYYY-MM-DD" in the server's local calendar date — matches how Holiday.date is stored/compared. */
+export function dateKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+export function isOutsideBusinessHours(
+  config: OutOfHoursConfig,
+  at: Date = new Date(),
+  holidayDates: Set<string> = new Set(),
+): boolean {
   if (!config.outOfHoursEnabled) return false;
+
+  // A bank/school holiday counts as out-of-hours all day, same as a weekend.
+  if (holidayDates.has(dateKey(at))) return true;
 
   const day = at.getDay(); // 0 = Sunday, 6 = Saturday
   const isWeekend = day === 0 || day === 6;

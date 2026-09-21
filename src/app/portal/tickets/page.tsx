@@ -16,6 +16,7 @@ type Ticket = {
   dueAt: string | null;
   category: { name: string } | null;
   brand: { id: string; name: string } | null;
+  isOutOfHours: boolean;
   requester: { name: string | null; email: string | null };
   assignee: { name: string | null; email: string | null } | null;
 };
@@ -37,6 +38,7 @@ function TicketsList() {
   const [status, setStatus] = useState("");
   const [brands, setBrands] = useState<Brand[]>([]);
   const [brandId, setBrandId] = useState("");
+  const [outOfHoursOnly, setOutOfHoursOnly] = useState(false);
 
   useEffect(() => {
     fetch("/api/brands")
@@ -49,10 +51,11 @@ function TicketsList() {
     if (assignee) qs.set("assignee", assignee);
     if (status) qs.set("status", status);
     if (brandId) qs.set("brandId", brandId);
+    if (outOfHoursOnly) qs.set("outOfHours", "true");
     fetch(`/api/tickets?${qs.toString()}`)
       .then((r) => r.json())
       .then(setTickets);
-  }, [assignee, status, brandId]);
+  }, [assignee, status, brandId, outOfHoursOnly]);
 
   return (
     <div>
@@ -67,17 +70,32 @@ function TicketsList() {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        {["", "OPEN", "IN_PROGRESS", "ON_HOLD", "RESOLVED", "CLOSED"].map((s) => (
+        {[
+          { value: "", label: "All" },
+          { value: "OPEN", label: "Open" },
+          { value: "IN_PROGRESS", label: "In progress" },
+          { value: "ON_HOLD", label: "Pending" },
+          { value: "RESOLVED", label: "Resolved" },
+          { value: "CLOSED", label: "Closed" },
+        ].map((s) => (
           <button
-            key={s}
-            onClick={() => setStatus(s)}
+            key={s.value}
+            onClick={() => setStatus(s.value)}
             className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-              status === s ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
+              status === s.value ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
             } border border-slate-200`}
           >
-            {s ? s.replace("_", " ") : "All"}
+            {s.label}
           </button>
         ))}
+        <button
+          onClick={() => setOutOfHoursOnly((v) => !v)}
+          className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
+            outOfHoursOnly ? "border-amber-300 bg-amber-100 text-amber-800" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          Out of hours only
+        </button>
         {brands.length > 1 && (
           <select
             value={brandId}
@@ -119,6 +137,11 @@ function TicketsList() {
                     {isOverdue(t.dueAt, t.status) && (
                       <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
                         Overdue
+                      </span>
+                    )}
+                    {t.isOutOfHours && (
+                      <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                        Out of hours
                       </span>
                     )}
                   </div>

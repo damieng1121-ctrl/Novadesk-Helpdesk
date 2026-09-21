@@ -1,6 +1,20 @@
 "use client";
 
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  Legend,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 const STATUS_COLORS: Record<string, string> = {
   OPEN: "#3b82f6",
@@ -57,6 +71,34 @@ export function VolumeByPriorityChart({ byPriority }: { byPriority: { priority: 
           ))}
         </Bar>
       </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+// Created uses the app's brand indigo; resolved reuses the same green as
+// the "RESOLVED" status elsewhere on this page — same meaning, same colour.
+const CREATED_COLOR = "#6366f1";
+const RESOLVED_COLOR = "#22c55e";
+
+export function TicketVolumeTrendChart({
+  data,
+}: {
+  data: { label: string; created: number; resolved: number }[];
+}) {
+  if (data.length === 0) {
+    return <p className="flex h-64 items-center justify-center text-sm text-slate-600">No tickets in this range yet.</p>;
+  }
+  return (
+    <ResponsiveContainer width="100%" height={260}>
+      <LineChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+        <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#475569" }} axisLine={{ stroke: "#e2e8f0" }} tickLine={false} />
+        <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "#475569" }} axisLine={false} tickLine={false} />
+        <Tooltip contentStyle={{ borderRadius: 8, borderColor: "#e2e8f0", fontSize: 13 }} />
+        <Legend wrapperStyle={{ fontSize: 13 }} />
+        <Line type="monotone" dataKey="created" name="Created" stroke={CREATED_COLOR} strokeWidth={2} dot={false} />
+        <Line type="monotone" dataKey="resolved" name="Resolved" stroke={RESOLVED_COLOR} strokeWidth={2} dot={false} />
+      </LineChart>
     </ResponsiveContainer>
   );
 }
