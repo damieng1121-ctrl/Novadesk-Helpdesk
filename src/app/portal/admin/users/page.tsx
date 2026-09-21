@@ -131,6 +131,17 @@ export default function UsersAdminPage() {
     }
   }
 
+  async function removeUser(id: string, label: string) {
+    if (!confirm(`Delete "${label}"? This can't be undone.`)) return;
+    const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json();
+      alert(describeApiError(data));
+      return;
+    }
+    loadUsers();
+  }
+
   async function removeCompany(id: string, name: string) {
     if (!confirm(`Delete "${name}"? Users keep their account but lose this company tag.`)) return;
     await fetch(`/api/admin/companies/${id}`, { method: "DELETE" });
@@ -231,6 +242,7 @@ export default function UsersAdminPage() {
                   <th className="p-4">Role</th>
                   <th className="p-4">2FA</th>
                   <th className="p-4">Status</th>
+                  <th className="p-4"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -285,11 +297,21 @@ export default function UsersAdminPage() {
                         {u.isActive ? "Active" : "Disabled"}
                       </button>
                     </td>
+                    <td className="p-4 text-right">
+                      {u.role !== "SUPER_ADMIN" && (
+                        <button
+                          onClick={() => removeUser(u.id, u.name ?? u.email ?? "this user")}
+                          className="text-xs text-red-600 hover:underline"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
                 {users?.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="p-6 text-center text-sm text-slate-600">
+                    <td colSpan={6} className="p-6 text-center text-sm text-slate-600">
                       No users yet — invite someone above.
                     </td>
                   </tr>
