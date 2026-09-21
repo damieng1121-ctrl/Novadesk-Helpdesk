@@ -457,9 +457,57 @@ async function seedSingleOrg() {
   );
 }
 
+/**
+ * The DfE "compliance checklist" module (ComplianceStandard/ComplianceItem,
+ * still seeded above and still reachable at /portal/compliance) turned out
+ * not to match how Education Lincs actually wants to use this material —
+ * as reference, not something staff tick off. Rather than build a whole
+ * second content system, this reuses the same STANDARDS data to seed a
+ * "DfE Guidance" Knowledge Base category: one published article per
+ * standard, listing its checklist items as read-only guidance with their
+ * priority and any extra detail, plus a link to the official GOV.UK page.
+ */
+async function seedDfeGuidanceKb() {
+  const tenant = await prisma.tenant.findUniqueOrThrow({ where: { slug: "novadesk" } });
+  const author = await prisma.user.findUniqueOrThrow({ where: { email: "damieng1121@gmail.com" } });
+
+  const category = await prisma.kbCategory.upsert({
+    where: { tenantId_slug: { tenantId: tenant.id, slug: "dfe-guidance" } },
+    create: { tenantId: tenant.id, name: "DfE Guidance", slug: "dfe-guidance" },
+    update: { name: "DfE Guidance" },
+  });
+
+  for (const standard of STANDARDS) {
+    const itemLines = standard.items
+      .map((item) => {
+        const guidance = "guidance" in item && item.guidance ? ` ${item.guidance}` : "";
+        return `- **${item.title}** (${item.priority}) — ${item.description}${guidance}`;
+      })
+      .join("\n");
+    const content = `${standard.description}\n\n${itemLines}\n\nOfficial DfE guidance: ${standard.officialUrl}`;
+
+    await prisma.kbArticle.upsert({
+      where: { tenantId_slug: { tenantId: tenant.id, slug: standard.code } },
+      create: {
+        tenantId: tenant.id,
+        categoryId: category.id,
+        title: standard.title,
+        slug: standard.code,
+        content,
+        status: "PUBLISHED",
+        authorId: author.id,
+      },
+      update: { title: standard.title, content, categoryId: category.id },
+    });
+  }
+
+  console.log(`Seeded 'DfE Guidance' KB category with ${STANDARDS.length} articles.`);
+}
+
 async function main() {
   await seedComplianceCatalogue();
   await seedSingleOrg();
+  await seedDfeGuidanceKb();
 }
 
 main()
