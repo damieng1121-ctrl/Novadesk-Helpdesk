@@ -36,15 +36,15 @@ export function SlideOver({
   return (
     <div className="fixed inset-0 z-30 flex justify-end">
       <div className="absolute inset-0 bg-slate-900/30" onClick={onClose} aria-hidden />
-      <div className="relative flex h-full w-full max-w-md flex-col bg-white shadow-xl">
-        <div className="flex items-start justify-between border-b border-slate-200 p-5">
+      <div className="relative flex h-full w-full max-w-md flex-col bg-white shadow-xl dark:bg-slate-900">
+        <div className="flex items-start justify-between border-b border-slate-200 p-5 dark:border-slate-800">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-            {description && <p className="mt-1 text-sm text-slate-600">{description}</p>}
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
+            {description && <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{description}</p>}
           </div>
           <button
             onClick={onClose}
-            className="rounded-md p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-md p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300 dark:hover:bg-slate-800"
             aria-label="Close"
           >
             <X size={18} />

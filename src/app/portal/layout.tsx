@@ -25,7 +25,7 @@ export default async function PortalLayout({ children }: LayoutProps<"/portal">)
         sidebarColor={tenant?.sidebarColor ?? null}
         disabledNavItems={tenant?.disabledNavItems ?? []}
       />
-      <main className="flex-1 bg-slate-50 p-8">{children}</main>
+      <main className="flex-1 bg-slate-50 p-8 dark:bg-slate-950">{children}</main>
     </div>
   );
 }

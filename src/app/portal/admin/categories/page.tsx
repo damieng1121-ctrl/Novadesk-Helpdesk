@@ -57,8 +57,8 @@ export default function CategoriesAdminPage() {
     <div className="max-w-2xl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Categories</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Categories</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             Ticket categories used for triage, filtering, and reporting — shown to Users when they raise a ticket.
           </p>
         </div>
@@ -71,14 +71,14 @@ export default function CategoriesAdminPage() {
         </button>
       </div>
 
-      <div className="mt-6 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+      <div className="mt-6 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
         {categories?.map((c) => (
           <div key={c.id} className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
               <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: c.color }} />
               <div>
-                <p className="font-medium text-slate-900">{c.name}</p>
-                {c.description && <p className="text-xs text-slate-600">{c.description}</p>}
+                <p className="font-medium text-slate-900 dark:text-slate-100">{c.name}</p>
+                {c.description && <p className="text-xs text-slate-600 dark:text-slate-400">{c.description}</p>}
               </div>
             </div>
             <button onClick={() => remove(c.id)} className="text-xs text-red-600 hover:underline">
@@ -86,35 +86,35 @@ export default function CategoriesAdminPage() {
             </button>
           </div>
         ))}
-        {categories?.length === 0 && <p className="p-6 text-sm text-slate-700">No categories yet.</p>}
+        {categories?.length === 0 && <p className="p-6 text-sm text-slate-700 dark:text-slate-300">No categories yet.</p>}
       </div>
 
       <SlideOver open={open} onClose={() => setOpen(false)} title="Add a category" description="Used for triage, filtering, and reporting — shown to Users when they raise a ticket.">
         <form onSubmit={create} className="space-y-4">
           <div className="flex items-end gap-3">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-slate-700">Name</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Name</label>
               <input
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Printers"
-                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
               />
             </div>
             <input
               type="color"
               value={color}
               onChange={(e) => setColor(e.target.value)}
-              className="h-10 w-14 shrink-0 rounded-md border border-slate-300"
+              className="h-10 w-14 shrink-0 rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Description (optional)</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Description (optional)</label>
             <input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
             />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}

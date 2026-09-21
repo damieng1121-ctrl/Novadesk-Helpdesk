@@ -39,22 +39,22 @@ export default function ForumCategoryPage({ params }: PageProps<"/portal/forums/
         </Link>
       </div>
 
-      <div className="mt-4 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+      <div className="mt-4 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
         {topics?.map((t) => (
-          <Link key={t.id} href={`/portal/forums/${categoryId}/${t.id}`} className="block p-4 hover:bg-slate-50">
+          <Link key={t.id} href={`/portal/forums/${categoryId}/${t.id}`} className="block p-4 hover:bg-slate-50 dark:hover:bg-slate-800">
             <div className="flex items-center justify-between">
-              <p className="font-medium text-slate-900">
+              <p className="font-medium text-slate-900 dark:text-slate-100">
                 {t.pinned && <span className="mr-2 text-xs text-indigo-600">PINNED</span>}
                 {t.title}
               </p>
-              <p className="text-xs text-slate-600">{t._count.replies} replies · {t.views} views</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">{t._count.replies} replies · {t.views} views</p>
             </div>
-            <p className="mt-1 text-xs text-slate-700">
+            <p className="mt-1 text-xs text-slate-700 dark:text-slate-300">
               {t.author.name ?? t.author.email} · {new Date(t.updatedAt).toLocaleDateString("en-GB")}
             </p>
           </Link>
         ))}
-        {topics?.length === 0 && <p className="p-6 text-sm text-slate-700">No topics yet — start the conversation.</p>}
+        {topics?.length === 0 && <p className="p-6 text-sm text-slate-700 dark:text-slate-300">No topics yet — start the conversation.</p>}
       </div>
     </div>
   );

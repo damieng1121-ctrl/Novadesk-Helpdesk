@@ -44,7 +44,7 @@ export default function ForumsPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-900">Forums</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Forums</h1>
         {isAdmin && (
           <button onClick={() => setShowForm(!showForm)} className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
             {showForm ? "Cancel" : "New category"}
@@ -53,10 +53,10 @@ export default function ForumsPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={createCategory} className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-white p-5">
-          <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Category title" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description (optional)" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <select value={visibility} onChange={(e) => setVisibility(e.target.value as "PUBLIC" | "INTERNAL")} className="rounded-md border border-slate-300 px-3 py-2 text-sm">
+        <form onSubmit={createCategory} className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Category title" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
+          <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description (optional)" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
+          <select value={visibility} onChange={(e) => setVisibility(e.target.value as "PUBLIC" | "INTERNAL")} className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500">
             <option value="PUBLIC">Public (visible to everyone)</option>
             <option value="INTERNAL">Internal (staff only)</option>
           </select>
@@ -68,18 +68,18 @@ export default function ForumsPage() {
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {categories?.map((c) => (
-          <Link key={c.id} href={`/portal/forums/${c.id}`} className="rounded-xl border border-slate-200 bg-white p-5 hover:border-indigo-300">
+          <Link key={c.id} href={`/portal/forums/${c.id}`} className="rounded-xl border border-slate-200 bg-white p-5 hover:border-indigo-300 dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-slate-900">{c.title}</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-slate-100">{c.title}</h3>
               {c.visibility === "INTERNAL" && (
-                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">Staff only</span>
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400 dark:bg-amber-950">Staff only</span>
               )}
             </div>
-            {c.description && <p className="mt-1 text-sm text-slate-700">{c.description}</p>}
-            <p className="mt-2 text-xs text-slate-600">{c._count.topics} topic{c._count.topics === 1 ? "" : "s"}</p>
+            {c.description && <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">{c.description}</p>}
+            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">{c._count.topics} topic{c._count.topics === 1 ? "" : "s"}</p>
           </Link>
         ))}
-        {categories?.length === 0 && <p className="text-sm text-slate-700">No forum categories yet.</p>}
+        {categories?.length === 0 && <p className="text-sm text-slate-700 dark:text-slate-300">No forum categories yet.</p>}
       </div>
     </div>
   );

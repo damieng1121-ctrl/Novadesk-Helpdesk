@@ -84,9 +84,9 @@ export function NotificationBell() {
         )}
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-20 mt-1 w-80 rounded-lg border border-slate-200 bg-white shadow-lg">
-          <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
-            <p className="text-sm font-medium text-slate-900">Notifications</p>
+        <div className="absolute right-0 top-full z-20 mt-1 w-80 rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2 dark:border-slate-800">
+            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Notifications</p>
             {unreadCount > 0 && (
               <button onClick={markAllRead} className="text-xs text-indigo-600 hover:underline">
                 Mark all read
@@ -94,7 +94,7 @@ export function NotificationBell() {
             )}
           </div>
           <div className="max-h-96 overflow-y-auto">
-            {notifications.length === 0 && <p className="p-4 text-sm text-slate-600">No notifications yet.</p>}
+            {notifications.length === 0 && <p className="p-4 text-sm text-slate-600 dark:text-slate-400">No notifications yet.</p>}
             {notifications.map((n) => (
               <Link
                 key={n.id}
@@ -104,16 +104,16 @@ export function NotificationBell() {
                   setOpen(false);
                 }}
                 className={clsx(
-                  "block border-b border-slate-50 px-3 py-2.5 text-sm hover:bg-slate-50",
-                  !n.isRead && "bg-indigo-50/60",
+                  "block border-b border-slate-50 px-3 py-2.5 text-sm hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800",
+                  !n.isRead && "bg-indigo-50/60 dark:bg-indigo-950/40",
                 )}
               >
                 <div className="flex items-start gap-2">
                   {!n.isRead && <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-600" />}
                   <div className="min-w-0">
-                    <p className={clsx("text-slate-900", !n.isRead && "font-medium")}>{n.title}</p>
-                    {n.body && <p className="mt-0.5 text-xs text-slate-600">{n.body}</p>}
-                    <p className="mt-0.5 text-xs text-slate-500">{timeAgo(n.createdAt)}</p>
+                    <p className={clsx("text-slate-900 dark:text-slate-100", !n.isRead && "font-medium")}>{n.title}</p>
+                    {n.body && <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">{n.body}</p>}
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-500">{timeAgo(n.createdAt)}</p>
                   </div>
                 </div>
               </Link>

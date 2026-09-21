@@ -25,7 +25,7 @@ type Brand = { id: string; name: string };
 
 export default function TicketsPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-slate-700">Loading…</p>}>
+    <Suspense fallback={<p className="text-sm text-slate-700 dark:text-slate-300">Loading…</p>}>
       <TicketsList />
     </Suspense>
   );
@@ -60,7 +60,7 @@ function TicketsList() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-900">Tickets</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Tickets</h1>
         <Link
           href="/portal/tickets/new"
           className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
@@ -82,8 +82,10 @@ function TicketsList() {
             key={s.value}
             onClick={() => setStatus(s.value)}
             className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-              status === s.value ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
-            } border border-slate-200`}
+              status === s.value
+                ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                : "bg-white text-slate-600 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800"
+            } border border-slate-200 dark:border-slate-800`}
           >
             {s.label}
           </button>
@@ -91,7 +93,9 @@ function TicketsList() {
         <button
           onClick={() => setOutOfHoursOnly((v) => !v)}
           className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
-            outOfHoursOnly ? "border-amber-300 bg-amber-100 text-amber-800" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+            outOfHoursOnly
+              ? "border-amber-300 bg-amber-100 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300"
+              : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800"
           }`}
         >
           Out of hours only
@@ -100,7 +104,7 @@ function TicketsList() {
           <select
             value={brandId}
             onChange={(e) => setBrandId(e.target.value)}
-            className="rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-600"
+            className="rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-400"
           >
             <option value="">All brands</option>
             {brands.map((b) => (
@@ -112,18 +116,18 @@ function TicketsList() {
         )}
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
-        {tickets === null && <p className="p-6 text-sm text-slate-700">Loading…</p>}
-        {tickets?.length === 0 && <p className="p-6 text-sm text-slate-700">No tickets found.</p>}
+      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        {tickets === null && <p className="p-6 text-sm text-slate-700 dark:text-slate-300">Loading…</p>}
+        {tickets?.length === 0 && <p className="p-6 text-sm text-slate-700 dark:text-slate-300">No tickets found.</p>}
         <table className="w-full text-left text-sm">
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {tickets?.map((t) => (
               <tr key={t.id}>
                 <td className="p-4">
-                  <Link href={`/portal/tickets/${t.id}`} className="font-medium text-slate-900 hover:text-indigo-600">
+                  <Link href={`/portal/tickets/${t.id}`} className="font-medium text-slate-900 hover:text-indigo-600 dark:text-slate-100">
                     #{t.number} {t.subject}
                   </Link>
-                  <p className="mt-0.5 text-xs text-slate-700">
+                  <p className="mt-0.5 text-xs text-slate-700 dark:text-slate-300">
                     {t.category?.name ?? "Uncategorised"} · {t.requester.name ?? t.requester.email}
                     {t.brand && <> · {t.brand.name}</>}
                   </p>
@@ -135,19 +139,19 @@ function TicketsList() {
                   <div className="flex items-center gap-2">
                     <StatusBadge status={t.status as never} />
                     {isOverdue(t.dueAt, t.status) && (
-                      <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
+                      <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700 dark:text-red-400 dark:bg-red-950">
                         Overdue
                       </span>
                     )}
                     {t.isOutOfHours && (
-                      <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                      <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-300 dark:bg-amber-950">
                         Out of hours
                       </span>
                     )}
                   </div>
                 </td>
-                <td className="p-4 text-slate-700">{t.assignee?.name ?? "Unassigned"}</td>
-                <td className="p-4 text-slate-600">{new Date(t.createdAt).toLocaleDateString("en-GB")}</td>
+                <td className="p-4 text-slate-700 dark:text-slate-300">{t.assignee?.name ?? "Unassigned"}</td>
+                <td className="p-4 text-slate-600 dark:text-slate-400">{new Date(t.createdAt).toLocaleDateString("en-GB")}</td>
               </tr>
             ))}
           </tbody>

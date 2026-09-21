@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Manual (class-based) dark mode instead of Tailwind v4's default
+   prefers-color-scheme-only `dark:` — toggled by the `dark` class on
+   <html>, set from localStorage by the inline script in layout.tsx. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

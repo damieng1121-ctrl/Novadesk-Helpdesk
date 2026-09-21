@@ -14,10 +14,10 @@ type Asset = {
 };
 
 const STATUS_STYLES: Record<Asset["status"], string> = {
-  ACTIVE: "bg-green-100 text-green-700",
-  IN_REPAIR: "bg-amber-100 text-amber-700",
-  RETIRED: "bg-slate-100 text-slate-700",
-  LOST: "bg-red-100 text-red-700",
+  ACTIVE: "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
+  IN_REPAIR: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
+  RETIRED: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+  LOST: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
 };
 
 export default function AssetsPage() {
@@ -87,21 +87,21 @@ export default function AssetsPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-900">Assets inventory</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Assets inventory</h1>
         <button onClick={() => setShowForm(!showForm)} className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
           {showForm ? "Cancel" : "Add asset"}
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={createAsset} className="mt-4 grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2">
-          <input required value={tag} onChange={(e) => setTag(e.target.value)} placeholder="Asset tag" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (e.g. Year 3 laptop 4)" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="Model" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <input value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} placeholder="Serial number" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+        <form onSubmit={createAsset} className="mt-4 grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2 dark:border-slate-800 dark:bg-slate-900">
+          <input required value={tag} onChange={(e) => setTag(e.target.value)} placeholder="Asset tag" className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
+          <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (e.g. Year 3 laptop 4)" className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
+          <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="Model" className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
+          <input value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} placeholder="Serial number" className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
           <div>
-            <label className="block text-xs text-slate-700">Warranty expiry</label>
-            <input type="date" value={warrantyExpiry} onChange={(e) => setWarrantyExpiry(e.target.value)} className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
+            <label className="block text-xs text-slate-700 dark:text-slate-300">Warranty expiry</label>
+            <input type="date" value={warrantyExpiry} onChange={(e) => setWarrantyExpiry(e.target.value)} className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
           </div>
           <button type="submit" disabled={submitting} className="sm:col-span-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50">
             {submitting ? "Saving…" : "Add asset"}
@@ -113,12 +113,12 @@ export default function AssetsPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search by name, tag, or serial…"
-        className="mt-4 w-full max-w-md rounded-md border border-slate-300 px-3 py-2 text-sm"
+        className="mt-4 w-full max-w-md rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
       />
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-600">
+          <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-600 dark:border-slate-800 dark:text-slate-400">
             <tr>
               <th className="p-4">Tag / Name</th>
               <th className="p-4">Model / Serial</th>
@@ -127,18 +127,18 @@ export default function AssetsPage() {
               <th className="p-4"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {filtered?.map((a) => (
               <tr key={a.id}>
                 <td className="p-4">
-                  <p className="font-medium text-slate-900">{a.name}</p>
-                  <p className="text-xs text-slate-700">{a.tag}</p>
+                  <p className="font-medium text-slate-900 dark:text-slate-100">{a.name}</p>
+                  <p className="text-xs text-slate-700 dark:text-slate-300">{a.tag}</p>
                 </td>
-                <td className="p-4 text-slate-600">
+                <td className="p-4 text-slate-600 dark:text-slate-400">
                   <p>{a.model ?? "—"}</p>
-                  <p className="text-xs text-slate-600">{a.serialNumber ?? ""}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400">{a.serialNumber ?? ""}</p>
                 </td>
-                <td className="p-4 text-slate-600">
+                <td className="p-4 text-slate-600 dark:text-slate-400">
                   {a.warrantyExpiry ? new Date(a.warrantyExpiry).toLocaleDateString("en-GB") : "—"}
                 </td>
                 <td className="p-4">
@@ -163,7 +163,7 @@ export default function AssetsPage() {
             ))}
             {filtered?.length === 0 && (
               <tr>
-                <td colSpan={5} className="p-6 text-center text-sm text-slate-700">
+                <td colSpan={5} className="p-6 text-center text-sm text-slate-700 dark:text-slate-300">
                   No assets found.
                 </td>
               </tr>

@@ -62,37 +62,37 @@ export default function NewTicketPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-semibold text-slate-900">Raise a ticket</h1>
-      <form onSubmit={onSubmit} className="mt-6 space-y-5 rounded-xl border border-slate-200 bg-white p-6">
+      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Raise a ticket</h1>
+      <form onSubmit={onSubmit} className="mt-6 space-y-5 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
         <div>
-          <label className="block text-sm font-medium text-slate-700">Subject</label>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Subject</label>
           <input
             required
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="e.g. Interactive whiteboard in Year 3 not turning on"
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700">What&apos;s happening?</label>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">What&apos;s happening?</label>
           <textarea
             required
             rows={5}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Tell us what you were doing, what happened, and which room/device it's affecting."
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
           />
         </div>
         {brands.length > 1 && (
           <div>
-            <label className="block text-sm font-medium text-slate-700">Who is this for?</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Who is this for?</label>
             <select
               required
               value={brandId}
               onChange={(e) => setBrandId(e.target.value)}
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
             >
               <option value="" disabled>
                 Choose one…
@@ -107,11 +107,11 @@ export default function NewTicketPage() {
         )}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700">Category</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Category</label>
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
             >
               <option value="">Let AI suggest / uncategorised</option>
               {categories.map((c) => (
@@ -122,11 +122,11 @@ export default function NewTicketPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Priority</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Priority</label>
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
             >
               <option value="LOW">Low</option>
               <option value="MEDIUM">Medium</option>
@@ -136,11 +136,11 @@ export default function NewTicketPage() {
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700">Attach a photo or file (optional)</label>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Attach a photo or file (optional)</label>
           <input
             type="file"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            className="mt-1 w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border file:border-slate-300 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-50"
+            className="mt-1 w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border file:border-slate-300 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-50 dark:text-slate-400 dark:file:border-slate-700 dark:file:bg-slate-900 dark:file:text-slate-300 hover:file:dark:bg-slate-800"
           />
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}

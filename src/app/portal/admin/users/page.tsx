@@ -197,21 +197,21 @@ export default function UsersAdminPage() {
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Users &amp; Companies</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Users &amp; Companies</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             This is an invite-only helpdesk — sign-in only works for an email you&apos;ve added here.
           </p>
         </div>
-        <div className="flex gap-1 rounded-lg border border-slate-200 bg-white p-1">
+        <div className="flex gap-1 rounded-lg border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-900">
           <button
             onClick={() => setTab("users")}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "users" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:text-slate-900"}`}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "users" ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300" : "text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"}`}
           >
             Users
           </button>
           <button
             onClick={() => setTab("companies")}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "companies" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:text-slate-900"}`}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "companies" ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300" : "text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"}`}
           >
             Companies
           </button>
@@ -226,12 +226,12 @@ export default function UsersAdminPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search name or email…"
-                className="w-56 rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="w-56 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
               />
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700"
+                className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:text-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
               >
                 <option value="">All roles</option>
                 <option value="REQUESTER">User</option>
@@ -241,7 +241,7 @@ export default function UsersAdminPage() {
               <select
                 value={companyFilter}
                 onChange={(e) => setCompanyFilter(e.target.value)}
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700"
+                className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:text-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
               >
                 <option value="">All companies</option>
                 <option value="none">No company</option>
@@ -261,25 +261,25 @@ export default function UsersAdminPage() {
           </div>
 
           {showInvite && (
-            <form onSubmit={inviteUser} className="mt-3 grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-4">
+            <form onSubmit={inviteUser} className="mt-3 grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-4 dark:border-slate-800 dark:bg-slate-900">
               <input
                 required
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email address"
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
               />
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Name (optional)"
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
               />
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value as typeof role)}
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
               >
                 <option value="REQUESTER">User</option>
                 <option value="AGENT">Technician</option>
@@ -288,7 +288,7 @@ export default function UsersAdminPage() {
               <select
                 value={companyId}
                 onChange={(e) => setCompanyId(e.target.value)}
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
               >
                 <option value="">No company</option>
                 {companies?.map((c) => (
@@ -308,9 +308,9 @@ export default function UsersAdminPage() {
             </form>
           )}
 
-          <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-600">
+              <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-600 dark:border-slate-800 dark:text-slate-400">
                 <tr>
                   <th className="p-4">Name</th>
                   <th className="p-4">Company</th>
@@ -320,7 +320,7 @@ export default function UsersAdminPage() {
                   <th className="p-4"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {filteredUsers.map((u) => {
                   const edit = pending[u.id];
                   const effectiveCompanyId = edit?.companyId !== undefined ? edit.companyId : u.companyId;
@@ -328,21 +328,21 @@ export default function UsersAdminPage() {
                   return (
                   <tr key={u.id}>
                     <td className="p-4">
-                      <p className="font-medium text-slate-900">
+                      <p className="font-medium text-slate-900 dark:text-slate-100">
                         {u.name ?? "—"}
                         {u._count.accounts === 0 && (
-                          <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                          <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400 dark:bg-amber-950">
                             Pending sign-in
                           </span>
                         )}
                       </p>
-                      <p className="text-xs text-slate-700">{u.email}</p>
+                      <p className="text-xs text-slate-700 dark:text-slate-300">{u.email}</p>
                     </td>
                     <td className="p-4">
                       <select
                         value={effectiveCompanyId ?? ""}
                         onChange={(e) => stageEdit(u.id, { companyId: e.target.value || null })}
-                        className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+                        className="rounded-md border border-slate-300 px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
                       >
                         <option value="">No company</option>
                         {companies?.map((c) => (
@@ -357,7 +357,7 @@ export default function UsersAdminPage() {
                         value={effectiveRole}
                         disabled={u.role === "SUPER_ADMIN"}
                         onChange={(e) => stageEdit(u.id, { role: e.target.value as User["role"] })}
-                        className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+                        className="rounded-md border border-slate-300 px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
                       >
                         <option value="REQUESTER">User</option>
                         <option value="AGENT">Technician</option>
@@ -365,12 +365,12 @@ export default function UsersAdminPage() {
                         {u.role === "SUPER_ADMIN" && <option value="SUPER_ADMIN">{ROLE_LABELS.SUPER_ADMIN}</option>}
                       </select>
                     </td>
-                    <td className="p-4 text-slate-700">{u.twoFactorEnabled ? "Enabled" : "Not set up"}</td>
+                    <td className="p-4 text-slate-700 dark:text-slate-300">{u.twoFactorEnabled ? "Enabled" : "Not set up"}</td>
                     <td className="p-4">
                       <button
                         onClick={() => updateUser(u.id, { isActive: !u.isActive })}
                         className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          u.isActive ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-700"
+                          u.isActive ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
                         }`}
                       >
                         {u.isActive ? "Active" : "Disabled"}
@@ -402,7 +402,7 @@ export default function UsersAdminPage() {
                 })}
                 {filteredUsers.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="p-6 text-center text-sm text-slate-600">
+                    <td colSpan={6} className="p-6 text-center text-sm text-slate-600 dark:text-slate-400">
                       {users?.length === 0 ? "No users yet — invite someone above." : "No users match these filters."}
                     </td>
                   </tr>
@@ -425,13 +425,13 @@ export default function UsersAdminPage() {
           </div>
 
           {showAddCompany && (
-            <form onSubmit={addCompany} className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-5">
+            <form onSubmit={addCompany} className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
               <input
                 required
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 placeholder="Company name (e.g. Willowbrook Primary School)"
-                className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
               />
               {companyError && <p className="w-full text-sm text-red-600">{companyError}</p>}
               <button
@@ -444,20 +444,20 @@ export default function UsersAdminPage() {
             </form>
           )}
 
-          <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-600">
+              <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-600 dark:border-slate-800 dark:text-slate-400">
                 <tr>
                   <th className="p-4">Company</th>
                   <th className="p-4">Users</th>
                   <th className="p-4"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {companies?.map((c) => (
                   <tr key={c.id}>
-                    <td className="p-4 font-medium text-slate-900">{c.name}</td>
-                    <td className="p-4 text-slate-700">{c._count.users}</td>
+                    <td className="p-4 font-medium text-slate-900 dark:text-slate-100">{c.name}</td>
+                    <td className="p-4 text-slate-700 dark:text-slate-300">{c._count.users}</td>
                     <td className="p-4 text-right">
                       <button onClick={() => removeCompany(c.id, c.name)} className="text-xs text-red-600 hover:underline">
                         Delete
@@ -467,7 +467,7 @@ export default function UsersAdminPage() {
                 ))}
                 {companies?.length === 0 && (
                   <tr>
-                    <td colSpan={3} className="p-6 text-center text-sm text-slate-600">
+                    <td colSpan={3} className="p-6 text-center text-sm text-slate-600 dark:text-slate-400">
                       No companies yet — add one above to start tagging users.
                     </td>
                   </tr>

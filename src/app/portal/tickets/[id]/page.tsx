@@ -59,13 +59,13 @@ function AttachmentList({ ticketId, attachments }: { ticketId: string; attachmen
           href={`/api/tickets/${ticketId}/attachments/${a.id}`}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-700 hover:bg-slate-100"
+          className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
             <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
           </svg>
           {a.fileName}
-          {a.fileSize ? <span className="text-slate-600">({formatFileSize(a.fileSize)})</span> : null}
+          {a.fileSize ? <span className="text-slate-600 dark:text-slate-400">({formatFileSize(a.fileSize)})</span> : null}
         </a>
       ))}
     </div>
@@ -108,12 +108,12 @@ function SatisfactionCard({
 
   if (satisfaction) {
     return (
-      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
-        <p className="text-sm font-medium text-slate-900">Satisfaction rating</p>
+      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Satisfaction rating</p>
         <div className="mt-1.5">
           <StarRow rating={satisfaction.rating} />
         </div>
-        {satisfaction.comment && <p className="mt-2 text-sm text-slate-600">{satisfaction.comment}</p>}
+        {satisfaction.comment && <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{satisfaction.comment}</p>}
       </div>
     );
   }
@@ -134,8 +134,8 @@ function SatisfactionCard({
   }
 
   return (
-    <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
-      <p className="text-sm font-medium text-slate-900">How did we do?</p>
+    <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+      <p className="text-sm font-medium text-slate-900 dark:text-slate-100">How did we do?</p>
       <div className="mt-2 flex items-center gap-1" onMouseLeave={() => setHover(0)}>
         {[1, 2, 3, 4, 5].map((n) => (
           <button
@@ -156,7 +156,7 @@ function SatisfactionCard({
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="Anything you'd like to add? (optional)"
-            className="mt-3 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mt-3 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
           />
           <button
             onClick={submit}
@@ -257,33 +257,33 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
     }
   }
 
-  if (!ticket) return <p className="text-sm text-slate-700">Loading…</p>;
+  if (!ticket) return <p className="text-sm text-slate-700 dark:text-slate-300">Loading…</p>;
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm text-slate-700">Ticket #{ticket.number}</p>
-            <h1 className="text-2xl font-semibold text-slate-900">{ticket.subject}</h1>
+            <p className="text-sm text-slate-700 dark:text-slate-300">Ticket #{ticket.number}</p>
+            <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{ticket.subject}</h1>
           </div>
           <div className="flex gap-2">
             <StatusBadge status={ticket.status as never} />
             <PriorityBadge priority={ticket.priority as never} />
             {isOverdue(ticket.dueAt, ticket.status) && (
-              <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">Overdue</span>
+              <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700 dark:text-red-400 dark:bg-red-950">Overdue</span>
             )}
             {ticket.isOutOfHours && (
-              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-300 dark:bg-amber-950">
                 Out of hours
               </span>
             )}
           </div>
         </div>
 
-        <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5">
-          <p className="whitespace-pre-wrap text-sm text-slate-700">{ticket.description}</p>
-          <p className="mt-3 text-xs text-slate-600">
+        <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <p className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">{ticket.description}</p>
+          <p className="mt-3 text-xs text-slate-600 dark:text-slate-400">
             Raised by {ticket.requester.name ?? ticket.requester.email} on{" "}
             {new Date(ticket.createdAt).toLocaleString("en-GB")}
             {ticket.dueAt && <> · SLA due {new Date(ticket.dueAt).toLocaleString("en-GB")}</>}
@@ -292,13 +292,13 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
         </div>
 
         {ticket.isOutOfHours && (
-          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300">
             {ticket.tenant.outOfHoursMessage}
           </div>
         )}
 
         {ticket.aiSummary && (
-          <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-sm text-indigo-900">
+          <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-sm text-indigo-900 dark:bg-indigo-950 dark:text-indigo-200">
             <p className="font-medium">AI summary</p>
             <p className="mt-1">{ticket.aiSummary}</p>
           </div>
@@ -322,40 +322,40 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
               }`}
             >
               <div className="flex items-center justify-between">
-                <p className="font-medium text-slate-900">
+                <p className="font-medium text-slate-900 dark:text-slate-100">
                   {c.author.name ?? c.author.email}
-                  {c.isInternal && <span className="ml-2 text-xs font-normal text-amber-700">Internal note</span>}
+                  {c.isInternal && <span className="ml-2 text-xs font-normal text-amber-700 dark:text-amber-400">Internal note</span>}
                 </p>
-                <p className="text-xs text-slate-600">{new Date(c.createdAt).toLocaleString("en-GB")}</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400">{new Date(c.createdAt).toLocaleString("en-GB")}</p>
               </div>
-              <p className="mt-2 whitespace-pre-wrap text-slate-700">{c.body}</p>
+              <p className="mt-2 whitespace-pre-wrap text-slate-700 dark:text-slate-300">{c.body}</p>
               <AttachmentList ticketId={ticket.id} attachments={c.attachments} />
             </div>
           ))}
-          {ticket.comments.length === 0 && <p className="text-sm text-slate-600">No replies yet.</p>}
+          {ticket.comments.length === 0 && <p className="text-sm text-slate-600 dark:text-slate-400">No replies yet.</p>}
         </div>
 
-        <form onSubmit={postComment} className="mt-6 rounded-xl border border-slate-200 bg-white p-4">
+        <form onSubmit={postComment} className="mt-6 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <textarea
             rows={3}
             value={reply}
             onChange={(e) => setReply(e.target.value)}
             placeholder="Write a reply…"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
           />
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
               <input
                 type="file"
                 className="hidden"
                 onChange={(e) => setReplyFile(e.target.files?.[0] ?? null)}
               />
-              <span className="rounded-md border border-slate-300 px-2.5 py-1 text-xs hover:bg-slate-50">
+              <span className="rounded-md border border-slate-300 px-2.5 py-1 text-xs hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500">
                 {replyFile ? replyFile.name : "Attach file"}
               </span>
             </label>
             {staff && (
-              <label className="flex items-center gap-2 text-sm text-slate-600">
+              <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                 <input type="checkbox" checked={isInternal} onChange={(e) => setIsInternal(e.target.checked)} />
                 Internal note (hidden from requester)
               </label>
@@ -367,7 +367,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
                   e.target.value = "";
                 }}
                 defaultValue=""
-                className="rounded-md border border-slate-300 px-2 py-1 text-xs text-slate-600"
+                className="rounded-md border border-slate-300 px-2 py-1 text-xs text-slate-600 dark:border-slate-700 dark:text-slate-400 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
               >
                 <option value="" disabled>
                   Insert canned response…
@@ -394,12 +394,12 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
 
       {staff && (
         <div className="space-y-4">
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-sm font-medium text-slate-900">Status</p>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Status</p>
             <select
               value={ticket.status}
               onChange={(e) => updateTicket({ status: e.target.value })}
-              className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
             >
               {["OPEN", "IN_PROGRESS", "ON_HOLD", "RESOLVED", "CLOSED"].map((s) => (
                 <option key={s} value={s}>
@@ -408,11 +408,11 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
               ))}
             </select>
 
-            <p className="mt-4 text-sm font-medium text-slate-900">Priority</p>
+            <p className="mt-4 text-sm font-medium text-slate-900 dark:text-slate-100">Priority</p>
             <select
               value={ticket.priority}
               onChange={(e) => updateTicket({ priority: e.target.value })}
-              className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
             >
               {["LOW", "MEDIUM", "HIGH", "CRITICAL"].map((p) => (
                 <option key={p} value={p}>
@@ -421,11 +421,11 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
               ))}
             </select>
 
-            <p className="mt-4 text-sm font-medium text-slate-900">Type</p>
+            <p className="mt-4 text-sm font-medium text-slate-900 dark:text-slate-100">Type</p>
             <select
               value={ticket.type}
               onChange={(e) => updateTicket({ type: e.target.value })}
-              className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
             >
               {["INCIDENT", "PROBLEM", "REQUEST", "INFORMATION", "TRAINING", "QUOTE"].map((t) => (
                 <option key={t} value={t}>
@@ -436,17 +436,17 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
           </div>
 
           {ticket.aiSuggestedCategory && !ticket.category && (
-            <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm">
-              <p className="font-medium text-slate-900">AI suggested category</p>
-              <p className="mt-1 text-slate-600">{ticket.aiSuggestedCategory}</p>
+            <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm dark:border-slate-800 dark:bg-slate-900">
+              <p className="font-medium text-slate-900 dark:text-slate-100">AI suggested category</p>
+              <p className="mt-1 text-slate-600 dark:text-slate-400">{ticket.aiSuggestedCategory}</p>
             </div>
           )}
 
           {ticket.sentimentScore !== null && (
-            <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm">
-              <p className="font-medium text-slate-900">Requester sentiment</p>
+            <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm dark:border-slate-800 dark:bg-slate-900">
+              <p className="font-medium text-slate-900 dark:text-slate-100">Requester sentiment</p>
               <div className="mt-2 flex items-center gap-2">
-                <div className="h-2 flex-1 rounded-full bg-slate-100">
+                <div className="h-2 flex-1 rounded-full bg-slate-100 dark:bg-slate-800">
                   <div
                     className={`h-2 rounded-full ${
                       ticket.sentimentScore >= 70
@@ -458,28 +458,28 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
                     style={{ width: `${ticket.sentimentScore}%` }}
                   />
                 </div>
-                <span className="text-xs text-slate-700">{ticket.sentimentScore}/100 frustration</span>
+                <span className="text-xs text-slate-700 dark:text-slate-300">{ticket.sentimentScore}/100 frustration</span>
               </div>
             </div>
           )}
 
           {ticket.aiSuggestedSolution && (
-            <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-sm text-indigo-900">
+            <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-sm text-indigo-900 dark:bg-indigo-950 dark:text-indigo-200">
               <p className="font-medium">AI suggested first step</p>
               <p className="mt-1">{ticket.aiSuggestedSolution}</p>
             </div>
           )}
 
-          <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm">
-            <p className="text-slate-600">
-              <span className="font-medium text-slate-900">Requester:</span>{" "}
+          <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-slate-600 dark:text-slate-400">
+              <span className="font-medium text-slate-900 dark:text-slate-100">Requester:</span>{" "}
               {ticket.requester.name ?? ticket.requester.email}
             </p>
-            <p className="mt-3 font-medium text-slate-900">Assignee</p>
+            <p className="mt-3 font-medium text-slate-900 dark:text-slate-100">Assignee</p>
             <select
               value={ticket.assignee?.id ?? ""}
               onChange={(e) => updateTicket({ assigneeId: e.target.value || null })}
-              className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
             >
               <option value="">Unassigned</option>
               {staffList.map((s) => (
@@ -491,11 +491,11 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
 
             {brands.length > 0 && (
               <>
-                <p className="mt-3 font-medium text-slate-900">Brand</p>
+                <p className="mt-3 font-medium text-slate-900 dark:text-slate-100">Brand</p>
                 <select
                   value={ticket.brand?.id ?? ""}
                   onChange={(e) => updateTicket({ brandId: e.target.value || null })}
-                  className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
                 >
                   <option value="">None</option>
                   {brands.map((b) => (
@@ -511,7 +511,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
           {isAdmin && (
             <button
               onClick={moveToTrash}
-              className="w-full rounded-md border border-red-200 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+              className="w-full rounded-md border border-red-200 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
             >
               Move to trash
             </button>

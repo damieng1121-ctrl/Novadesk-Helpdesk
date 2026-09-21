@@ -44,7 +44,7 @@ export async function PortalHome({ tenantId }: { tenantId: string }) {
             <input
               name="q"
               placeholder="Search for help…"
-              className="w-full rounded-md border-0 px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className="w-full rounded-md border-0 px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:text-slate-100"
             />
           </form>
         )}
@@ -54,14 +54,14 @@ export async function PortalHome({ tenantId }: { tenantId: string }) {
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Link
             href="/portal/tickets/new"
-            className="rounded-xl border border-slate-200 bg-white p-5 hover:border-indigo-300"
+            className="rounded-xl border border-slate-200 bg-white p-5 hover:border-indigo-300 dark:border-slate-800 dark:bg-slate-900"
           >
-            <p className="font-semibold text-slate-900">Raise a ticket</p>
-            <p className="mt-1 text-sm text-slate-700">Report a problem or request something</p>
+            <p className="font-semibold text-slate-900 dark:text-slate-100">Raise a ticket</p>
+            <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">Report a problem or request something</p>
           </Link>
-          <Link href="/portal/tickets" className="rounded-xl border border-slate-200 bg-white p-5 hover:border-indigo-300">
-            <p className="font-semibold text-slate-900">My tickets</p>
-            <p className="mt-1 text-sm text-slate-700">Check the status of what you&apos;ve raised</p>
+          <Link href="/portal/tickets" className="rounded-xl border border-slate-200 bg-white p-5 hover:border-indigo-300 dark:border-slate-800 dark:bg-slate-900">
+            <p className="font-semibold text-slate-900 dark:text-slate-100">My tickets</p>
+            <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">Check the status of what you&apos;ve raised</p>
           </Link>
         </div>
       )}
@@ -74,11 +74,11 @@ export async function PortalHome({ tenantId }: { tenantId: string }) {
 
       {settings.showPopularArticles && popularArticles.length > 0 && (
         <div className="mt-8">
-          <h2 className="text-lg font-semibold text-slate-900">Popular articles</h2>
-          <div className="mt-3 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Popular articles</h2>
+          <div className="mt-3 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
             {popularArticles.map((a) => (
-              <Link key={a.id} href={`/portal/kb/${a.slug}`} className="block p-4 hover:bg-slate-50">
-                <p className="font-medium text-slate-900">{a.title}</p>
+              <Link key={a.id} href={`/portal/kb/${a.slug}`} className="block p-4 hover:bg-slate-50 dark:hover:bg-slate-800">
+                <p className="font-medium text-slate-900 dark:text-slate-100">{a.title}</p>
               </Link>
             ))}
           </div>
@@ -87,20 +87,20 @@ export async function PortalHome({ tenantId }: { tenantId: string }) {
 
       <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
         {settings.showUrgentHelp && settings.urgentHelpEnabled && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-5">
-            <p className="font-semibold text-red-900">{settings.urgentHelpTitle}</p>
-            <p className="mt-1 text-sm text-red-800">{settings.urgentHelpDescription}</p>
-            <div className="mt-3 space-y-1 text-sm text-red-900">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-5 dark:border-red-900 dark:bg-red-950">
+            <p className="font-semibold text-red-900 dark:text-red-200">{settings.urgentHelpTitle}</p>
+            <p className="mt-1 text-sm text-red-800 dark:text-red-300">{settings.urgentHelpDescription}</p>
+            <div className="mt-3 space-y-1 text-sm text-red-900 dark:text-red-200">
               {settings.urgentHelpHotline && <p>Phone: {settings.urgentHelpHotline}</p>}
               {settings.urgentHelpEmail && <p>Email: {settings.urgentHelpEmail}</p>}
-              <p className="text-red-700">{settings.urgentHelpAvailability}</p>
+              <p className="text-red-700 dark:text-red-400">{settings.urgentHelpAvailability}</p>
             </div>
           </div>
         )}
 
         {settings.showUsefulLinks && settings.usefulLinks.length > 0 && (
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
-            <p className="font-semibold text-slate-900">Useful links</p>
+          <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <p className="font-semibold text-slate-900 dark:text-slate-100">Useful links</p>
             <ul className="mt-3 space-y-2 text-sm">
               {settings.usefulLinks.map((link) => (
                 <li key={link.id}>

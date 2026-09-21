@@ -65,21 +65,21 @@ function SecurityPageInner() {
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-2xl font-semibold text-slate-900">Account security</h1>
-      <p className="mt-1 text-sm text-slate-600">Signed in as {session?.user.email}</p>
+      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Account security</h1>
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Signed in as {session?.user.email}</p>
 
       {mandatorySetup && !enabled && (
-        <div className="mt-4 rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="mt-4 rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-300">
           Two-factor authentication is required for your role before you can access the rest of the portal.
           Set it up below to continue.
         </div>
       )}
 
-      <section className="mt-6 rounded-xl border border-slate-200 bg-white p-6">
+      <section className="mt-6 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-semibold text-slate-900">Two-factor authentication</h2>
-            <p className="mt-1 text-sm text-slate-600">
+            <h2 className="font-semibold text-slate-900 dark:text-slate-100">Two-factor authentication</h2>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
               {enabled
                 ? "Enabled — required at every sign-in."
                 : isStaff
@@ -89,7 +89,7 @@ function SecurityPageInner() {
           </div>
           {enabled ? (
             !isStaff && (
-              <button onClick={disable} className="rounded-md border border-red-200 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50">
+              <button onClick={disable} className="rounded-md border border-red-200 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950">
                 Turn off
               </button>
             )
@@ -103,18 +103,18 @@ function SecurityPageInner() {
         </div>
 
         {step === "confirm" && qrCodeDataUrl && (
-          <div className="mt-6 border-t border-slate-100 pt-6">
-            <p className="text-sm text-slate-700">
+          <div className="mt-6 border-t border-slate-100 pt-6 dark:border-slate-800">
+            <p className="text-sm text-slate-700 dark:text-slate-300">
               Scan this with Google Authenticator (or any TOTP app), then enter the 6-digit code.
             </p>
-            <Image src={qrCodeDataUrl} alt="2FA QR code" width={180} height={180} className="mt-3 rounded-md border border-slate-200" unoptimized />
-            <p className="mt-2 font-mono text-xs text-slate-600">Manual entry key: {secret}</p>
+            <Image src={qrCodeDataUrl} alt="2FA QR code" width={180} height={180} className="mt-3 rounded-md border border-slate-200 dark:border-slate-800" unoptimized />
+            <p className="mt-2 font-mono text-xs text-slate-600 dark:text-slate-400">Manual entry key: {secret}</p>
             <form onSubmit={confirmSetup} className="mt-4 flex gap-2">
               <input
                 value={code}
                 onChange={(e) => setCode(e.target.value.trim())}
                 placeholder="123456"
-                className="w-32 rounded-md border border-slate-300 px-3 py-2 text-center tracking-widest"
+                className="w-32 rounded-md border border-slate-300 px-3 py-2 text-center tracking-widest dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
               />
               <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
                 Confirm
@@ -125,12 +125,12 @@ function SecurityPageInner() {
         )}
 
         {step === "done" && recoveryCodes && (
-          <div className="mt-6 border-t border-slate-100 pt-6">
-            <p className="text-sm font-medium text-slate-900">Save your recovery codes</p>
-            <p className="mt-1 text-sm text-slate-600">
+          <div className="mt-6 border-t border-slate-100 pt-6 dark:border-slate-800">
+            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Save your recovery codes</p>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
               Each can be used once if you lose access to your authenticator app. They won&apos;t be shown again.
             </p>
-            <div className="mt-3 grid grid-cols-2 gap-2 rounded-md bg-slate-50 p-4 font-mono text-sm">
+            <div className="mt-3 grid grid-cols-2 gap-2 rounded-md bg-slate-50 p-4 font-mono text-sm dark:bg-slate-800">
               {recoveryCodes.map((c) => (
                 <span key={c}>{c}</span>
               ))}

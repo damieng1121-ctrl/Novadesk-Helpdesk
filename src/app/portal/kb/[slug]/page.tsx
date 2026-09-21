@@ -42,28 +42,28 @@ export default function KbArticlePage({ params }: PageProps<"/portal/kb/[slug]">
     router.push("/portal/kb");
   }
 
-  if (notFound) return <p className="text-sm text-slate-700">Article not found.</p>;
-  if (!article) return <p className="text-sm text-slate-700">Loading…</p>;
+  if (notFound) return <p className="text-sm text-slate-700 dark:text-slate-300">Article not found.</p>;
+  if (!article) return <p className="text-sm text-slate-700 dark:text-slate-300">Loading…</p>;
 
   return (
     <article className="mx-auto max-w-3xl">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-600">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-400">
             {article.category?.name ?? "General"}
           </p>
-          <h1 className="mt-1 text-2xl font-semibold text-slate-900">{article.title}</h1>
-          <p className="mt-2 text-xs text-slate-600">
+          <h1 className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{article.title}</h1>
+          <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
             By {article.author.name ?? article.author.email} · updated {new Date(article.updatedAt).toLocaleDateString("en-GB")}
           </p>
         </div>
         {isAdmin && (
-          <button onClick={moveToTrash} className="rounded-md border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50">
+          <button onClick={moveToTrash} className="rounded-md border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950">
             Move to trash
           </button>
         )}
       </div>
-      <div className="mt-6 whitespace-pre-wrap rounded-xl border border-slate-200 bg-white p-6 text-sm leading-relaxed text-slate-700">
+      <div className="mt-6 whitespace-pre-wrap rounded-xl border border-slate-200 bg-white p-6 text-sm leading-relaxed text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
         {article.content}
       </div>
     </article>

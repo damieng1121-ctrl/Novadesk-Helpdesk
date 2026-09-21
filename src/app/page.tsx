@@ -36,7 +36,7 @@ const features = [
 
 export default function Home() {
   return (
-    <div className="flex flex-1 flex-col bg-white">
+    <div className="flex flex-1 flex-col bg-white dark:bg-slate-900">
       <header className="border-b border-white/10 bg-slate-950">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2 font-semibold text-white">
@@ -93,22 +93,22 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="features" className="bg-slate-50 py-16">
+        <section id="features" className="bg-slate-50 py-16 dark:bg-slate-800">
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((f) => (
-              <div key={f.title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+              <div key={f.title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950">
                   <f.icon size={20} />
                 </span>
-                <h3 className="mt-4 font-semibold text-slate-900">{f.title}</h3>
-                <p className="mt-2 text-sm text-slate-600">{f.body}</p>
+                <h3 className="mt-4 font-semibold text-slate-900 dark:text-slate-100">{f.title}</h3>
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{f.body}</p>
               </div>
             ))}
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-slate-200 bg-white py-8 text-center text-sm text-slate-600">
+      <footer className="border-t border-slate-200 bg-white py-8 text-center text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
         Novadesk Helpdesk — one IT helpdesk for teams supporting multiple schools.
       </footer>
     </div>

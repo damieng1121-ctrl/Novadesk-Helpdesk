@@ -10,7 +10,7 @@ function LoginError() {
   const error = params.get("error");
   if (!error) return null;
   return (
-    <p className="mt-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+    <p className="mt-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-400">
       {error === "AccessDenied"
         ? "This Google account hasn't been invited yet. Ask your helpdesk admin to add you under Users & Companies."
         : "Something went wrong signing you in. Please try again."}
@@ -33,11 +33,11 @@ function DevLogin() {
   const [otherEmail, setOtherEmail] = useState("");
   if (!DEV_LOGIN_ENABLED) return null;
   return (
-    <div className="mt-6 border-t border-slate-200 pt-6 text-left">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-600">
+    <div className="mt-6 border-t border-slate-200 pt-6 text-left dark:border-slate-800">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-400">
         Dev login (local only — no Google OAuth needed)
       </p>
-      <p className="mt-1 text-xs text-slate-700">
+      <p className="mt-1 text-xs text-slate-700 dark:text-slate-300">
         Signs into an existing invited row by email, no password. Admins/Technicians will still be
         prompted to set up 2FA — that part of the real flow isn&apos;t skipped.
       </p>
@@ -46,10 +46,10 @@ function DevLogin() {
           <button
             key={a.email}
             onClick={() => signIn("dev-login", { email: a.email, callbackUrl: "/portal" })}
-            className="block w-full rounded-md border border-slate-200 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+            className="block w-full rounded-md border border-slate-200 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
           >
             {a.label}
-            <span className="block text-xs text-slate-600">{a.email}</span>
+            <span className="block text-xs text-slate-600 dark:text-slate-400">{a.email}</span>
           </button>
         ))}
       </div>
@@ -65,9 +65,9 @@ function DevLogin() {
           value={otherEmail}
           onChange={(e) => setOtherEmail(e.target.value)}
           placeholder="Or sign in as another invited email…"
-          className="flex-1 rounded-md border border-slate-300 px-2.5 py-1.5 text-xs"
+          className="flex-1 rounded-md border border-slate-300 px-2.5 py-1.5 text-xs dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
         />
-        <button type="submit" className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">
+        <button type="submit" className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500">
           Go
         </button>
       </form>
@@ -77,19 +77,19 @@ function DevLogin() {
 
 export default function LoginPage() {
   return (
-    <div className="flex flex-1 items-center justify-center bg-slate-50 px-6 py-16">
-      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+    <div className="flex flex-1 items-center justify-center bg-slate-50 px-6 py-16 dark:bg-slate-800">
+      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600 font-semibold text-white">
           N
         </div>
-        <h1 className="text-xl font-semibold text-slate-900">Sign in to Novadesk</h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Sign in to Novadesk</h1>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
           This helpdesk is invite-only. Sign in with the Google account your admin invited — admins
           and technicians will also be asked for a second factor.
         </p>
         <button
           onClick={() => signIn("google", { callbackUrl: "/portal" })}
-          className="mt-6 flex w-full items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50"
+          className="mt-6 flex w-full items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
         >
           <GoogleIcon />
           Sign in with Google

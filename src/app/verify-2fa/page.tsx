@@ -35,10 +35,10 @@ export default function Verify2faPage() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-slate-50 px-6 py-16">
-      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-xl font-semibold text-slate-900">Two-factor verification</h1>
-        <p className="mt-2 text-sm text-slate-600">
+    <div className="flex flex-1 items-center justify-center bg-slate-50 px-6 py-16 dark:bg-slate-800">
+      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Two-factor verification</h1>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
           Enter the 6-digit code from your authenticator app, or a recovery code.
         </p>
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
@@ -47,7 +47,7 @@ export default function Verify2faPage() {
             value={code}
             onChange={(e) => setCode(e.target.value.trim())}
             placeholder="123456"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-center text-lg tracking-widest focus:border-indigo-500 focus:outline-none"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-center text-lg tracking-widest focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
           />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button
@@ -60,7 +60,7 @@ export default function Verify2faPage() {
         </form>
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="mt-4 w-full text-center text-sm text-slate-700 hover:text-slate-900"
+          className="mt-4 w-full text-center text-sm text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
         >
           Sign in with a different account
         </button>

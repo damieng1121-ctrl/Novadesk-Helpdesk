@@ -61,7 +61,7 @@ export default function ReportsPage() {
     };
   }, [days, companyId]);
 
-  if (!summary) return <p className="text-sm text-slate-700">Loading…</p>;
+  if (!summary) return <p className="text-sm text-slate-700 dark:text-slate-300">Loading…</p>;
 
   const exportQs = new URLSearchParams({ days: String(days), ...(companyId ? { companyId } : {}) }).toString();
   const selectedCompanyName = companies.find((c) => c.id === companyId)?.name;
@@ -89,29 +89,29 @@ export default function ReportsPage() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Reports</h1>
-          <div className="mt-3 flex gap-1 rounded-lg border border-slate-200 bg-white p-1">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Reports</h1>
+          <div className="mt-3 flex gap-1 rounded-lg border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-900">
             <button
               onClick={() => setTab("overview")}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "overview" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:text-slate-900"}`}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "overview" ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300" : "text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"}`}
             >
               Helpdesk Performance
             </button>
             <button
               onClick={() => setTab("volume")}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "volume" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:text-slate-900"}`}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "volume" ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300" : "text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"}`}
             >
               Ticket Volume
             </button>
             <button
               onClick={() => setTab("agents")}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "agents" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:text-slate-900"}`}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "agents" ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300" : "text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"}`}
             >
               Agent Performance
             </button>
             <button
               onClick={() => setTab("satisfaction")}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "satisfaction" ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:text-slate-900"}`}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "satisfaction" ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300" : "text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"}`}
             >
               Satisfaction
             </button>
@@ -121,7 +121,7 @@ export default function ReportsPage() {
           <select
             value={companyId}
             onChange={(e) => setCompanyId(e.target.value)}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
           >
             <option value="">All schools/companies</option>
             {companies.map((c) => (
@@ -133,7 +133,7 @@ export default function ReportsPage() {
           <select
             value={days}
             onChange={(e) => setDays(Number(e.target.value))}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
           >
             {RANGE_OPTIONS.map((o) => (
               <option key={o.days} value={o.days}>
@@ -143,7 +143,7 @@ export default function ReportsPage() {
           </select>
           <a
             href={`/api/reports/export?${exportQs}`}
-            className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
           >
             Export CSV
           </a>
@@ -151,8 +151,8 @@ export default function ReportsPage() {
       </div>
 
       {selectedCompanyName && (
-        <p className="mt-4 text-sm text-slate-600">
-          Showing <span className="font-medium text-slate-900">{selectedCompanyName}</span> only —{" "}
+        <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
+          Showing <span className="font-medium text-slate-900 dark:text-slate-100">{selectedCompanyName}</span> only —{" "}
           <button onClick={() => setCompanyId("")} className="text-indigo-600 hover:underline">
             clear
           </button>
@@ -184,9 +184,9 @@ export default function ReportsPage() {
       )}
 
       {tab === "volume" && (
-        <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
-          <h2 className="font-semibold text-slate-900">Tickets created vs resolved</h2>
-          <p className="mt-1 text-sm text-slate-600">Bucketed by {summary.volumeTrend.bucketBy} for this range.</p>
+        <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="font-semibold text-slate-900 dark:text-slate-100">Tickets created vs resolved</h2>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Bucketed by {summary.volumeTrend.bucketBy} for this range.</p>
           <div className="mt-4">
             <TicketVolumeTrendChart data={summary.volumeTrend.data} />
           </div>
@@ -205,27 +205,27 @@ export default function ReportsPage() {
             />
           </div>
 
-          <div className="mt-8 rounded-xl border border-slate-200 bg-white p-5">
-            <h2 className="font-semibold text-slate-900">Agent leaderboard</h2>
+          <div className="mt-8 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="font-semibold text-slate-900 dark:text-slate-100">Agent leaderboard</h2>
             {summary.agentLeaderboard.length === 0 ? (
-              <p className="mt-4 text-sm text-slate-600">No tickets have been assigned yet.</p>
+              <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">No tickets have been assigned yet.</p>
             ) : (
               <table className="mt-4 w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-600">
+                  <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-600 dark:border-slate-800 dark:text-slate-400">
                     <th className="py-2 font-medium">Technician</th>
                     <th className="py-2 font-medium">Currently open</th>
                     <th className="py-2 font-medium">Resolved</th>
                     <th className="py-2 font-medium">Avg. resolution time</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {summary.agentLeaderboard.map((a) => (
                     <tr key={a.name}>
-                      <td className="py-2.5 font-medium text-slate-900">{a.name}</td>
-                      <td className="py-2.5 text-slate-700">{a.open}</td>
-                      <td className="py-2.5 text-slate-700">{a.resolved}</td>
-                      <td className="py-2.5 text-slate-700">
+                      <td className="py-2.5 font-medium text-slate-900 dark:text-slate-100">{a.name}</td>
+                      <td className="py-2.5 text-slate-700 dark:text-slate-300">{a.open}</td>
+                      <td className="py-2.5 text-slate-700 dark:text-slate-300">{a.resolved}</td>
+                      <td className="py-2.5 text-slate-700 dark:text-slate-300">
                         {a.avgResolutionHours !== null ? `${a.avgResolutionHours.toFixed(1)}h` : "—"}
                       </td>
                     </tr>
@@ -298,19 +298,19 @@ function RankedList({
 }) {
   const ordered = order ? order.map((label) => rows.find((r) => r.label === label) ?? { label, count: 0 }) : rows;
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
-      <h2 className="font-semibold text-slate-900">{title}</h2>
+    <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+      <h2 className="font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
       <div className="mt-4 space-y-2">
-        {ordered.length === 0 && <p className="text-sm text-slate-600">No data yet.</p>}
+        {ordered.length === 0 && <p className="text-sm text-slate-600 dark:text-slate-400">No data yet.</p>}
         {ordered.map((row) => (
           <div key={row.label} className="flex items-center gap-3 text-sm">
-            <span className="w-28 shrink-0 truncate text-slate-600" title={row.label}>
+            <span className="w-28 shrink-0 truncate text-slate-600 dark:text-slate-400" title={row.label}>
               {row.label}
             </span>
-            <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
               <div className={`h-full rounded-full ${colorClass}`} style={{ width: `${(row.count / max) * 100}%` }} />
             </div>
-            <span className="w-8 shrink-0 text-right text-slate-700">{row.count}</span>
+            <span className="w-8 shrink-0 text-right text-slate-700 dark:text-slate-300">{row.count}</span>
           </div>
         ))}
       </div>
@@ -320,9 +320,9 @@ function RankedList({
 
 function Stat({ label, value, highlight }: { label: string; value: string | number; highlight?: boolean }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
-      <p className="text-sm text-slate-700">{label}</p>
-      <p className={`mt-1 text-3xl font-semibold ${highlight ? "text-red-600" : "text-slate-900"}`}>{value}</p>
+    <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+      <p className="text-sm text-slate-700 dark:text-slate-300">{label}</p>
+      <p className={`mt-1 text-3xl font-semibold ${highlight ? "text-red-600 dark:text-red-400" : "text-slate-900 dark:text-slate-100"}`}>{value}</p>
     </div>
   );
 }

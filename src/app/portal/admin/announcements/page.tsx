@@ -13,9 +13,9 @@ type Announcement = {
 };
 
 const TYPE_STYLES: Record<Announcement["type"], string> = {
-  INFO: "bg-blue-100 text-blue-700",
-  WARNING: "bg-amber-100 text-amber-700",
-  ALERT: "bg-red-100 text-red-700",
+  INFO: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  WARNING: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
+  ALERT: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
 };
 
 export default function AnnouncementsAdminPage() {
@@ -61,19 +61,19 @@ export default function AnnouncementsAdminPage() {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-semibold text-slate-900">Announcements</h1>
-      <p className="mt-1 text-sm text-slate-600">Banners shown on the portal home page.</p>
+      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Announcements</h1>
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Banners shown on the portal home page.</p>
 
-      <form onSubmit={create} className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-white p-5">
-        <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-        <textarea required value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Message" rows={2} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
+      <form onSubmit={create} className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
+        <textarea required value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Message" rows={2} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
         <div className="flex gap-3">
-          <select value={type} onChange={(e) => setType(e.target.value as Announcement["type"])} className="rounded-md border border-slate-300 px-3 py-2 text-sm">
+          <select value={type} onChange={(e) => setType(e.target.value as Announcement["type"])} className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500">
             <option value="INFO">Info</option>
             <option value="WARNING">Warning</option>
             <option value="ALERT">Alert</option>
           </select>
-          <select value={targetAudience} onChange={(e) => setTargetAudience(e.target.value as Announcement["targetAudience"])} className="rounded-md border border-slate-300 px-3 py-2 text-sm">
+          <select value={targetAudience} onChange={(e) => setTargetAudience(e.target.value as Announcement["targetAudience"])} className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500">
             <option value="ALL">Everyone</option>
             <option value="STAFF">Staff only</option>
             <option value="REQUESTERS">Requesters only</option>
@@ -86,24 +86,24 @@ export default function AnnouncementsAdminPage() {
 
       <div className="mt-6 space-y-3">
         {announcements?.map((a) => (
-          <div key={a.id} className="rounded-xl border border-slate-200 bg-white p-4">
+          <div key={a.id} className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${TYPE_STYLES[a.type]}`}>{a.type}</span>
-                <p className="font-medium text-slate-900">{a.title}</p>
+                <p className="font-medium text-slate-900 dark:text-slate-100">{a.title}</p>
               </div>
               <button
                 onClick={() => toggleActive(a.id, a.active)}
-                className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${a.active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-700"}`}
+                className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${a.active ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"}`}
               >
                 {a.active ? "Active" : "Inactive"}
               </button>
             </div>
-            <p className="mt-1 text-sm text-slate-600">{a.message}</p>
-            <p className="mt-1 text-xs text-slate-600">Audience: {a.targetAudience.toLowerCase()}</p>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{a.message}</p>
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Audience: {a.targetAudience.toLowerCase()}</p>
           </div>
         ))}
-        {announcements?.length === 0 && <p className="text-sm text-slate-700">No announcements yet.</p>}
+        {announcements?.length === 0 && <p className="text-sm text-slate-700 dark:text-slate-300">No announcements yet.</p>}
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Role } from "@prisma/client";
 import clsx from "clsx";
 import { NotificationBell } from "@/components/notification-bell";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   LayoutDashboard,
   Ticket,
@@ -111,7 +112,7 @@ function NavDropdown({
         <ChevronDown size={15} className={clsx("transition-transform", open && "rotate-180")} />
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-20 mt-1 w-56 rounded-lg border border-slate-200 bg-white p-1.5 shadow-lg">
+        <div className="absolute left-0 top-full z-20 mt-1 w-56 rounded-lg border border-slate-200 bg-white p-1.5 shadow-lg dark:border-slate-800 dark:bg-slate-900">
           {items.map((item) => {
             const Icon = item.icon;
             return (
@@ -122,9 +123,9 @@ function NavDropdown({
                   setOpen(false);
                   onNavigate();
                 }}
-                className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
               >
-                <Icon size={16} className="shrink-0 text-slate-500" />
+                <Icon size={16} className="shrink-0 text-slate-500 dark:text-slate-500" />
                 {item.label}
               </Link>
             );
@@ -211,6 +212,7 @@ export function PortalNav({
       </nav>
 
       <div className="flex items-center gap-1">
+        <ThemeToggle className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white" />
         <NotificationBell />
         <Link
           href="/portal/account/security"

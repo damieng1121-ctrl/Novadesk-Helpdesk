@@ -49,13 +49,13 @@ function RevealablePassword({ id }: { id: string }) {
 
   return (
     <div className="flex items-center gap-2">
-      <code className="rounded bg-slate-50 px-2 py-1 text-xs text-slate-700">
+      <code className="rounded bg-slate-50 px-2 py-1 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-300">
         {value !== null ? value : "••••••••••"}
       </code>
-      <button onClick={reveal} disabled={loading} className="rounded-md border border-slate-300 p-1.5 text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+      <button onClick={reveal} disabled={loading} className="rounded-md border border-slate-300 p-1.5 text-slate-600 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500">
         {value !== null ? <EyeOff size={14} /> : <Eye size={14} />}
       </button>
-      <button onClick={copy} className="rounded-md border border-slate-300 p-1.5 text-slate-600 hover:bg-slate-50">
+      <button onClick={copy} className="rounded-md border border-slate-300 p-1.5 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500">
         {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
       </button>
     </div>
@@ -126,8 +126,8 @@ export default function PasswordsPage() {
     <div className="max-w-3xl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Passwords</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Passwords</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             Shared credentials for the IT team — admin consoles, vendor logins. Encrypted at rest; every reveal is
             logged.
           </p>
@@ -143,13 +143,13 @@ export default function PasswordsPage() {
         )}
       </div>
 
-      <div className="mt-6 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+      <div className="mt-6 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
         {entries?.map((entry) => (
           <div key={entry.id} className="p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="font-medium text-slate-900">{entry.title}</p>
-                {entry.username && <p className="text-xs text-slate-600">{entry.username}</p>}
+                <p className="font-medium text-slate-900 dark:text-slate-100">{entry.title}</p>
+                {entry.username && <p className="text-xs text-slate-600 dark:text-slate-400">{entry.username}</p>}
                 {entry.url && (
                   <a href={entry.url} target="_blank" rel="noreferrer" className="text-xs text-indigo-600 hover:underline">
                     {entry.url}
@@ -165,33 +165,33 @@ export default function PasswordsPage() {
             <div className="mt-2">
               <RevealablePassword id={entry.id} />
             </div>
-            {entry.notes && <p className="mt-2 whitespace-pre-wrap text-xs text-slate-600">{entry.notes}</p>}
+            {entry.notes && <p className="mt-2 whitespace-pre-wrap text-xs text-slate-600 dark:text-slate-400">{entry.notes}</p>}
           </div>
         ))}
-        {entries?.length === 0 && <p className="p-6 text-sm text-slate-700">No password entries yet.</p>}
+        {entries?.length === 0 && <p className="p-6 text-sm text-slate-700 dark:text-slate-300">No password entries yet.</p>}
       </div>
 
       <SlideOver open={open} onClose={() => setOpen(false)} title="Add a password entry" description="Shared with all technicians and admins — encrypted at rest.">
         <form onSubmit={create} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700">Title</label>
-            <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Google Admin Console" className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Title</label>
+            <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Google Admin Console" className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Username (optional)</label>
-            <input value={username} onChange={(e) => setUsername(e.target.value)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Username (optional)</label>
+            <input value={username} onChange={(e) => setUsername(e.target.value)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Password</label>
-            <input required value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-mono" />
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Password</label>
+            <input required value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-mono dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">URL (optional)</label>
-            <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">URL (optional)</label>
+            <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Notes (optional)</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Notes (optional)</label>
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button type="submit" disabled={submitting} className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50">

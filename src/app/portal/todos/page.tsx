@@ -55,15 +55,15 @@ export default function TodosPage() {
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-2xl font-semibold text-slate-900">My to-do list</h1>
-      <p className="mt-1 text-sm text-slate-600">Personal — only you can see this list.</p>
+      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">My to-do list</h1>
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Personal — only you can see this list.</p>
 
       <form onSubmit={create} className="mt-6 flex gap-2">
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Add a task…"
-          className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
         />
         <button
           type="submit"
@@ -75,33 +75,33 @@ export default function TodosPage() {
         </button>
       </form>
 
-      <div className="mt-6 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+      <div className="mt-6 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
         {open.map((t) => (
           <div key={t.id} className="flex items-center gap-3 p-3">
-            <input type="checkbox" checked={false} onChange={() => toggle(t)} className="h-4 w-4 shrink-0 rounded border-slate-300" />
-            <span className="flex-1 text-sm text-slate-900">{t.text}</span>
+            <input type="checkbox" checked={false} onChange={() => toggle(t)} className="h-4 w-4 shrink-0 rounded border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
+            <span className="flex-1 text-sm text-slate-900 dark:text-slate-100">{t.text}</span>
             <button onClick={() => remove(t.id)} className="shrink-0 text-slate-400 hover:text-red-600">
               <Trash2 size={14} />
             </button>
           </div>
         ))}
         {todos !== null && open.length === 0 && done.length === 0 && (
-          <p className="p-6 text-sm text-slate-700">Nothing on your list yet.</p>
+          <p className="p-6 text-sm text-slate-700 dark:text-slate-300">Nothing on your list yet.</p>
         )}
         {todos !== null && open.length === 0 && done.length > 0 && (
-          <p className="p-6 text-sm text-slate-700">All caught up.</p>
+          <p className="p-6 text-sm text-slate-700 dark:text-slate-300">All caught up.</p>
         )}
       </div>
 
       {done.length > 0 && (
         <details className="mt-4">
-          <summary className="cursor-pointer text-sm text-slate-600 hover:text-slate-900">
+          <summary className="cursor-pointer text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
             {done.length} done
           </summary>
-          <div className="mt-2 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+          <div className="mt-2 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
             {done.map((t) => (
               <div key={t.id} className="flex items-center gap-3 p-3">
-                <input type="checkbox" checked onChange={() => toggle(t)} className="h-4 w-4 shrink-0 rounded border-slate-300" />
+                <input type="checkbox" checked onChange={() => toggle(t)} className="h-4 w-4 shrink-0 rounded border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
                 <span className={clsx("flex-1 text-sm text-slate-500 line-through")}>{t.text}</span>
                 <button onClick={() => remove(t.id)} className="shrink-0 text-slate-400 hover:text-red-600">
                   <Trash2 size={14} />

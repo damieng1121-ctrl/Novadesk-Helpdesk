@@ -15,10 +15,10 @@ type Record_ = {
 };
 
 const STATUS_STYLES: Record<Record_["status"], string> = {
-  PENDING: "bg-slate-100 text-slate-600",
-  APPROVED: "bg-blue-100 text-blue-700",
-  ORDERED: "bg-amber-100 text-amber-700",
-  DELIVERED: "bg-green-100 text-green-700",
+  PENDING: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+  APPROVED: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  ORDERED: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
+  DELIVERED: "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
 };
 
 function formatGbp(pence: number): string {
@@ -88,7 +88,7 @@ export default function FinancePage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-900">Finance &amp; procurement</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Finance &amp; procurement</h1>
         <button
           onClick={() => setShowForm(!showForm)}
           className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
@@ -96,23 +96,23 @@ export default function FinancePage() {
           {showForm ? "Cancel" : "New request"}
         </button>
       </div>
-      <p className="mt-1 text-sm text-slate-700">{records ? `${records.length} records · ${formatGbp(total)} total` : ""}</p>
+      <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">{records ? `${records.length} records · ${formatGbp(total)} total` : ""}</p>
 
       {showForm && (
-        <form onSubmit={createRecord} className="mt-4 grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2">
-          <input required value={poNumber} onChange={(e) => setPoNumber(e.target.value)} placeholder="PO number" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <input required value={vendor} onChange={(e) => setVendor(e.target.value)} placeholder="Vendor" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <input required type="number" step="0.01" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount (£)" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <input required value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What's this for?" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
+        <form onSubmit={createRecord} className="mt-4 grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2 dark:border-slate-800 dark:bg-slate-900">
+          <input required value={poNumber} onChange={(e) => setPoNumber(e.target.value)} placeholder="PO number" className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
+          <input required value={vendor} onChange={(e) => setVendor(e.target.value)} placeholder="Vendor" className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
+          <input required type="number" step="0.01" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount (£)" className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
+          <input required value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What's this for?" className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
           <button type="submit" disabled={submitting} className="sm:col-span-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50">
             {submitting ? "Submitting…" : "Submit request"}
           </button>
         </form>
       )}
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-600">
+          <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-600 dark:border-slate-800 dark:text-slate-400">
             <tr>
               <th className="p-4">PO / Description</th>
               <th className="p-4">Vendor</th>
@@ -122,16 +122,16 @@ export default function FinancePage() {
               {isAdmin && <th className="p-4"></th>}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {records?.map((r) => (
               <tr key={r.id}>
                 <td className="p-4">
-                  <p className="font-medium text-slate-900">{r.poNumber}</p>
-                  <p className="text-xs text-slate-700">{r.description}</p>
+                  <p className="font-medium text-slate-900 dark:text-slate-100">{r.poNumber}</p>
+                  <p className="text-xs text-slate-700 dark:text-slate-300">{r.description}</p>
                 </td>
-                <td className="p-4 text-slate-600">{r.vendor}</td>
-                <td className="p-4 text-slate-600">{formatGbp(r.amountPence)}</td>
-                <td className="p-4 text-slate-600">{r.requestedBy.name ?? r.requestedBy.email}</td>
+                <td className="p-4 text-slate-600 dark:text-slate-400">{r.vendor}</td>
+                <td className="p-4 text-slate-600 dark:text-slate-400">{formatGbp(r.amountPence)}</td>
+                <td className="p-4 text-slate-600 dark:text-slate-400">{r.requestedBy.name ?? r.requestedBy.email}</td>
                 <td className="p-4">
                   {isAdmin ? (
                     <select
@@ -160,7 +160,7 @@ export default function FinancePage() {
             ))}
             {records?.length === 0 && (
               <tr>
-                <td colSpan={isAdmin ? 6 : 5} className="p-6 text-center text-sm text-slate-700">
+                <td colSpan={isAdmin ? 6 : 5} className="p-6 text-center text-sm text-slate-700 dark:text-slate-300">
                   No procurement requests yet.
                 </td>
               </tr>

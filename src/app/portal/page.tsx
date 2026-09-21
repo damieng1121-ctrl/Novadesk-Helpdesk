@@ -27,17 +27,17 @@ function StatCard({
     red: "bg-red-500",
   }[color];
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
+    <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-slate-600">{label}</p>
-          <p className="mt-1 text-3xl font-semibold text-slate-900">{value}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">{label}</p>
+          <p className="mt-1 text-3xl font-semibold text-slate-900 dark:text-slate-100">{value}</p>
         </div>
         <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${badgeStyles} text-white`}>
           <Icon size={18} />
         </span>
       </div>
-      <p className="mt-3 text-xs text-slate-600">{caption}</p>
+      <p className="mt-3 text-xs text-slate-600 dark:text-slate-400">{caption}</p>
     </div>
   );
 }
@@ -53,8 +53,8 @@ export default async function DashboardPage() {
   if (!tenantId) {
     return (
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">No helpdesk account</h1>
-        <p className="mt-2 text-slate-600">
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">No helpdesk account</h1>
+        <p className="mt-2 text-slate-600 dark:text-slate-400">
           Your account isn&apos;t attached to the helpdesk yet. Ask an admin to invite you from
           Users &amp; Companies.
         </p>
@@ -123,7 +123,7 @@ export default async function DashboardPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Dashboard</h1>
         <Link
           href="/portal/tickets/new"
           className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
@@ -162,19 +162,19 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="rounded-xl border border-red-100 bg-red-50 p-5">
-          <div className="flex items-center gap-2 text-red-800">
+        <div className="rounded-xl border border-red-100 bg-red-50 p-5 dark:border-red-900 dark:bg-red-950">
+          <div className="flex items-center gap-2 text-red-800 dark:text-red-300">
             <AlertCircle size={18} />
             <h2 className="font-semibold">Overdue tickets</h2>
           </div>
-          <p className="mt-1 text-xs text-red-700">{overdueTickets.length} missed target{overdueTickets.length === 1 ? "" : "s"}</p>
+          <p className="mt-1 text-xs text-red-700 dark:text-red-400">{overdueTickets.length} missed target{overdueTickets.length === 1 ? "" : "s"}</p>
           {overdueTickets.length === 0 ? (
-            <p className="mt-4 text-sm italic text-red-700">Excellent! All targets met.</p>
+            <p className="mt-4 text-sm italic text-red-700 dark:text-red-400">Excellent! All targets met.</p>
           ) : (
             <ul className="mt-3 space-y-1.5">
               {overdueTickets.map((t) => (
                 <li key={t.id}>
-                  <Link href={`/portal/tickets/${t.id}`} className="text-sm text-red-800 hover:underline">
+                  <Link href={`/portal/tickets/${t.id}`} className="text-sm text-red-800 hover:underline dark:text-red-300">
                     #{t.number} {t.subject}
                   </Link>
                 </li>
@@ -182,19 +182,19 @@ export default async function DashboardPage() {
             </ul>
           )}
         </div>
-        <div className="rounded-xl border border-amber-100 bg-amber-50 p-5">
-          <div className="flex items-center gap-2 text-amber-800">
+        <div className="rounded-xl border border-amber-100 bg-amber-50 p-5 dark:border-amber-900 dark:bg-amber-950">
+          <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
             <CalendarClock size={18} />
             <h2 className="font-semibold">Due today</h2>
           </div>
-          <p className="mt-1 text-xs text-amber-700">{dueTodayTickets.length} resolution deadline{dueTodayTickets.length === 1 ? "" : "s"}</p>
+          <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{dueTodayTickets.length} resolution deadline{dueTodayTickets.length === 1 ? "" : "s"}</p>
           {dueTodayTickets.length === 0 ? (
-            <p className="mt-4 text-sm italic text-amber-700">No more deadlines for today.</p>
+            <p className="mt-4 text-sm italic text-amber-700 dark:text-amber-400">No more deadlines for today.</p>
           ) : (
             <ul className="mt-3 space-y-1.5">
               {dueTodayTickets.map((t) => (
                 <li key={t.id}>
-                  <Link href={`/portal/tickets/${t.id}`} className="text-sm text-amber-800 hover:underline">
+                  <Link href={`/portal/tickets/${t.id}`} className="text-sm text-amber-800 hover:underline dark:text-amber-300">
                     #{t.number} {t.subject}
                   </Link>
                 </li>
@@ -205,12 +205,12 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <h2 className="font-semibold text-slate-900">Tickets by status</h2>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="font-semibold text-slate-900 dark:text-slate-100">Tickets by status</h2>
           <TicketsByStatusChart byStatus={byStatus.map((s) => ({ status: s.status, count: s._count }))} />
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <h2 className="font-semibold text-slate-900">Volume by priority</h2>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="font-semibold text-slate-900 dark:text-slate-100">Volume by priority</h2>
           <VolumeByPriorityChart byPriority={byPriority.map((p) => ({ priority: p.priority, count: p._count }))} />
         </div>
       </div>
@@ -221,25 +221,25 @@ export default async function DashboardPage() {
           { label: "Assigned to me", value: myTickets, href: "/portal/tickets?assignee=me" },
           { label: "DfE standards met", value: `${compliancePct}%`, href: "/portal/compliance" },
         ].map((s) => (
-          <Link key={s.label} href={s.href} className="rounded-xl border border-slate-200 bg-white p-4 hover:border-indigo-300">
-            <p className="text-sm text-slate-600">{s.label}</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-900">{s.value}</p>
+          <Link key={s.label} href={s.href} className="rounded-xl border border-slate-200 bg-white p-4 hover:border-indigo-300 dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-sm text-slate-600 dark:text-slate-400">{s.label}</p>
+            <p className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{s.value}</p>
           </Link>
         ))}
       </div>
 
       <div className="mt-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">Recently updated knowledge base articles</h2>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Recently updated knowledge base articles</h2>
           <Link href="/portal/kb" className="text-sm text-indigo-600 hover:underline">
             View all
           </Link>
         </div>
-        <div className="mt-3 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
-          {recentArticles.length === 0 && <p className="p-5 text-sm text-slate-700">No published articles yet.</p>}
+        <div className="mt-3 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
+          {recentArticles.length === 0 && <p className="p-5 text-sm text-slate-700 dark:text-slate-300">No published articles yet.</p>}
           {recentArticles.map((a) => (
-            <Link key={a.id} href={`/portal/kb/${a.slug}`} className="block p-4 hover:bg-slate-50">
-              <p className="font-medium text-slate-900">{a.title}</p>
+            <Link key={a.id} href={`/portal/kb/${a.slug}`} className="block p-4 hover:bg-slate-50 dark:hover:bg-slate-800">
+              <p className="font-medium text-slate-900 dark:text-slate-100">{a.title}</p>
             </Link>
           ))}
         </div>

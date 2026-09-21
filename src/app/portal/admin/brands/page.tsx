@@ -75,8 +75,8 @@ export default function BrandsAdminPage() {
     <div className="max-w-2xl">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Brands</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Brands</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             For running more than one business through this helpdesk (e.g. Education Lincs and Schools Online).
             Assign a Technician to a Brand and their ticket queue is scoped to just that Brand&apos;s tickets — leave
             a Technician unassigned to any Brand and they keep seeing everything, as today. Admins always see
@@ -94,19 +94,19 @@ export default function BrandsAdminPage() {
 
       <div className="mt-6 space-y-4">
         {brands?.map((b) => (
-          <div key={b.id} className="rounded-xl border border-slate-200 bg-white p-5">
+          <div key={b.id} className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-start justify-between">
               <div>
-                <p className="font-medium text-slate-900">{b.name}</p>
-                {b.supportEmail && <p className="text-xs text-slate-600">{b.supportEmail}</p>}
+                <p className="font-medium text-slate-900 dark:text-slate-100">{b.name}</p>
+                {b.supportEmail && <p className="text-xs text-slate-600 dark:text-slate-400">{b.supportEmail}</p>}
               </div>
               <button onClick={() => remove(b.id)} className="text-xs text-red-600 hover:underline">
                 Delete
               </button>
             </div>
-            <p className="mt-3 text-xs font-medium uppercase tracking-wide text-slate-600">Technicians</p>
+            <p className="mt-3 text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-400">Technicians</p>
             <div className="mt-2 flex flex-wrap gap-2">
-              {staff.length === 0 && <p className="text-sm text-slate-600">No technicians invited yet.</p>}
+              {staff.length === 0 && <p className="text-sm text-slate-600 dark:text-slate-400">No technicians invited yet.</p>}
               {staff.map((s) => {
                 const active = b.technicians.some((t) => t.id === s.id);
                 return (
@@ -127,7 +127,7 @@ export default function BrandsAdminPage() {
           </div>
         ))}
         {brands?.length === 0 && (
-          <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-700">
+          <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
             No brands yet — until you add one, every ticket is visible to every technician, same as today.
           </p>
         )}
@@ -136,22 +136,22 @@ export default function BrandsAdminPage() {
       <SlideOver open={open} onClose={() => setOpen(false)} title="Add a brand" description="A separate business/trading name run through this same helpdesk.">
         <form onSubmit={create} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700">Brand name</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Brand name</label>
             <input
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Schools Online"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Support email (optional)</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Support email (optional)</label>
             <input
               type="email"
               value={supportEmail}
               onChange={(e) => setSupportEmail(e.target.value)}
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
             />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}

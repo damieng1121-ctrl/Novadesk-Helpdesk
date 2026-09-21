@@ -51,7 +51,7 @@ export default function TrashBinPage() {
     load();
   }
 
-  if (!data) return <p className="text-sm text-slate-700">Loading…</p>;
+  if (!data) return <p className="text-sm text-slate-700 dark:text-slate-300">Loading…</p>;
 
   const rows =
     tab === "tickets"
@@ -64,10 +64,10 @@ export default function TrashBinPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-slate-900">Trash bin</h1>
-      <p className="mt-1 text-sm text-slate-600">Restore items or delete them permanently.</p>
+      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Trash bin</h1>
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Restore items or delete them permanently.</p>
 
-      <div className="mt-4 flex gap-2 border-b border-slate-200">
+      <div className="mt-4 flex gap-2 border-b border-slate-200 dark:border-slate-800">
         {TABS.map((t) => {
           const count = data[t.id].length;
           return (
@@ -79,19 +79,19 @@ export default function TrashBinPage() {
               }`}
             >
               {t.label}
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700">{count}</span>
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700 dark:text-slate-300 dark:bg-slate-800">{count}</span>
             </button>
           );
         })}
       </div>
 
-      <div className="mt-4 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
-        {rows.length === 0 && <p className="p-6 text-sm text-slate-700">Nothing in the trash here.</p>}
+      <div className="mt-4 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
+        {rows.length === 0 && <p className="p-6 text-sm text-slate-700 dark:text-slate-300">Nothing in the trash here.</p>}
         {rows.map((r) => (
           <div key={r.key} className="flex items-center justify-between p-4 text-sm">
             <div>
-              <p className="font-medium text-slate-900">{r.primary}</p>
-              <p className="text-xs text-slate-600">Deleted {new Date(r.updatedAt).toLocaleDateString("en-GB")}</p>
+              <p className="font-medium text-slate-900 dark:text-slate-100">{r.primary}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">Deleted {new Date(r.updatedAt).toLocaleDateString("en-GB")}</p>
             </div>
             <div className="flex gap-3">
               <button onClick={() => restore(r.key)} className="text-indigo-600 hover:underline">

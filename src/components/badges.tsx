@@ -2,11 +2,11 @@ import clsx from "clsx";
 import type { ComplianceStatus, TicketPriority, TicketStatus } from "@prisma/client";
 
 const statusStyles: Record<TicketStatus, string> = {
-  OPEN: "bg-blue-100 text-blue-700",
-  IN_PROGRESS: "bg-amber-100 text-amber-700",
-  ON_HOLD: "bg-slate-200 text-slate-700",
-  RESOLVED: "bg-green-100 text-green-700",
-  CLOSED: "bg-slate-100 text-slate-700",
+  OPEN: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  IN_PROGRESS: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
+  ON_HOLD: "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+  RESOLVED: "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
+  CLOSED: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
 };
 
 export function StatusBadge({ status }: { status: TicketStatus }) {
@@ -18,10 +18,10 @@ export function StatusBadge({ status }: { status: TicketStatus }) {
 }
 
 const priorityStyles: Record<TicketPriority, string> = {
-  LOW: "bg-slate-100 text-slate-600",
-  MEDIUM: "bg-blue-50 text-blue-700",
-  HIGH: "bg-orange-100 text-orange-700",
-  CRITICAL: "bg-red-100 text-red-700",
+  LOW: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+  MEDIUM: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  HIGH: "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300",
+  CRITICAL: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
 };
 
 export function PriorityBadge({ priority }: { priority: TicketPriority }) {
@@ -33,11 +33,11 @@ export function PriorityBadge({ priority }: { priority: TicketPriority }) {
 }
 
 const complianceStyles: Record<ComplianceStatus, string> = {
-  NOT_STARTED: "bg-slate-100 text-slate-600",
-  IN_PROGRESS: "bg-amber-100 text-amber-700",
-  COMPLIANT: "bg-green-100 text-green-700",
-  NON_COMPLIANT: "bg-red-100 text-red-700",
-  NOT_APPLICABLE: "bg-slate-100 text-slate-600",
+  NOT_STARTED: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+  IN_PROGRESS: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
+  COMPLIANT: "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
+  NON_COMPLIANT: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
+  NOT_APPLICABLE: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
 };
 
 export function ComplianceBadge({ status }: { status: ComplianceStatus }) {
