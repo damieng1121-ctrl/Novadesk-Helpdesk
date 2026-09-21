@@ -26,6 +26,7 @@ const DEV_LOGIN_ENABLED = process.env.NODE_ENV !== "production";
 const DEV_ACCOUNTS = [
   { email: "superadmin@novadesk.dev", label: "Internal Test Admin" },
   { email: "damieng1121@gmail.com", label: "Founding Admin (real account)" },
+  { email: "damien@education-lincs.com", label: "Domain Admin (real account)" },
 ];
 
 function DevLogin() {

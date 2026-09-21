@@ -401,8 +401,12 @@ async function seedComplianceCatalogue() {
  *
  * - damieng1121@gmail.com: the real founding admin, for real Google sign-in
  *   once OAuth credentials are configured.
+ * - damien@education-lincs.com: the default domain admin — Education
+ *   Lincs' own Google Workspace account, day-to-day admin use.
  * - superadmin@novadesk.dev: a dedicated internal test/dev-login account,
- *   kept separate from the real admin's personal email.
+ *   kept separate from the real admins' personal/domain email — note this
+ *   one can never actually complete real Google sign-in (not a real
+ *   mailbox), only dev-login.
  */
 async function seedSingleOrg() {
   const tenant = await prisma.tenant.upsert({
@@ -427,6 +431,17 @@ async function seedSingleOrg() {
   });
 
   await prisma.user.upsert({
+    where: { email: "damien@education-lincs.com" },
+    create: {
+      email: "damien@education-lincs.com",
+      name: "Damien (Education Lincs)",
+      role: "TENANT_ADMIN",
+      tenantId: tenant.id,
+    },
+    update: { tenantId: tenant.id },
+  });
+
+  await prisma.user.upsert({
     where: { email: "superadmin@novadesk.dev" },
     create: {
       email: "superadmin@novadesk.dev",
@@ -437,7 +452,9 @@ async function seedSingleOrg() {
     update: { tenantId: tenant.id },
   });
 
-  console.log(`Seeded '${tenant.name}' with admin accounts (damieng1121@gmail.com, superadmin@novadesk.dev).`);
+  console.log(
+    `Seeded '${tenant.name}' with admin accounts (damieng1121@gmail.com, damien@education-lincs.com, superadmin@novadesk.dev).`,
+  );
 }
 
 async function main() {
