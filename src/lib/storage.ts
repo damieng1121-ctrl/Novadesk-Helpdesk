@@ -51,6 +51,20 @@ function resolveOnDisk(key: string): string {
   return resolved;
 }
 
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2MB — a profile photo, not a photo library
+
+/** One avatar per user — a fresh upload always replaces the previous file. */
+export async function saveUserAvatar(userId: string, fileName: string, data: Buffer): Promise<{ key: string }> {
+  if (data.byteLength > MAX_AVATAR_BYTES) {
+    throw new UploadTooLargeError(`File exceeds ${MAX_AVATAR_BYTES / (1024 * 1024)}MB limit`);
+  }
+  const key = path.posix.join("user-avatars", userId, sanitizeFileName(fileName));
+  const onDisk = resolveOnDisk(key);
+  await mkdir(path.dirname(onDisk), { recursive: true });
+  await writeFile(onDisk, data);
+  return { key };
+}
+
 export async function saveUpload(
   tenantId: string,
   ticketId: string,

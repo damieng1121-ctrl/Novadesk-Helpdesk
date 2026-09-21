@@ -164,9 +164,19 @@ model User {
   /// exactly one school via its Workspace domain anyway.
   email    String  @unique
   name     String?
+  /// Google's OAuth profile photo URL — separate from `avatarUrl` (a
+  /// deliberate self-upload), which always takes priority when set.
   image    String?
   role     Role    @default(REQUESTER)
   jobTitle String?
+  phone    String?
+  /// Self-uploaded profile photo, stored via src/lib/storage.ts (a storage
+  /// key, not a URL) — served through /api/account/avatar. Distinct from
+  /// `image` so a self-upload isn't silently replaced if Google's OAuth
+  /// profile data ever gets re-synced.
+  avatarUrl String?
+  /// Appended to ticket replies via the "Insert signature" button — plain text, not rich HTML.
+  signature String? @db.Text
 
   // Auth.js
   emailVerified DateTime?

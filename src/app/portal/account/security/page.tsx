@@ -1,19 +1,212 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import { User as UserIcon } from "lucide-react";
 
-export default function SecurityPage() {
+export default function AccountPage() {
   return (
     <Suspense fallback={null}>
-      <SecurityPageInner />
+      <AccountPageInner />
     </Suspense>
   );
 }
 
-function SecurityPageInner() {
+type Profile = {
+  name: string | null;
+  email: string;
+  jobTitle: string | null;
+  phone: string | null;
+  signature: string | null;
+  image: string | null;
+  avatarUrl: string | null;
+};
+
+function ProfileTab() {
+  const { update } = useSession();
+  const router = useRouter();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [name, setName] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [phone, setPhone] = useState("");
+  const [signature, setSignature] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarNonce, setAvatarNonce] = useState(0);
+
+  function load() {
+    fetch("/api/account/profile")
+      .then((r) => r.json())
+      .then((p: Profile) => {
+        setProfile(p);
+        setName(p.name ?? "");
+        setJobTitle(p.jobTitle ?? "");
+        setPhone(p.phone ?? "");
+        setSignature(p.signature ?? "");
+      });
+  }
+  useEffect(load, []);
+
+  async function save() {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/account/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          jobTitle: jobTitle || null,
+          phone: phone || null,
+          signature: signature || null,
+        }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setProfile((prev) => (prev ? { ...prev, ...updated } : prev));
+        await update({ name: updated.name });
+        // The nav bar's name comes from a Server Component prop (see
+        // portal/layout.tsx) — update() alone only refreshes the client
+        // session cache, so the nav needs an explicit refresh to catch up.
+        router.refresh();
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function uploadAvatar(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/account/avatar", { method: "POST", body: form });
+      if (res.ok) {
+        setProfile((prev) => (prev ? { ...prev, avatarUrl: "set" } : prev));
+        setAvatarNonce((n) => n + 1);
+      }
+    } finally {
+      setUploadingAvatar(false);
+      e.target.value = "";
+    }
+  }
+
+  async function removeAvatar() {
+    setUploadingAvatar(true);
+    try {
+      await fetch("/api/account/avatar", { method: "DELETE" });
+      setProfile((prev) => (prev ? { ...prev, avatarUrl: null } : prev));
+      setAvatarNonce((n) => n + 1);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
+
+  if (!profile) return <p className="text-sm text-slate-700 dark:text-slate-300">Loading…</p>;
+
+  return (
+    <section className="mt-6 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+      <h2 className="font-semibold text-slate-900 dark:text-slate-100">Profile</h2>
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+        Shown to other staff and used on your ticket replies.
+      </p>
+
+      <div className="mt-4 flex items-center gap-4">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-800">
+          {profile.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- self-uploaded avatar, not worth next/image's remote-loader setup
+            <img key={avatarNonce} src={`/api/account/avatar?v=${avatarNonce}`} alt="" className="h-full w-full object-cover" />
+          ) : profile.image ? (
+            // eslint-disable-next-line @next/next/no-img-element -- Google-provided avatar URL, already remote
+            <img src={profile.image} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <UserIcon size={24} className="text-slate-400 dark:text-slate-500" />
+          )}
+        </div>
+        <div>
+          <label className="cursor-pointer rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800">
+            {uploadingAvatar ? "Uploading…" : "Upload photo"}
+            <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="hidden" disabled={uploadingAvatar} onChange={uploadAvatar} />
+          </label>
+          {profile.avatarUrl && (
+            <button onClick={removeAvatar} disabled={uploadingAvatar} className="ml-3 text-sm text-red-600 hover:underline disabled:opacity-50">
+              Remove
+            </button>
+          )}
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">PNG, JPEG, WebP, or GIF, up to 2MB.</p>
+        </div>
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="profile-name" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Full name</label>
+          <input
+            id="profile-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
+          />
+        </div>
+        <div>
+          <label htmlFor="profile-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
+          <input
+            id="profile-email"
+            value={profile.email}
+            disabled
+            className="mt-1 w-full cursor-not-allowed rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-500"
+          />
+        </div>
+        <div>
+          <label htmlFor="profile-job-title" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Job title</label>
+          <input
+            id="profile-job-title"
+            value={jobTitle}
+            onChange={(e) => setJobTitle(e.target.value)}
+            placeholder="e.g. IT Support Technician"
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
+          />
+        </div>
+        <div>
+          <label htmlFor="profile-phone" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Phone (optional)</label>
+          <input
+            id="profile-phone"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
+          />
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <label htmlFor="profile-signature" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Email signature (optional)</label>
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+          Plain text — insert it into a ticket reply with the &quot;Insert signature&quot; button.
+        </p>
+        <textarea
+          id="profile-signature"
+          value={signature}
+          onChange={(e) => setSignature(e.target.value)}
+          rows={4}
+          placeholder={"Thanks,\nDamien\nIT Support"}
+          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
+        />
+      </div>
+
+      <button
+        onClick={save}
+        disabled={saving || !name.trim()}
+        className="mt-4 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+      >
+        {saving ? "Saving…" : "Save"}
+      </button>
+    </section>
+  );
+}
+
+function SecurityTab() {
   const { data: session, update } = useSession();
   const searchParams = useSearchParams();
   const mandatorySetup = searchParams.get("setup2fa") === "1";
@@ -64,10 +257,7 @@ function SecurityPageInner() {
   }
 
   return (
-    <div className="max-w-xl">
-      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Account security</h1>
-      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Signed in as {session?.user.email}</p>
-
+    <>
       {mandatorySetup && !enabled && (
         <div className="mt-4 rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-300">
           Two-factor authentication is required for your role before you can access the rest of the portal.
@@ -138,6 +328,37 @@ function SecurityPageInner() {
           </div>
         )}
       </section>
+    </>
+  );
+}
+
+function AccountPageInner() {
+  const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const mandatorySetup = searchParams.get("setup2fa") === "1";
+  const [tab, setTab] = useState<"profile" | "security">(mandatorySetup ? "security" : "profile");
+
+  return (
+    <div className="max-w-2xl">
+      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">My account</h1>
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Signed in as {session?.user.email}</p>
+
+      <div className="mt-4 flex gap-1 rounded-lg border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-900">
+        <button
+          onClick={() => setTab("profile")}
+          className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "profile" ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300" : "text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"}`}
+        >
+          Profile
+        </button>
+        <button
+          onClick={() => setTab("security")}
+          className={`rounded-md px-3 py-1.5 text-sm font-medium ${tab === "security" ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300" : "text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"}`}
+        >
+          Security
+        </button>
+      </div>
+
+      {tab === "profile" ? <ProfileTab /> : <SecurityTab />}
     </div>
   );
 }

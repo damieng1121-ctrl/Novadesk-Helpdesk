@@ -78,6 +78,10 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
         // flows) — trust it rather than re-hitting the DB on every session read.
         if (typeof session.twoFactorVerified === "boolean") token.twoFactorVerified = session.twoFactorVerified;
         if (typeof session.twoFactorEnabled === "boolean") token.twoFactorEnabled = session.twoFactorEnabled;
+        // The profile page calls update({ name }) after a successful save so
+        // the nav bar (which reads session.user.name server-side) reflects
+        // the new name without a full re-sign-in.
+        if (typeof session.name === "string") token.name = session.name;
         return token;
       }
 

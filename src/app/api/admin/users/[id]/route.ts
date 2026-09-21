@@ -20,9 +20,13 @@ export async function PATCH(req: Request, { params }: Params) {
 
     const target = await prisma.user.findUnique({ where: { id } });
     if (!target || target.tenantId !== session.user.tenantId) throw new AuthError("User not found", 404);
-    if (target.id === session.user.id) throw new AuthError("You can't change your own role here", 400);
 
     const body = bodySchema.parse(await req.json());
+    // Only block the fields that could lock you out of your own account —
+    // changing your own company is harmless and shouldn't need another admin.
+    if (target.id === session.user.id && (body.role !== undefined || body.isActive !== undefined)) {
+      throw new AuthError("You can't change your own role or active status here", 400);
+    }
     if (body.companyId) {
       const company = await prisma.company.findUnique({ where: { id: body.companyId } });
       if (!company || company.tenantId !== session.user.tenantId) throw new AuthError("Company not found", 404);

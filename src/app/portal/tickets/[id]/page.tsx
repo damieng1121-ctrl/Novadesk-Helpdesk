@@ -186,6 +186,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
   const [cannedResponses, setCannedResponses] = useState<{ id: string; title: string; content: string }[]>([]);
   const [staffList, setStaffList] = useState<Person[]>([]);
   const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
+  const [signature, setSignature] = useState<string | null>(null);
 
   async function load() {
     const res = await fetch(`/api/tickets/${id}`);
@@ -209,11 +210,18 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
     fetch("/api/brands")
       .then((r) => (r.ok ? r.json() : []))
       .then(setBrands);
+    fetch("/api/account/profile")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((p) => setSignature(p?.signature ?? null));
   }, [staff]);
 
   function insertCannedResponse(responseId: string) {
     const response = cannedResponses.find((r) => r.id === responseId);
     if (response) setReply((prev) => (prev ? `${prev}\n\n${response.content}` : response.content));
+  }
+
+  function insertSignature() {
+    if (signature) setReply((prev) => (prev ? `${prev}\n\n${signature}` : signature));
   }
 
   async function updateTicket(patch: Record<string, unknown>) {
@@ -378,6 +386,15 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
                   </option>
                 ))}
               </select>
+            )}
+            {staff && signature && (
+              <button
+                type="button"
+                onClick={insertSignature}
+                className="rounded-md border border-slate-300 px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+              >
+                Insert signature
+              </button>
             )}
           </div>
           <div className="mt-3 flex items-center justify-end">
