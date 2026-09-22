@@ -53,7 +53,7 @@ export default function CannedResponsesAdminPage() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="mx-auto max-w-2xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Canned responses</h1>

@@ -162,7 +162,7 @@ export default function AdminSettingsPage() {
   ] as const;
 
   return (
-    <div className="max-w-3xl">
+    <div className="mx-auto max-w-3xl">
       <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Settings</h1>
       <div className="mt-3 flex gap-1 rounded-lg border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-900">
         {TABS.map((t) => (

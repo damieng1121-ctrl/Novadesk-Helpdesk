@@ -60,7 +60,7 @@ export default function AnnouncementsAdminPage() {
   }
 
   return (
-    <div className="max-w-3xl">
+    <div className="mx-auto max-w-3xl">
       <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Announcements</h1>
       <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Banners shown on the portal home page.</p>
 

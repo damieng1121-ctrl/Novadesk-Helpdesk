@@ -55,7 +55,7 @@ export default function HolidaysAdminPage() {
   const past = holidays?.filter((h) => h.date.slice(0, 10) < today) ?? [];
 
   return (
-    <div className="max-w-2xl">
+    <div className="mx-auto max-w-2xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Holidays</h1>

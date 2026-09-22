@@ -72,7 +72,7 @@ export default function BrandsAdminPage() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="mx-auto max-w-2xl">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Brands</h1>

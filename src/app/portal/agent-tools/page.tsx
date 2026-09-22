@@ -89,7 +89,7 @@ export default function AgentToolsPage() {
   const customCommandsForOs = commands?.filter((c) => c.os === os) ?? [];
 
   return (
-    <div className="max-w-6xl">
+    <div className="mx-auto max-w-6xl">
       <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Agent tools</h1>
       <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Quick-reference commands and admin console links for triaging tickets.</p>
 

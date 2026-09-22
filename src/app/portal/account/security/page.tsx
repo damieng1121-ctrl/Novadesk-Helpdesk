@@ -339,7 +339,7 @@ function AccountPageInner() {
   const [tab, setTab] = useState<"profile" | "security">(mandatorySetup ? "security" : "profile");
 
   return (
-    <div className="max-w-2xl">
+    <div className="mx-auto max-w-2xl">
       <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">My account</h1>
       <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Signed in as {session?.user.email}</p>
 

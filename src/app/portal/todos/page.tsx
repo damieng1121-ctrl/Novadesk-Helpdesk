@@ -54,7 +54,7 @@ export default function TodosPage() {
   const done = todos?.filter((t) => t.isDone) ?? [];
 
   return (
-    <div className="max-w-xl">
+    <div className="mx-auto max-w-xl">
       <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">My to-do list</h1>
       <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Personal — only you can see this list.</p>
 
