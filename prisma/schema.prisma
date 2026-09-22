@@ -422,11 +422,24 @@ model KbArticle {
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
 
+  attachments KbAttachment[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([tenantId, slug])
   @@index([tenantId, status])
+}
+
+model KbAttachment {
+  id          String    @id @default(cuid())
+  articleId   String
+  article     KbArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  fileName    String
+  url         String
+  fileSize    Int?
+  contentType String?
+  createdAt   DateTime  @default(now())
 }
 
 // ---------------------------------------------------------------------------

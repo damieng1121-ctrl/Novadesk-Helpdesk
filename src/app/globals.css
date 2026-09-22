@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* Manual (class-based) dark mode instead of Tailwind v4's default
    prefers-color-scheme-only `dark:` — toggled by the `dark` class on

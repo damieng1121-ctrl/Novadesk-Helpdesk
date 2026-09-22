@@ -13,6 +13,8 @@ import type { TicketPriority, TicketType } from "@prisma/client";
 export async function createTicket(input: {
   tenantId: string;
   requesterId: string;
+  /** Who actually performed the action, for the audit log — defaults to requesterId (the normal self-service case). Differs when staff raise a ticket on someone else's behalf. */
+  actorId?: string;
   subject: string;
   description: string;
   categoryId?: string;
@@ -21,6 +23,7 @@ export async function createTicket(input: {
   type?: TicketType;
 }) {
   const { tenantId, requesterId } = input;
+  const actorId = input.actorId ?? requesterId;
 
   const [categories, brands, tenant, holidays] = await Promise.all([
     prisma.category.findMany({ where: { tenantId } }),
@@ -86,10 +89,11 @@ export async function createTicket(input: {
   await prisma.auditLog.create({
     data: {
       tenantId,
-      userId: requesterId,
+      userId: actorId,
       action: "ticket.created",
       entityType: "Ticket",
       entityId: ticket!.id,
+      metadata: actorId !== requesterId ? { raisedOnBehalfOf: requesterId } : undefined,
     },
   });
 

@@ -3,6 +3,7 @@ import { requireTenantSession, AuthError } from "@/lib/session";
 import { withApiErrors } from "@/lib/api";
 import { prisma } from "@/lib/db";
 import { isAdmin } from "@/lib/roles";
+import { notifyUserInvited } from "@/lib/notifications/events";
 
 export async function GET() {
   return withApiErrors(async () => {
@@ -53,6 +54,8 @@ export async function POST(req: Request) {
       if (!company || company.tenantId !== session.user.tenantId) throw new AuthError("Company not found", 404);
     }
 
+    const tenant = await prisma.tenant.findUniqueOrThrow({ where: { id: session.user.tenantId }, select: { name: true } });
+
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       if (existing.role === "SUPER_ADMIN") throw new AuthError("This email is reserved", 409);
@@ -69,6 +72,7 @@ export async function POST(req: Request) {
           portalAccessGranted: true,
         },
       });
+      await notifyUserInvited(user.email, user.name, tenant.name);
       return user;
     }
 
@@ -87,6 +91,7 @@ export async function POST(req: Request) {
       },
     });
 
+    await notifyUserInvited(user.email, user.name, tenant.name);
     return user;
   });
 }

@@ -2,20 +2,32 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 
 type Category = { id: string; name: string };
 type Brand = { id: string; name: string };
+type Company = { id: string; name: string };
+type Requester = { id: string; name: string | null; email: string | null; companyId: string | null };
+
+const STAFF_ROLES = new Set(["AGENT", "TENANT_ADMIN", "SUPER_ADMIN"]);
 
 export default function NewTicketPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const staff = !!session?.user && STAFF_ROLES.has(session.user.role);
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [requesters, setRequesters] = useState<Requester[]>([]);
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [brandId, setBrandId] = useState("");
   const [priority, setPriority] = useState("MEDIUM");
+  const [companyId, setCompanyId] = useState("");
+  const [requesterId, setRequesterId] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +40,25 @@ export default function NewTicketPage() {
       .then((r) => r.json())
       .then(setBrands);
   }, []);
+
+  useEffect(() => {
+    if (!staff) return;
+    fetch("/api/admin/companies")
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setCompanies);
+  }, [staff]);
+
+  useEffect(() => {
+    if (!staff) return;
+    const qs = companyId ? `?companyId=${companyId}` : "";
+    fetch(`/api/requesters${qs}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((list: Requester[]) => {
+        setRequesters(list);
+        // Reset the pick if it's no longer in the (now filtered) list.
+        setRequesterId((prev) => (list.some((r) => r.id === prev) ? prev : ""));
+      });
+  }, [staff, companyId]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,6 +74,7 @@ export default function NewTicketPage() {
           categoryId: categoryId || undefined,
           brandId: brandId || undefined,
           priority,
+          requesterId: requesterId || undefined,
         }),
       });
       const data = await res.json();
@@ -65,6 +97,45 @@ export default function NewTicketPage() {
     <div className="mx-auto max-w-2xl">
       <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Raise a ticket</h1>
       <form onSubmit={onSubmit} className="mt-6 space-y-5 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+        {staff && (
+          <div className="grid grid-cols-2 gap-4 rounded-md border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/50">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Company / school</label>
+              <select
+                value={companyId}
+                onChange={(e) => setCompanyId(e.target.value)}
+                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              >
+                <option value="">All companies</option>
+                {companies.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Raised for</label>
+              <select
+                value={requesterId}
+                onChange={(e) => setRequesterId(e.target.value)}
+                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              >
+                <option value="">Myself ({session?.user.name ?? session?.user.email})</option>
+                {requesters
+                  .filter((r) => r.id !== session?.user.id)
+                  .map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name ?? r.email}
+                    </option>
+                  ))}
+              </select>
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                Logging a call or email on someone&apos;s behalf? Pick who it&apos;s for.
+              </p>
+            </div>
+          </div>
+        )}
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Subject</label>
           <input

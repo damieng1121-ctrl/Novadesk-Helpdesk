@@ -14,7 +14,7 @@ export async function GET(_req: Request, { params }: Params) {
 
     const article = await prisma.kbArticle.findUnique({
       where: { tenantId_slug: { tenantId: session.user.tenantId, slug } },
-      include: { category: true, author: { select: { name: true, email: true } } },
+      include: { category: true, author: { select: { name: true, email: true } }, attachments: true },
     });
     if (!article || article.isDeleted || (!staff && article.status !== "PUBLISHED")) {
       throw new AuthError("Article not found", 404);

@@ -19,6 +19,22 @@ async function tenantStaff(tenantId: string): Promise<{ id: string; email: strin
   });
 }
 
+function loginUrl(): string {
+  const base = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
+  return `${base}/login`;
+}
+
+/** Sent the moment an admin invites someone (or re-invites an existing email-only contact) — see POST /api/admin/users. */
+export async function notifyUserInvited(email: string, name: string | null, tenantName: string): Promise<void> {
+  const notifications = getNotificationProvider();
+  const greeting = name ? `Hi ${name},` : "Hi,";
+  await notifications.send({
+    to: email,
+    subject: `You've been invited to ${tenantName}'s helpdesk`,
+    text: `${greeting}\n\nAn admin has added you to ${tenantName}'s helpdesk on Novadesk. Sign in with your Google account (${email}) here:\n\n${loginUrl()}\n\nIf you weren't expecting this, you can ignore this email.`,
+  });
+}
+
 interface TicketForNotification {
   id: string;
   number: number;

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Prisma } from "@prisma/client";
-import { requireTenantSession } from "@/lib/session";
+import { requireTenantSession, AuthError } from "@/lib/session";
 import { withApiErrors } from "@/lib/api";
 import { prisma } from "@/lib/db";
 import { canManageTickets, isAdmin } from "@/lib/roles";
@@ -86,12 +86,25 @@ const createSchema = z.object({
   brandId: z.string().optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
   type: z.enum(["PROBLEM", "INCIDENT", "REQUEST", "INFORMATION", "TRAINING", "QUOTE"]).optional(),
+  /** Staff-only: raise this ticket on someone else's behalf (e.g. logging a phone call). */
+  requesterId: z.string().optional(),
 });
 
 export async function POST(req: Request) {
   return withApiErrors(async () => {
     const session = await requireTenantSession();
-    const body = createSchema.parse(await req.json());
-    return createTicket({ ...body, tenantId: session.user.tenantId, requesterId: session.user.id });
+    const { requesterId: onBehalfOfId, ...body } = createSchema.parse(await req.json());
+
+    let requesterId = session.user.id;
+    if (onBehalfOfId && onBehalfOfId !== session.user.id) {
+      if (!canManageTickets(session.user.role)) {
+        throw new AuthError("Only helpdesk staff can raise a ticket on someone else's behalf", 403);
+      }
+      const target = await prisma.user.findUnique({ where: { id: onBehalfOfId } });
+      if (!target || target.tenantId !== session.user.tenantId) throw new AuthError("Requester not found", 404);
+      requesterId = target.id;
+    }
+
+    return createTicket({ ...body, tenantId: session.user.tenantId, requesterId, actorId: session.user.id });
   });
 }
