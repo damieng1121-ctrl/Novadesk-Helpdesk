@@ -116,8 +116,10 @@ model Company {
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
-  users   User[]
-  tickets Ticket[]
+  users          User[]
+  tickets        Ticket[]
+  financeRecords FinanceRecord[]
+  assets         Asset[]
 
   @@unique([tenantId, name])
 }
@@ -632,12 +634,20 @@ model FinanceRecord {
   requestedById String
   requestedBy   User   @relation(fields: [requestedById], references: [id])
 
+  /// Which school/organisation this PO is for — set directly by whoever
+  /// raises it, or picked up during a bulk import; unlike Ticket there's no
+  /// requester to auto-derive it from (requestedBy is the staff member who
+  /// logged it, not who it's for).
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
   requestDate DateTime @default(now())
   isDeleted   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([tenantId, status])
+  @@index([tenantId, companyId])
 }
 
 // ---------------------------------------------------------------------------
@@ -720,6 +730,13 @@ model Asset {
   assignedToId String?
   assignedTo   User?   @relation(fields: [assignedToId], references: [id])
 
+  /// Which school/organisation this asset belongs to — settable directly,
+  /// or matched by name during a spreadsheet import (see
+  /// src/app/api/assets/import/route.ts). Independent of assignedTo's own
+  /// Company, since an asset can be centrally owned before being assigned.
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
   status         AssetStatus @default(ACTIVE)
   purchaseDate   DateTime?
   warrantyExpiry DateTime?
@@ -729,6 +746,7 @@ model Asset {
   updatedAt DateTime @updatedAt
 
   @@unique([tenantId, tag])
+  @@index([tenantId, companyId])
 }
 
 // ---------------------------------------------------------------------------

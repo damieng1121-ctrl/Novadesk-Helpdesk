@@ -9,6 +9,7 @@ type Params = { params: Promise<{ id: string }> };
 const bodySchema = z.object({
   status: z.enum(["PENDING", "APPROVED", "ORDERED", "DELIVERED"]).optional(),
   isDeleted: z.boolean().optional(),
+  companyId: z.string().nullable().optional(),
 });
 
 export async function PATCH(req: Request, { params }: Params) {
@@ -30,7 +31,7 @@ export async function PATCH(req: Request, { params }: Params) {
     return prisma.financeRecord.update({
       where: { id },
       data: body,
-      include: { requestedBy: { select: { name: true, email: true } } },
+      include: { requestedBy: { select: { name: true, email: true } }, company: { select: { id: true, name: true } } },
     });
   });
 }

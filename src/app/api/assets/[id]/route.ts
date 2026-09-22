@@ -12,6 +12,7 @@ const bodySchema = z.object({
   model: z.string().max(100).nullable().optional(),
   serialNumber: z.string().max(100).nullable().optional(),
   assignedToId: z.string().nullable().optional(),
+  companyId: z.string().nullable().optional(),
   status: z.enum(["ACTIVE", "IN_REPAIR", "RETIRED", "LOST"]).optional(),
   purchaseDate: z.string().nullable().optional(),
   warrantyExpiry: z.string().nullable().optional(),
@@ -36,7 +37,7 @@ export async function PATCH(req: Request, { params }: Params) {
         warrantyExpiry:
           body.warrantyExpiry !== undefined ? (body.warrantyExpiry ? new Date(body.warrantyExpiry) : null) : undefined,
       },
-      include: { assignedTo: { select: { name: true, email: true } } },
+      include: { assignedTo: { select: { name: true, email: true } }, company: { select: { id: true, name: true } } },
     });
   });
 }

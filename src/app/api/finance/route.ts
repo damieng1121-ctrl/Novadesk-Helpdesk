@@ -4,14 +4,15 @@ import { withApiErrors } from "@/lib/api";
 import { prisma } from "@/lib/db";
 import { canManageTickets } from "@/lib/roles";
 
-export async function GET() {
+export async function GET(req: Request) {
   return withApiErrors(async () => {
     const session = await requireTenantSession();
     if (!canManageTickets(session.user.role)) throw new AuthError("Staff only", 403);
+    const companyId = new URL(req.url).searchParams.get("companyId");
     return prisma.financeRecord.findMany({
-      where: { tenantId: session.user.tenantId, isDeleted: false },
+      where: { tenantId: session.user.tenantId, isDeleted: false, ...(companyId ? { companyId } : {}) },
       orderBy: { requestDate: "desc" },
-      include: { requestedBy: { select: { name: true, email: true } } },
+      include: { requestedBy: { select: { name: true, email: true } }, company: { select: { id: true, name: true } } },
     });
   });
 }
@@ -21,6 +22,7 @@ const createSchema = z.object({
   description: z.string().min(1).max(2000),
   amountPence: z.number().int().min(0),
   vendor: z.string().min(1).max(150),
+  companyId: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -31,7 +33,7 @@ export async function POST(req: Request) {
 
     return prisma.financeRecord.create({
       data: { ...body, tenantId: session.user.tenantId, requestedById: session.user.id },
-      include: { requestedBy: { select: { name: true, email: true } } },
+      include: { requestedBy: { select: { name: true, email: true } }, company: { select: { id: true, name: true } } },
     });
   });
 }
