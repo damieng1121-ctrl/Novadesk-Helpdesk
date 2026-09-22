@@ -49,7 +49,7 @@ export async function GET(req: Request) {
         r.priority,
         r.category?.name ?? "",
         r.brand?.name ?? "",
-        r.requester.company?.name ?? "",
+        r.company?.name ?? "",
         r.requester.name ?? r.requester.email ?? "",
         r.assignee?.name ?? r.assignee?.email ?? "",
         r.createdAt.toISOString(),

@@ -16,12 +16,14 @@ type Ticket = {
   dueAt: string | null;
   category: { name: string } | null;
   brand: { id: string; name: string } | null;
+  company: { id: string; name: string } | null;
   isOutOfHours: boolean;
   requester: { name: string | null; email: string | null };
   assignee: { name: string | null; email: string | null } | null;
 };
 
 type Brand = { id: string; name: string };
+type Company = { id: string; name: string };
 
 export default function TicketsPage() {
   return (
@@ -38,12 +40,17 @@ function TicketsList() {
   const [status, setStatus] = useState("");
   const [brands, setBrands] = useState<Brand[]>([]);
   const [brandId, setBrandId] = useState("");
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [companyId, setCompanyId] = useState("");
   const [outOfHoursOnly, setOutOfHoursOnly] = useState(false);
 
   useEffect(() => {
     fetch("/api/brands")
       .then((r) => r.json())
       .then(setBrands);
+    fetch("/api/admin/companies")
+      .then((r) => r.json())
+      .then(setCompanies);
   }, []);
 
   useEffect(() => {
@@ -51,11 +58,12 @@ function TicketsList() {
     if (assignee) qs.set("assignee", assignee);
     if (status) qs.set("status", status);
     if (brandId) qs.set("brandId", brandId);
+    if (companyId) qs.set("companyId", companyId);
     if (outOfHoursOnly) qs.set("outOfHours", "true");
     fetch(`/api/tickets?${qs.toString()}`)
       .then((r) => r.json())
       .then(setTickets);
-  }, [assignee, status, brandId, outOfHoursOnly]);
+  }, [assignee, status, brandId, companyId, outOfHoursOnly]);
 
   return (
     <div>
@@ -114,6 +122,20 @@ function TicketsList() {
             ))}
           </select>
         )}
+        {companies.length > 1 && (
+          <select
+            value={companyId}
+            onChange={(e) => setCompanyId(e.target.value)}
+            className="rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-400"
+          >
+            <option value="">All companies</option>
+            {companies.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
@@ -130,6 +152,7 @@ function TicketsList() {
                   <p className="mt-0.5 text-xs text-slate-700 dark:text-slate-300">
                     {t.category?.name ?? "Uncategorised"} · {t.requester.name ?? t.requester.email}
                     {t.brand && <> · {t.brand.name}</>}
+                    {t.company && <> · {t.company.name}</>}
                   </p>
                 </td>
                 <td className="p-4">

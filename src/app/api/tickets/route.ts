@@ -53,6 +53,8 @@ export async function GET(req: Request) {
     if (categoryId) where.categoryId = categoryId;
     const brandFilter = searchParams.get("brandId");
     if (brandFilter) where.brandId = brandFilter;
+    const companyFilter = searchParams.get("companyId");
+    if (companyFilter) where.companyId = companyFilter;
     if (searchParams.get("outOfHours") === "true") where.isOutOfHours = true;
     if (search) {
       conditions.push({
@@ -71,6 +73,7 @@ export async function GET(req: Request) {
       include: {
         category: true,
         brand: { select: { id: true, name: true } },
+        company: { select: { id: true, name: true } },
         requester: { select: { id: true, name: true, email: true } },
         assignee: { select: { id: true, name: true, email: true } },
       },
@@ -88,12 +91,14 @@ const createSchema = z.object({
   type: z.enum(["PROBLEM", "INCIDENT", "REQUEST", "INFORMATION", "TRAINING", "QUOTE"]).optional(),
   /** Staff-only: raise this ticket on someone else's behalf (e.g. logging a phone call). */
   requesterId: z.string().optional(),
+  /** Staff-only: assign the ticket to a Company directly, overriding the requester's own default. */
+  companyId: z.string().optional(),
 });
 
 export async function POST(req: Request) {
   return withApiErrors(async () => {
     const session = await requireTenantSession();
-    const { requesterId: onBehalfOfId, ...body } = createSchema.parse(await req.json());
+    const { requesterId: onBehalfOfId, companyId: companyOverride, ...body } = createSchema.parse(await req.json());
 
     let requesterId = session.user.id;
     if (onBehalfOfId && onBehalfOfId !== session.user.id) {
@@ -105,6 +110,16 @@ export async function POST(req: Request) {
       requesterId = target.id;
     }
 
-    return createTicket({ ...body, tenantId: session.user.tenantId, requesterId, actorId: session.user.id });
+    let companyId: string | undefined;
+    if (companyOverride) {
+      if (!canManageTickets(session.user.role)) {
+        throw new AuthError("Only helpdesk staff can assign a ticket to a company", 403);
+      }
+      const company = await prisma.company.findUnique({ where: { id: companyOverride } });
+      if (!company || company.tenantId !== session.user.tenantId) throw new AuthError("Company not found", 404);
+      companyId = company.id;
+    }
+
+    return createTicket({ ...body, tenantId: session.user.tenantId, requesterId, companyId, actorId: session.user.id });
   });
 }

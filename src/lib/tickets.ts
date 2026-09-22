@@ -19,21 +19,30 @@ export async function createTicket(input: {
   description: string;
   categoryId?: string;
   brandId?: string;
+  /** Explicit override — if omitted, defaults to the requester's own Company. */
+  companyId?: string;
   priority?: TicketPriority;
   type?: TicketType;
 }) {
   const { tenantId, requesterId } = input;
   const actorId = input.actorId ?? requesterId;
 
-  const [categories, brands, tenant, holidays] = await Promise.all([
+  const [categories, brands, companies, requesterRow, tenant, holidays] = await Promise.all([
     prisma.category.findMany({ where: { tenantId } }),
     prisma.brand.findMany({ where: { tenantId }, select: { id: true } }),
+    prisma.company.findMany({ where: { tenantId }, select: { id: true } }),
+    prisma.user.findUnique({ where: { id: requesterId }, select: { companyId: true } }),
     prisma.tenant.findUniqueOrThrow({
       where: { id: tenantId },
       select: { outOfHoursEnabled: true, outOfHoursStart: true, outOfHoursEnd: true, outOfHoursWeekendOnly: true },
     }),
     prisma.holiday.findMany({ where: { tenantId }, select: { date: true } }),
   ]);
+  // Auto-select the requester's own Company unless the caller explicitly
+  // picked a different (and valid, for this tenant) one — e.g. staff
+  // correcting a wrong auto-match, or raising a ticket for someone whose
+  // own profile has no Company set yet.
+  const companyId = companies.some((c) => c.id === input.companyId) ? input.companyId : requesterRow?.companyId ?? undefined;
   const holidayDates = new Set(holidays.map((h) => dateKey(h.date)));
   const outOfHours = isOutsideBusinessHours(tenant, new Date(), holidayDates);
   // Only trust a caller-supplied brandId if it's actually one of this
@@ -67,6 +76,7 @@ export async function createTicket(input: {
           description: input.description,
           categoryId: input.categoryId ?? aiCategory?.id,
           brandId,
+          companyId,
           type: input.type ?? "INCIDENT",
           priority,
           dueAt: computeDueAt(priority),
@@ -78,7 +88,7 @@ export async function createTicket(input: {
           sentimentScore: triage.sentimentScore,
           aiSuggestedSolution: triage.suggestedSolution,
         },
-        include: { category: true, requester: true },
+        include: { category: true, requester: true, company: true },
       });
     } catch (err) {
       const isUniqueClash = typeof err === "object" && err !== null && "code" in err && err.code === "P2002";

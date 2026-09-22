@@ -31,6 +31,7 @@ type TicketDetail = {
   aiSuggestedSolution: string | null;
   category: { id: string; name: string } | null;
   brand: { id: string; name: string } | null;
+  company: { id: string; name: string } | null;
   requester: Person;
   assignee: Person | null;
   comments: Comment[];
@@ -84,6 +85,68 @@ function StarRow({ rating, size = 16 }: { rating: number; size?: number }) {
           className={n <= rating ? "fill-amber-400 text-amber-400" : "text-slate-300"}
         />
       ))}
+    </div>
+  );
+}
+
+function ReopenCard({ ticketId, canReopen, onReopened }: { ticketId: string; canReopen: boolean; onReopened: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  if (!canReopen) return null;
+
+  async function reopen() {
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/tickets/${ticketId}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body: reason.trim() || "Reopening this ticket — the issue isn't resolved." }),
+      });
+      if (res.ok) {
+        setReason("");
+        setOpen(false);
+        onReopened();
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950">
+      <p className="text-sm font-medium text-amber-900 dark:text-amber-200">Not fixed, or closed by mistake?</p>
+      {open ? (
+        <>
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="What's still wrong? (optional)"
+            rows={2}
+            className="mt-2 w-full rounded-md border border-amber-300 px-3 py-2 text-sm dark:border-amber-800 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
+          />
+          <div className="mt-2 flex items-center gap-2">
+            <button
+              onClick={reopen}
+              disabled={submitting}
+              className="rounded-md bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+            >
+              {submitting ? "Reopening…" : "Reopen ticket"}
+            </button>
+            <button onClick={() => setOpen(false)} className="text-xs text-amber-800 hover:underline dark:text-amber-300">
+              Cancel
+            </button>
+          </div>
+        </>
+      ) : (
+        <button
+          onClick={() => setOpen(true)}
+          className="mt-2 rounded-md border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:bg-slate-900 dark:text-amber-300 dark:hover:bg-slate-800"
+        >
+          Reopen ticket
+        </button>
+      )}
     </div>
   );
 }
@@ -186,6 +249,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
   const [cannedResponses, setCannedResponses] = useState<{ id: string; title: string; content: string }[]>([]);
   const [staffList, setStaffList] = useState<Person[]>([]);
   const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
   const [signature, setSignature] = useState<string | null>(null);
 
   async function load() {
@@ -210,6 +274,9 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
     fetch("/api/brands")
       .then((r) => (r.ok ? r.json() : []))
       .then(setBrands);
+    fetch("/api/admin/companies")
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setCompanies);
     fetch("/api/account/profile")
       .then((r) => (r.ok ? r.json() : null))
       .then((p) => setSignature(p?.signature ?? null));
@@ -313,12 +380,19 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
         )}
 
         {(ticket.status === "RESOLVED" || ticket.status === "CLOSED") && (
-          <SatisfactionCard
-            ticketId={ticket.id}
-            satisfaction={ticket.satisfaction}
-            canRate={!staff && ticket.requester.id === session?.user.id}
-            onSubmitted={load}
-          />
+          <>
+            <ReopenCard
+              ticketId={ticket.id}
+              canReopen={!staff && ticket.requester.id === session?.user.id}
+              onReopened={load}
+            />
+            <SatisfactionCard
+              ticketId={ticket.id}
+              satisfaction={ticket.satisfaction}
+              canRate={!staff && ticket.requester.id === session?.user.id}
+              onSubmitted={load}
+            />
+          </>
         )}
 
         <div className="mt-6 space-y-4">
@@ -492,6 +566,19 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
               <span className="font-medium text-slate-900 dark:text-slate-100">Requester:</span>{" "}
               {ticket.requester.name ?? ticket.requester.email}
             </p>
+            <p className="mt-3 font-medium text-slate-900 dark:text-slate-100">Company / school</p>
+            <select
+              value={ticket.company?.id ?? ""}
+              onChange={(e) => updateTicket({ companyId: e.target.value || null })}
+              className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
+            >
+              <option value="">None</option>
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
             <p className="mt-3 font-medium text-slate-900 dark:text-slate-100">Assignee</p>
             <select
               value={ticket.assignee?.id ?? ""}

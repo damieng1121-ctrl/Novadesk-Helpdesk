@@ -13,7 +13,7 @@ export async function buildReportRows(
       tenantId,
       isDeleted: false,
       ...(createdAt ? { createdAt } : {}),
-      ...(companyId ? { requester: { companyId } } : {}),
+      ...(companyId ? { companyId } : {}),
     },
     orderBy: { createdAt: "desc" },
     select: {
@@ -26,7 +26,8 @@ export async function buildReportRows(
       dueAt: true,
       category: { select: { name: true } },
       brand: { select: { name: true } },
-      requester: { select: { name: true, email: true, company: { select: { name: true } } } },
+      company: { select: { name: true } },
+      requester: { select: { name: true, email: true } },
       assignee: { select: { id: true, name: true, email: true } },
       satisfaction: { select: { rating: true } },
     },
@@ -48,7 +49,7 @@ export function summarizeReportRows(rows: ReportRow[]) {
   const byStatus = rankedCounts(rows.map((r) => r.status)).map((r) => ({ status: r.label, count: r.count }));
   const byPriority = rankedCounts(rows.map((r) => r.priority)).map((r) => ({ priority: r.label, count: r.count }));
   const byCategory = rankedCounts(rows.map((r) => r.category?.name ?? null));
-  const byCompany = rankedCounts(rows.map((r) => r.requester.company?.name ?? null));
+  const byCompany = rankedCounts(rows.map((r) => r.company?.name ?? null));
   const byBrand = rankedCounts(rows.map((r) => r.brand?.name ?? null));
 
   const now = Date.now();

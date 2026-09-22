@@ -106,7 +106,9 @@ model Company {
   tenantId  String
   tenant    Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name      String
-  /// Informational only — no longer used to gate sign-in.
+  /// No longer used to gate sign-in, but reused to auto-match a brand-new
+  /// inbound-email sender to this Company by their address's domain — see
+  /// src/app/api/inbound-email/route.ts.
   domain    String?
   /// DfE unique reference number, if this Company is a school.
   urn       String?
@@ -114,7 +116,8 @@ model Company {
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
-  users User[]
+  users   User[]
+  tickets Ticket[]
 
   @@unique([tenantId, name])
 }
@@ -316,6 +319,15 @@ model Ticket {
   brandId String?
   brand   Brand?  @relation(fields: [brandId], references: [id])
 
+  /// Which school/organisation this ticket is for. Auto-filled from the
+  /// requester's own Company at creation time (see createTicket in
+  /// src/lib/tickets.ts) but independently editable afterward — e.g. staff
+  /// raising a ticket for someone whose own profile has no Company set yet,
+  /// or correcting a wrong auto-match. Reports/filtering read this field,
+  /// not requester.companyId, once it's set.
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
   requesterId String
   requester   User   @relation("RequestedTickets", fields: [requesterId], references: [id])
 
@@ -353,6 +365,7 @@ model Ticket {
   @@unique([tenantId, number])
   @@index([tenantId, status])
   @@index([tenantId, assigneeId])
+  @@index([tenantId, companyId])
 }
 
 model TicketComment {

@@ -58,6 +58,15 @@ export async function POST(req: Request) {
 
   let requester = await prisma.user.findUnique({ where: { email: fromEmail } });
   if (!requester) {
+    // Try to auto-match a Company by the sender's email domain (e.g.
+    // teacher@willowbrook.example -> a Company with domain
+    // "willowbrook.example") so a brand-new inbound-email ticket isn't
+    // left uncategorised in reporting the way it would be otherwise.
+    const senderDomain = fromEmail.split("@")[1];
+    const matchedCompany = senderDomain
+      ? await prisma.company.findFirst({ where: { tenantId: tenant.id, domain: senderDomain } })
+      : null;
+
     // A brand-new emailer becomes a ticket requester, not a portal login —
     // see portalAccessGranted's doc comment on the User model.
     requester = await prisma.user.create({
@@ -66,6 +75,7 @@ export async function POST(req: Request) {
         name: payload.FromFull?.Name || undefined,
         role: "REQUESTER",
         tenantId: tenant.id,
+        companyId: matchedCompany?.id,
         portalAccessGranted: false,
       },
     });

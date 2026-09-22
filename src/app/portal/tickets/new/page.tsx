@@ -75,6 +75,7 @@ export default function NewTicketPage() {
           brandId: brandId || undefined,
           priority,
           requesterId: requesterId || undefined,
+          companyId: companyId || undefined,
         }),
       });
       const data = await res.json();
@@ -106,13 +107,16 @@ export default function NewTicketPage() {
                 onChange={(e) => setCompanyId(e.target.value)}
                 className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
               >
-                <option value="">All companies</option>
+                <option value="">Auto (from who it&apos;s for)</option>
                 {companies.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
                 ))}
               </select>
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                Filters &quot;Raised for&quot; below, and sets the ticket&apos;s company directly.
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Raised for</label>

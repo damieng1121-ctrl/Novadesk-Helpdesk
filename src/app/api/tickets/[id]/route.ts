@@ -22,6 +22,7 @@ async function loadTicketForSession(
     include: {
       category: true,
       brand: { select: { id: true, name: true } },
+      company: { select: { id: true, name: true } },
       requester: { select: { id: true, name: true, email: true, companyId: true } },
       assignee: { select: { id: true, name: true, email: true } },
       comments: {
@@ -81,6 +82,7 @@ const updateSchema = z.object({
   type: z.enum(["PROBLEM", "INCIDENT", "REQUEST", "INFORMATION", "TRAINING", "QUOTE"]).optional(),
   categoryId: z.string().nullable().optional(),
   brandId: z.string().nullable().optional(),
+  companyId: z.string().nullable().optional(),
   assigneeId: z.string().nullable().optional(),
   isDeleted: z.boolean().optional(),
 });
@@ -114,7 +116,7 @@ export async function PATCH(req: Request, { params }: Params) {
         resolvedAt: body.status === "RESOLVED" ? now : body.status ? null : undefined,
         closedAt: body.status === "CLOSED" ? now : body.status ? null : undefined,
       },
-      include: { category: true, requester: true, assignee: true },
+      include: { category: true, requester: true, assignee: true, company: true },
     });
 
     await prisma.auditLog.create({
