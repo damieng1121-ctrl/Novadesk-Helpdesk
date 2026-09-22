@@ -12,9 +12,16 @@
  * the app's invite API or any notification code path, only raw Prisma
  * writes, so nobody is emailed about these accounts being created.
  * Each qualifying ticket also pulls in its full conversation (replies +
- * private notes) as ticket comments. Attachments are NOT imported (on
- * either tickets or KB articles) — a deliberate scope cut, flag it to
- * Damien if that turns out to matter.
+ * private notes) as ticket comments, plus any attachments on the ticket
+ * itself and on each reply — downloaded from Freshdesk's attachment_url
+ * and re-saved through the same src/lib/storage.ts used by normal ticket
+ * attachment uploads. Note that storage module is local-disk only (see its
+ * own doc comment) — it hasn't been swapped for a Cloud Storage-backed
+ * implementation, so on Cloud Run these files (like every other upload in
+ * the app today) won't survive a redeploy. Fine to import now, just don't
+ * treat it as durable yet. KB article attachments are NOT imported — Solutions
+ * articles' image/file embeds aren't exposed the same way via the API and
+ * are a separate, smaller cleanup task if it turns out to matter.
  *
  * Re-run safety for tickets: since Freshdesk ticket IDs aren't stored
  * anywhere in the schema, a ticket is considered "already imported" if a
@@ -40,6 +47,7 @@
  * it inline) — point it at the target database deliberately.
  */
 import { prisma } from "../src/lib/db";
+import { saveUpload, UploadTooLargeError } from "../src/lib/storage";
 import type { TicketPriority, TicketStatus, TicketType } from "@prisma/client";
 
 const DOMAIN = process.env.FRESHDESK_DOMAIN;
@@ -90,6 +98,61 @@ async function fdGetAllPages(path: string, perPage = 100): Promise<Record<string
     if (batch.length < perPage) break;
   }
   return all;
+}
+
+/**
+ * Attachment binaries live at a separate pre-signed URL (attachment_url),
+ * not under BASE, and take no Freshdesk auth header — a plain GET.
+ */
+async function fdDownloadAttachment(url: string): Promise<Buffer> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const res = await fetch(url);
+    if (res.status === 429) {
+      await sleep(3000);
+      continue;
+    }
+    if (!res.ok) throw new Error(`download failed -> HTTP ${res.status}`);
+    return Buffer.from(await res.arrayBuffer());
+  }
+  throw new Error("download failed after retries (repeated 429s)");
+}
+
+/** Downloads and saves each of a ticket's or a reply's Freshdesk attachments, returning how many were written. */
+async function importAttachments(
+  tenantId: string,
+  ticketId: string,
+  commentId: string | null,
+  fdAttachments: unknown,
+): Promise<number> {
+  if (!Array.isArray(fdAttachments) || fdAttachments.length === 0) return 0;
+  let written = 0;
+  for (const raw of fdAttachments as Record<string, unknown>[]) {
+    const name = String(raw.name ?? "attachment").slice(0, 200);
+    const attachmentUrl = raw.attachment_url as string | undefined;
+    if (!attachmentUrl) {
+      console.log(`      (skipped attachment "${name}" — no download URL)`);
+      continue;
+    }
+    try {
+      const data = await fdDownloadAttachment(attachmentUrl);
+      const saved = await saveUpload(tenantId, ticketId, name, data);
+      await prisma.ticketAttachment.create({
+        data: {
+          ticketId,
+          commentId,
+          fileName: name,
+          url: saved.key,
+          fileSize: saved.size,
+          contentType: (raw.content_type as string | undefined) ?? null,
+        },
+      });
+      written++;
+    } catch (err) {
+      const reason = err instanceof UploadTooLargeError ? err.message : (err as Error).message;
+      console.log(`      (skipped attachment "${name}" — ${reason})`);
+    }
+  }
+  return written;
 }
 
 function slugify(input: string): string {
@@ -278,6 +341,7 @@ async function main() {
   let ticketsWritten = 0;
   let requestersWritten = 0;
   let commentsWritten = 0;
+  let attachmentsWritten = 0;
   if (WITH_TICKETS) {
     console.log(
       "\nScanning Freshdesk tickets for Open/Pending ones (walks the full ticket list — may take a while for a long history)...",
@@ -394,6 +458,8 @@ async function main() {
       ticketsWritten++;
       console.log(`    imported as #${ticket.number} (requester ${requesterInfo?.name ?? email})`);
 
+      attachmentsWritten += await importAttachments(tenant.id, ticket.id, null, detail.attachments);
+
       // Full conversation — only on first import of this ticket, never
       // re-added on a later run (the ticket-level dedup check above already
       // skipped this ticket entirely if it was previously imported).
@@ -410,7 +476,7 @@ async function main() {
           (convUserId && agentIdToUserId.get(convUserId)) || (incoming ? requester.id : fallbackAuthor?.id) || requester.id;
         const body =
           String(conv.body_text ?? "").trim() || stripHtml(String(conv.body ?? "")) || "(no content)";
-        await prisma.ticketComment.create({
+        const comment = await prisma.ticketComment.create({
           data: {
             ticketId: ticket.id,
             authorId,
@@ -420,6 +486,7 @@ async function main() {
           },
         });
         commentsWritten++;
+        attachmentsWritten += await importAttachments(tenant.id, ticket.id, comment.id, conv.attachments);
       }
     }
   }
@@ -431,7 +498,7 @@ async function main() {
     console.log(
       `Imported: ${companiesWritten} companies, ${agentIdToUserId.size} agents, ${articlesWritten} KB articles (all as drafts)` +
         (WITH_TICKETS
-          ? `, ${ticketsWritten} tickets, ${requestersWritten} requesters, ${commentsWritten} comments.`
+          ? `, ${ticketsWritten} tickets, ${requestersWritten} requesters, ${commentsWritten} comments, ${attachmentsWritten} attachments.`
           : "."),
     );
   }
