@@ -27,6 +27,7 @@ type Ticket = {
 
 type Brand = { id: string; name: string };
 type Company = { id: string; name: string };
+type StaffMember = { id: string; name: string | null; email: string | null };
 
 export default function TicketsPage() {
   return (
@@ -48,6 +49,22 @@ function TicketsList() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [companyId, setCompanyId] = useState("");
   const [outOfHoursOnly, setOutOfHoursOnly] = useState(false);
+  const [staffList, setStaffList] = useState<StaffMember[]>([]);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkApplying, setBulkApplying] = useState(false);
+
+  function load() {
+    const qs = new URLSearchParams();
+    if (assignee) qs.set("assignee", assignee);
+    if (status) qs.set("status", status);
+    if (brandId) qs.set("brandId", brandId);
+    if (companyId) qs.set("companyId", companyId);
+    if (outOfHoursOnly) qs.set("outOfHours", "true");
+    fetch(`/api/tickets?${qs.toString()}`)
+      .then((r) => r.json())
+      .then(setTickets);
+  }
 
   useEffect(() => {
     fetch("/api/brands")
@@ -63,31 +80,157 @@ function TicketsList() {
     fetch("/api/admin/companies")
       .then((r) => (r.ok ? r.json() : []))
       .then(setCompanies);
+    fetch("/api/staff")
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setStaffList);
   }, [staff]);
 
-  useEffect(() => {
-    const qs = new URLSearchParams();
-    if (assignee) qs.set("assignee", assignee);
-    if (status) qs.set("status", status);
-    if (brandId) qs.set("brandId", brandId);
-    if (companyId) qs.set("companyId", companyId);
-    if (outOfHoursOnly) qs.set("outOfHours", "true");
-    fetch(`/api/tickets?${qs.toString()}`)
-      .then((r) => r.json())
-      .then(setTickets);
-  }, [assignee, status, brandId, companyId, outOfHoursOnly]);
+  useEffect(load, [assignee, status, brandId, companyId, outOfHoursOnly]);
+
+  function toggleSelectMode() {
+    setSelectMode((v) => !v);
+    setSelected(new Set());
+  }
+
+  function toggleSelected(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function selectAll() {
+    setSelected(new Set((tickets ?? []).map((t) => t.id)));
+  }
+
+  async function applyBulk(patch: Record<string, unknown>) {
+    if (selected.size === 0) return;
+    setBulkApplying(true);
+    try {
+      await Promise.all(
+        [...selected].map((id) =>
+          fetch(`/api/tickets/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(patch),
+          }),
+        ),
+      );
+      load();
+    } finally {
+      setBulkApplying(false);
+    }
+  }
 
   return (
     <div>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Tickets</h1>
-        <Link
-          href="/portal/tickets/new"
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-        >
-          Raise a ticket
-        </Link>
+        <div className="flex items-center gap-2">
+          {staff && (
+            <button
+              onClick={toggleSelectMode}
+              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              {selectMode ? "Cancel" : "Select"}
+            </button>
+          )}
+          <Link
+            href="/portal/tickets/new"
+            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          >
+            Raise a ticket
+          </Link>
+        </div>
       </div>
+
+      {selectMode && (
+        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+          <span className="text-sm text-slate-700 dark:text-slate-300">{selected.size} selected</span>
+          <button onClick={selectAll} className="text-sm text-indigo-600 hover:underline">
+            Select all
+          </button>
+          <select
+            disabled={selected.size === 0 || bulkApplying}
+            onChange={(e) => {
+              if (e.target.value) applyBulk({ assigneeId: e.target.value === "unassigned" ? null : e.target.value });
+              e.target.value = "";
+            }}
+            defaultValue=""
+            className="rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-600 disabled:opacity-50 dark:border-slate-700 dark:text-slate-400 dark:bg-slate-800 dark:text-slate-100"
+          >
+            <option value="" disabled>
+              Assign to…
+            </option>
+            <option value="unassigned">Unassigned</option>
+            {staffList.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name ?? s.email}
+              </option>
+            ))}
+          </select>
+          <select
+            disabled={selected.size === 0 || bulkApplying}
+            onChange={(e) => {
+              if (e.target.value) applyBulk({ status: e.target.value });
+              e.target.value = "";
+            }}
+            defaultValue=""
+            className="rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-600 disabled:opacity-50 dark:border-slate-700 dark:text-slate-400 dark:bg-slate-800 dark:text-slate-100"
+          >
+            <option value="" disabled>
+              Set status…
+            </option>
+            {["OPEN", "IN_PROGRESS", "ON_HOLD", "RESOLVED", "CLOSED"].map((s) => (
+              <option key={s} value={s}>
+                {s.replace("_", " ")}
+              </option>
+            ))}
+          </select>
+          <select
+            disabled={selected.size === 0 || bulkApplying}
+            onChange={(e) => {
+              if (e.target.value) applyBulk({ priority: e.target.value });
+              e.target.value = "";
+            }}
+            defaultValue=""
+            className="rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-600 disabled:opacity-50 dark:border-slate-700 dark:text-slate-400 dark:bg-slate-800 dark:text-slate-100"
+          >
+            <option value="" disabled>
+              Set priority…
+            </option>
+            {["LOW", "MEDIUM", "HIGH", "CRITICAL"].map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+          {companies.length > 1 && (
+            <select
+              disabled={selected.size === 0 || bulkApplying}
+              onChange={(e) => {
+                if (e.target.value) applyBulk({ companyId: e.target.value === "none" ? null : e.target.value });
+                e.target.value = "";
+              }}
+              defaultValue=""
+              className="rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-600 disabled:opacity-50 dark:border-slate-700 dark:text-slate-400 dark:bg-slate-800 dark:text-slate-100"
+            >
+              <option value="" disabled>
+                Set company…
+              </option>
+              <option value="none">None</option>
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          )}
+          {bulkApplying && <span className="text-xs text-slate-600 dark:text-slate-400">Applying…</span>}
+        </div>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
         {[
@@ -157,6 +300,16 @@ function TicketsList() {
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {tickets?.map((t) => (
               <tr key={t.id}>
+                {selectMode && (
+                  <td className="w-10 p-4">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(t.id)}
+                      onChange={() => toggleSelected(t.id)}
+                      className="h-4 w-4"
+                    />
+                  </td>
+                )}
                 <td className="p-4">
                   <Link href={`/portal/tickets/${t.id}`} className="font-medium text-slate-900 hover:text-indigo-600 dark:text-slate-100">
                     #{t.number} {t.subject}

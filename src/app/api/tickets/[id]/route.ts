@@ -32,6 +32,8 @@ async function loadTicketForSession(
       attachments: true,
       tenant: { select: { outOfHoursMessage: true } },
       satisfaction: true,
+      mergedInto: { select: { id: true, number: true, subject: true } },
+      mergedTickets: { select: { id: true, number: true, subject: true } },
     },
   });
   if (!ticket || ticket.tenantId !== tenantId || ticket.isDeleted) return null;

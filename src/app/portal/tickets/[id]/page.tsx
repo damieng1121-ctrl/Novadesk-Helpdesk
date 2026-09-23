@@ -41,6 +41,8 @@ type TicketDetail = {
   isOutOfHours: boolean;
   tenant: { outOfHoursMessage: string };
   satisfaction: { rating: number; comment: string | null } | null;
+  mergedInto: { id: string; number: number; subject: string } | null;
+  mergedTickets: { id: string; number: number; subject: string }[];
 };
 
 function formatFileSize(bytes: number | null): string {
@@ -85,6 +87,130 @@ function StarRow({ rating, size = 16 }: { rating: number; size?: number }) {
           className={n <= rating ? "fill-amber-400 text-amber-400" : "text-slate-300"}
         />
       ))}
+    </div>
+  );
+}
+
+type TicketSearchResult = { id: string; number: number; subject: string };
+
+function MergeControl({ ticketId, onMerged }: { ticketId: string; onMerged: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<TicketSearchResult[]>([]);
+  const [target, setTarget] = useState<TicketSearchResult | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [merging, setMerging] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function search() {
+    if (!query.trim()) return;
+    setSearching(true);
+    setError(null);
+    try {
+      const isNumeric = /^\d+$/.test(query.trim().replace(/^#/, ""));
+      const qs = isNumeric ? `number=${query.trim().replace(/^#/, "")}` : `q=${encodeURIComponent(query.trim())}`;
+      const res = await fetch(`/api/tickets?${qs}`);
+      const data: TicketSearchResult[] = res.ok ? await res.json() : [];
+      setResults(data.filter((t) => t.id !== ticketId));
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  async function confirmMerge() {
+    if (!target) return;
+    setMerging(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/tickets/${ticketId}/merge`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intoTicketId: target.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Couldn't merge this ticket");
+        return;
+      }
+      setOpen(false);
+      onMerged();
+    } finally {
+      setMerging(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="w-full rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+      >
+        Merge into another ticket…
+      </button>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm dark:border-slate-800 dark:bg-slate-900">
+      <p className="font-medium text-slate-900 dark:text-slate-100">Merge this ticket into…</p>
+      <div className="mt-2 flex gap-2">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && search()}
+          placeholder="Ticket number or subject…"
+          className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
+        />
+        <button
+          onClick={search}
+          disabled={searching}
+          className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+        >
+          {searching ? "…" : "Find"}
+        </button>
+      </div>
+      {results.length > 0 && (
+        <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto">
+          {results.map((t) => (
+            <li key={t.id}>
+              <button
+                onClick={() => setTarget(t)}
+                className={`w-full rounded-md border px-2 py-1.5 text-left text-xs ${
+                  target?.id === t.id
+                    ? "border-indigo-400 bg-indigo-50 dark:border-indigo-700 dark:bg-indigo-950"
+                    : "border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
+                }`}
+              >
+                #{t.number} {t.subject}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {target && (
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            onClick={confirmMerge}
+            disabled={merging}
+            className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {merging ? "Merging…" : `Merge into #${target.number}`}
+          </button>
+          <button onClick={() => setTarget(null)} className="text-xs text-slate-600 hover:underline dark:text-slate-400">
+            Change
+          </button>
+        </div>
+      )}
+      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      <button
+        onClick={() => {
+          setOpen(false);
+          setError(null);
+        }}
+        className="mt-3 text-xs text-slate-600 hover:underline dark:text-slate-400"
+      >
+        Cancel
+      </button>
     </div>
   );
 }
@@ -356,6 +482,29 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
           </div>
         </div>
 
+        {ticket.mergedInto && (
+          <div className="mt-4 rounded-xl border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-900 dark:border-indigo-900 dark:bg-indigo-950 dark:text-indigo-200">
+            This ticket was merged into{" "}
+            <a href={`/portal/tickets/${ticket.mergedInto.id}`} className="font-medium underline">
+              #{ticket.mergedInto.number} {ticket.mergedInto.subject}
+            </a>
+            . Further updates happen there.
+          </div>
+        )}
+        {ticket.mergedTickets.length > 0 && (
+          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300">
+            Merged from:{" "}
+            {ticket.mergedTickets.map((t, i) => (
+              <span key={t.id}>
+                {i > 0 && ", "}
+                <a href={`/portal/tickets/${t.id}`} className="underline">
+                  #{t.number} {t.subject}
+                </a>
+              </span>
+            ))}
+          </div>
+        )}
+
         <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
           <p className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">{ticket.description}</p>
           <p className="mt-3 text-xs text-slate-600 dark:text-slate-400">
@@ -379,7 +528,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
           </div>
         )}
 
-        {(ticket.status === "RESOLVED" || ticket.status === "CLOSED") && (
+        {!ticket.mergedInto && (ticket.status === "RESOLVED" || ticket.status === "CLOSED") && (
           <>
             <ReopenCard
               ticketId={ticket.id}
@@ -417,6 +566,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
           {ticket.comments.length === 0 && <p className="text-sm text-slate-600 dark:text-slate-400">No replies yet.</p>}
         </div>
 
+        {!ticket.mergedInto && (
         <form onSubmit={postComment} className="mt-6 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <textarea
             rows={3}
@@ -481,6 +631,7 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
             </button>
           </div>
         </form>
+        )}
       </div>
 
       {staff && (
@@ -611,6 +762,8 @@ export default function TicketDetailPage({ params }: PageProps<"/portal/tickets/
               </>
             )}
           </div>
+
+          {!ticket.mergedInto && <MergeControl ticketId={ticket.id} onMerged={load} />}
 
           {isAdmin && (
             <button

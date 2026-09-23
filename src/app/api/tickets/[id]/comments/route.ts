@@ -20,12 +20,15 @@ export async function POST(req: Request, { params }: Params) {
 
     const ticket = await prisma.ticket.findUnique({
       where: { id },
-      include: { requester: { select: { companyId: true } } },
+      include: { requester: { select: { companyId: true } }, mergedInto: { select: { number: true } } },
     });
     if (!ticket || ticket.tenantId !== session.user.tenantId) throw new AuthError("Ticket not found", 404);
     const sameCompany = Boolean(session.user.companyId) && ticket.requester.companyId === session.user.companyId;
     const isOwnTicket = ticket.requesterId === session.user.id;
     if (!staff && !isOwnTicket && !sameCompany) throw new AuthError("Ticket not found", 404);
+    if (ticket.mergedInto) {
+      throw new AuthError(`This ticket was merged into #${ticket.mergedInto.number} — reply there instead`, 400);
+    }
 
     const { body, isInternal } = bodySchema.parse(await req.json());
     // Requesters can never post internal-only notes.

@@ -91,9 +91,17 @@ export async function POST(req: Request) {
   // the original subject under a "Re:" prefix.
   const ticketNumberMatch = subject.match(/#(\d+)/);
   if (ticketNumberMatch) {
-    const ticket = await prisma.ticket.findFirst({
+    let ticket = await prisma.ticket.findFirst({
       where: { tenantId: tenant.id, number: Number(ticketNumberMatch[1]), isDeleted: false },
     });
+    // A reply to a ticket that's since been merged lands on its target
+    // instead — the merged ticket can't take new comments (see the
+    // matching guard in /api/tickets/[id]/comments), and there's no user
+    // to bounce an async email back to, so redirecting is the graceful
+    // option rather than silently dropping the reply.
+    if (ticket?.mergedIntoId) {
+      ticket = await prisma.ticket.findUnique({ where: { id: ticket.mergedIntoId } });
+    }
     if (ticket) {
       await prisma.ticketComment.create({
         data: { ticketId: ticket.id, authorId: requester.id, body: description, isInternal: false },

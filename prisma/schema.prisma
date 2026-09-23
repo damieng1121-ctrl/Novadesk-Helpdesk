@@ -336,6 +336,15 @@ model Ticket {
   assigneeId String?
   assignee   User?   @relation("AssignedTickets", fields: [assigneeId], references: [id])
 
+  /// Set when this ticket has been merged into another (duplicate-report)
+  /// ticket — see src/app/api/tickets/[id]/merge/route.ts. A merged ticket
+  /// is always also CLOSED; its comments are copied into mergedInto so
+  /// staff see the full collated history in one place, and it can no
+  /// longer receive new replies (not even from its own requester).
+  mergedIntoId String?
+  mergedInto   Ticket?  @relation("TicketMerge", fields: [mergedIntoId], references: [id])
+  mergedTickets Ticket[] @relation("TicketMerge")
+
   // AI assistance (populated by the pluggable AI provider, see src/lib/ai)
   aiSuggestedCategory String?
   aiSuggestedPriority TicketPriority?

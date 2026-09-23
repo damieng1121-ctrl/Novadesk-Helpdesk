@@ -14,6 +14,7 @@ export async function GET(req: Request) {
     const assignee = searchParams.get("assignee"); // "me" | "unassigned" | null
     const categoryId = searchParams.get("categoryId");
     const search = searchParams.get("q");
+    const numberFilter = searchParams.get("number");
 
     const where: Prisma.TicketWhereInput = { tenantId: session.user.tenantId, isDeleted: false };
     // Collected as AND-ed sub-clauses rather than reusing `where.OR` directly,
@@ -55,6 +56,7 @@ export async function GET(req: Request) {
     if (brandFilter) where.brandId = brandFilter;
     const companyFilter = searchParams.get("companyId");
     if (companyFilter) where.companyId = companyFilter;
+    if (numberFilter && !Number.isNaN(Number(numberFilter))) where.number = Number(numberFilter);
     if (searchParams.get("outOfHours") === "true") where.isOutOfHours = true;
     if (search) {
       conditions.push({
