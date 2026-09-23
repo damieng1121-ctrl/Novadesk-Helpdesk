@@ -73,7 +73,7 @@ export default function UsersAdminPage() {
   }
   function loadCompanies() {
     fetch("/api/admin/companies")
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : []))
       .then(setCompanies);
   }
   useEffect(() => {

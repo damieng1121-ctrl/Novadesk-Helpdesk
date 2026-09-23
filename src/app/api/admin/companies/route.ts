@@ -2,14 +2,17 @@ import { z } from "zod";
 import { requireTenantSession, AuthError } from "@/lib/session";
 import { withApiErrors } from "@/lib/api";
 import { prisma } from "@/lib/db";
-import { isAdmin } from "@/lib/roles";
+import { canManageTickets, isAdmin } from "@/lib/roles";
 
-// Any signed-in tenant member can read the bare list (e.g. Reports' company
-// filter, staff-only but not admin-only); only an admin gets the per-company
-// user count, which isn't needed outside the management page.
+// Staff-only — this is the full list of every school/company the tenant
+// serves, which a requester must never see (they'd otherwise learn the
+// names of every other school on the helpdesk). Only an admin additionally
+// gets the per-company user count, which isn't needed outside the
+// management page.
 export async function GET() {
   return withApiErrors(async () => {
     const session = await requireTenantSession();
+    if (!canManageTickets(session.user.role)) throw new AuthError("Staff only", 403);
     const admin = isAdmin(session.user.role);
     return prisma.company.findMany({
       where: { tenantId: session.user.tenantId },

@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+
+const STAFF_ROLES = new Set(["AGENT", "TENANT_ADMIN", "SUPER_ADMIN"]);
 
 type Asset = {
   id: string;
@@ -33,6 +36,9 @@ const STATUS_STYLES: Record<Asset["status"], string> = {
 };
 
 export default function AssetsPage() {
+  const { data: session } = useSession();
+  const staff = !!session?.user && STAFF_ROLES.has(session.user.role);
+
   const [assets, setAssets] = useState<Asset[] | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [companyFilter, setCompanyFilter] = useState("");
@@ -55,15 +61,19 @@ export default function AssetsPage() {
   function load() {
     const qs = companyFilter ? `?companyId=${companyFilter}` : "";
     fetch(`/api/assets${qs}`)
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : []))
       .then(setAssets);
   }
   useEffect(load, [companyFilter]);
+
+  // Company names are staff-only information — see the matching comment in
+  // src/app/portal/tickets/page.tsx.
   useEffect(() => {
+    if (!staff) return;
     fetch("/api/admin/companies")
       .then((r) => (r.ok ? r.json() : []))
       .then(setCompanies);
-  }, []);
+  }, [staff]);
 
   async function createAsset(e: React.FormEvent) {
     e.preventDefault();

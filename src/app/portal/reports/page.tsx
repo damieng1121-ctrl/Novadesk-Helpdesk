@@ -43,7 +43,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     fetch("/api/admin/companies")
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : []))
       .then(setCompanies);
   }, []);
 

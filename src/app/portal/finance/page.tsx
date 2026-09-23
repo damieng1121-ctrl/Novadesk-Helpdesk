@@ -31,6 +31,7 @@ function formatGbp(pence: number): string {
 export default function FinancePage() {
   const { data: session } = useSession();
   const isAdmin = session?.user.role === "TENANT_ADMIN" || session?.user.role === "SUPER_ADMIN";
+  const staff = isAdmin || session?.user.role === "AGENT";
 
   const [records, setRecords] = useState<Record_[] | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -46,15 +47,19 @@ export default function FinancePage() {
   function load() {
     const qs = companyFilter ? `?companyId=${companyFilter}` : "";
     fetch(`/api/finance${qs}`)
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : []))
       .then(setRecords);
   }
   useEffect(load, [companyFilter]);
+
+  // Company names are staff-only information — see the matching comment in
+  // src/app/portal/tickets/page.tsx.
   useEffect(() => {
+    if (!staff) return;
     fetch("/api/admin/companies")
       .then((r) => (r.ok ? r.json() : []))
       .then(setCompanies);
-  }, []);
+  }, [staff]);
 
   async function createRecord(e: React.FormEvent) {
     e.preventDefault();

@@ -3,8 +3,11 @@
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { StatusBadge, PriorityBadge } from "@/components/badges";
 import { isOverdue } from "@/lib/sla";
+
+const STAFF_ROLES = new Set(["AGENT", "TENANT_ADMIN", "SUPER_ADMIN"]);
 
 type Ticket = {
   id: string;
@@ -34,6 +37,8 @@ export default function TicketsPage() {
 }
 
 function TicketsList() {
+  const { data: session } = useSession();
+  const staff = !!session?.user && STAFF_ROLES.has(session.user.role);
   const searchParams = useSearchParams();
   const assignee = searchParams.get("assignee");
   const [tickets, setTickets] = useState<Ticket[] | null>(null);
@@ -48,10 +53,17 @@ function TicketsList() {
     fetch("/api/brands")
       .then((r) => r.json())
       .then(setBrands);
-    fetch("/api/admin/companies")
-      .then((r) => r.json())
-      .then(setCompanies);
   }, []);
+
+  // Company names are staff-only information — a requester must never see
+  // the list of every other school on the helpdesk, which is why this
+  // fetch (and the filter it feeds) only ever runs for staff.
+  useEffect(() => {
+    if (!staff) return;
+    fetch("/api/admin/companies")
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setCompanies);
+  }, [staff]);
 
   useEffect(() => {
     const qs = new URLSearchParams();
